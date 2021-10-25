@@ -622,19 +622,73 @@ class FileOpened:
 	def __init__(self, path, index):
 		self.path = path
 		self.index = index
-		
+
+class ScrollView:
+	HiWhat = 32 #Doppioclick --> set as fuzzy
+	Selmsgstr = 101
+#	SelezioneNotizia = 102
+
+	def __init__(self, rect, name):#, OPTION, type):
+		self.lv = BListView(rect, name, B_SINGLE_SELECTION_LIST,B_FOLLOW_ALL)#,OPTION)
+		msg=BMessage(self.Selmsgstr)
+		self.lv.SetSelectionMessage(msg)
+		msg = BMessage(self.HiWhat)
+		self.lv.SetInvocationMessage(msg)
+		self.sv = BScrollView('ScrollView', self.lv, B_FOLLOW_ALL, B_WILL_DRAW, 1, 1, B_FANCY_BORDER)
+
+	def reload(self):
+			i=0
+			while self.lv.CountItems()>i:
+				self.lv.RemoveItem(self.lv.ItemAt(0))
+#			item = PaperItem("Status",0)
+#			self.lv.AddItem(item)
+
+#			item = PaperItem("Trash",cont)
+#			self.lv.AddItem(item)
+			self.lv.Select(0)
+
+	def topview(self):
+		return self.sv
+
+	def listview(self):
+		return self.lv		
+
 class POEditorBBox(BBox):
-	def __init__(self,frame,name,percors):
-		BBox.__init__(self,frame,name,B_FOLLOW_ALL,B_WILL_DRAW | B_FRAME_EVENTS,B_NO_BORDER)
+	def __init__(self,frame,name,percors,pofileloaded):
+		self.pofile = pofileloaded
+		contor = frame
+		a,s,d,f = contor
+		BBox.__init__(self,(a,s,d-5,f-35),name,B_FOLLOW_ALL,B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)#frame
 		contor=self.Bounds()
 		l, t, r, b = contor
-		print contor
+		self.list = ScrollView((l +5, t +5, r -22, b/3-15), name+'_ScrollView')
+		self.AddChild(self.list.topview())
+		playground=(l +5, b/3+7, r -5, b*2/3-2)
+		self.hsrc = playground[3] - playground[1]
+		self.source = BTextView(playground,name+'_source_BTextView',(5.0,5.0,playground[2]-2,playground[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW)
+		self.source.MakeEditable(False)
+		self.source.SetText("Text to translate")
+		self.AddChild(self.source)
+		playground=(l +5, b*2/3+2, r -5, b-5)
+		self.htrans= playground[3] - playground[1]
+		self.translation = BTextView(playground,name+'_translation_BTextView',(5.0,5.0,playground[2]-2,playground[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW)
+		self.translation.MakeEditable(True)
+		self.AddChild(self.translation)
+		for entry in self.pofile:
+			pass
+		
+#	def FrameResized(self,x,y):
+#		z, w, c, v=self.Bounds()
+##		self.ResizeTo(x,y)
+#		self.list.topview().ResizeTo(x,v-self.hsrc-self.htrans-15)
+		
+
 
 class PoWindow(BWindow):
 	Menus = (
 		('File', ((295485, 'Open'), (2, 'Save'), (1, 'Close'), (5, 'Save as...'),(None, None),(B_QUIT_REQUESTED, 'Quit'))),
 		('Translation', ((3, 'Copy from source'), (4,'Edit comment'), (70,'Done and next'), (71,'Mark as fuzzy'), (72, 'Previous'),(73,'Next'),(None, None), (6, 'Find'), (7, 'Replace'))),
-		('View', ((71,'Errors first'), (72, 'Untranslated first'),(73,'Show warnings'),(None, None),(75, 'Show Sidebar'))),
+		('View', ((74,'Fuzzy'), (75, 'Untranslated'),(76,'Translated'),(77, 'Obsolete'))),
 		('Settings', ((41, 'User settings'), (42, 'Po properties')	)),
 		('About', ((3, 'Help'),(None, None),(4, 'About')))
 		)
@@ -644,21 +698,80 @@ class PoWindow(BWindow):
 		bounds = self.Bounds()
 		self.bar = BMenuBar(bounds, 'Bar')
 		x, barheight = self.bar.GetPreferredSize()
+		self.poview=[True,True,True,False]
+		try:
+				Config.read(confile)
+				self.poview[0]=Config.getboolean('Settings', 'Fuzzy')
+		except (ConfigParser.NoSectionError):
+				print "ops! no Settings section for po listing"
+		except (ConfigParser.NoOptionError):
+				cfgfile = open(confile,'w')
+				Config.set('Settings','Fuzzy',True)
+				Config.write(cfgfile)
+				cfgfile.close()
+		try:
+				self.poview[1]=Config.getboolean('Settings', 'Untranslated')
+		except (ConfigParser.NoSectionError):
+				print "ops! no Settings section for po listing"
+		except (ConfigParser.NoOptionError):
+				cfgfile = open(confile,'w')
+				Config.set('Settings','Untranslated',True)
+				Config.write(cfgfile)
+				cfgfile.close()
+		try:
+				self.poview[2]=Config.getboolean('Settings', 'Translated')
+		except (ConfigParser.NoSectionError):
+				print "ops! no Settings section for po listing"
+		except (ConfigParser.NoOptionError):
+				cfgfile = open(confile,'w')
+				Config.set('Settings','Translated',True)
+				Config.write(cfgfile)
+				cfgfile.close()
+		try:
+				self.poview[3]=Config.getboolean('Settings', 'Obsolete')
+		except (ConfigParser.NoSectionError):
+				print "ops! no Settings section for po listing"
+		except (ConfigParser.NoOptionError):
+				cfgfile = open(confile,'w')
+				Config.set('Settings','Obsolete',False)
+				Config.write(cfgfile)
+				cfgfile.close()
+				
+		
 		for menu, items in self.Menus:
+			if menu == "View":
+				savemenu=True
+			else:
+				savemenu=False
 			menu = BMenu(menu)
 			for k, name in items:
 				if k is None:
 						menu.AddItem(BSeparatorItem())
 				else:
 						msg = BMessage(k)
-						menu.AddItem(BMenuItem(name, msg))
-			self.bar.AddItem(menu)
+						menuitem = BMenuItem(name, msg)
+						#in base a Settings
+						if name == "Fuzzy":
+							menuitem.SetMarked(self.poview[0])
+						elif name == "Untranslated":
+							menuitem.SetMarked(self.poview[1])
+						elif name == "Translated":
+							menuitem.SetMarked(self.poview[2])
+						elif name == "Obsolete":
+							menuitem.SetMarked(self.poview[3])
+						menu.AddItem(menuitem)
+			if savemenu:
+				self.savemenu = menu
+				self.bar.AddItem(self.savemenu)
+			else:
+				self.bar.AddItem(menu)
 		l, t, r, b = bounds
 		self.AddChild(self.bar)
 		##### COLOR GRAY UNDER LISTS
 		self.background = BBox((l, t + barheight, r, b), 'background', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(self.background)
 		binds = self.background.Bounds()
+		print ("riquadro sfondo applicazione",binds)
 		c,p,d,s = binds
 		###### SAVE PANEL
 		self.fp=BFilePanel(B_SAVE_PANEL) #BFilePanel.BFilePanel(B_SAVE_PANEL)
@@ -678,7 +791,7 @@ class PoWindow(BWindow):
 		altece = self.postabview.TabHeight()
 		tfr = (5.0, 5.0, d*3/4-5, s-5)#(10.0, 10.0, d-25, s - 5 - altece)
 		self.trc = (0.0, 0.0, tfr[2] - tfr[0], tfr[3] - tfr[1])
-		
+
 		self.tabslabels=[]
 		self.editorslist=[]
 		
@@ -703,9 +816,12 @@ class PoWindow(BWindow):
 			except (ConfigParser.NoSectionError):
 				print "ops! no Settings section for custom encoding"
 				self.setencoding = False
+			except (ConfigParser.NoOptionError):
+				self.setencoding = False
 			
 #	def FrameResized(self,x,y):
-
+#		for b in self.editorslist:
+#			b.FrameResized(x,y)
 
 	def MessageReceived(self, msg):
 		if msg.what == 295485:
@@ -723,6 +839,147 @@ class PoWindow(BWindow):
 			self.usersettings.Show()
 			self.SetFlags(B_AVOID_FOCUS)
 			return
+		
+		if msg.what == 74:
+			if self.poview[0]:
+				#try:
+					Config.read(confile)
+					sezpresent = False
+					men=self.savemenu.FindItem(74)
+					men.SetMarked(0)
+					sezioni=Config.sections()
+					for x in sezioni:
+						if x == "Settings":
+							sezpresent = True
+					if not sezpresent:
+						Config.add_section('Settings')
+					cfgfile = open(confile,'w')
+					Config.set('Settings','Fuzzy',False)
+					Config.write(cfgfile)
+					cfgfile.close()
+					self.poview[0]=False
+			else:
+					Config.read(confile)
+					sezpresent = False
+					men=self.savemenu.FindItem(74)
+					men.SetMarked(1)
+					sezioni=Config.sections()
+					for x in sezioni:
+						if x == "Settings":
+							sezpresent = True
+					if not sezpresent:
+						Config.add_section('Settings')
+					cfgfile = open(confile,'w')
+					Config.set('Settings','Fuzzy',True)
+					Config.write(cfgfile)
+					cfgfile.close()
+					self.poview[0]=True
+					
+		if msg.what == 75:
+			if self.poview[1]:
+				#try:
+					Config.read(confile)
+					sezpresent = False
+					men=self.savemenu.FindItem(75)
+					men.SetMarked(0)
+					sezioni=Config.sections()
+					for x in sezioni:
+						if x == "Settings":
+							sezpresent = True
+					if not sezpresent:
+						Config.add_section('Settings')
+					cfgfile = open(confile,'w')
+					Config.set('Settings','Untranslated',False)
+					Config.write(cfgfile)
+					cfgfile.close()
+					self.poview[1]=False
+			else:
+					Config.read(confile)
+					sezpresent = False
+					men=self.savemenu.FindItem(75)
+					men.SetMarked(1)
+					sezioni=Config.sections()
+					for x in sezioni:
+						if x == "Settings":
+							sezpresent = True
+					if not sezpresent:
+						Config.add_section('Settings')
+					cfgfile = open(confile,'w')
+					Config.set('Settings','Untranslated',True)
+					Config.write(cfgfile)
+					cfgfile.close()
+					self.poview[1]=True
+
+		if msg.what == 76:
+			if self.poview[2]:
+				#try:
+					Config.read(confile)
+					sezpresent = False
+					men=self.savemenu.FindItem(76)
+					men.SetMarked(0)
+					sezioni=Config.sections()
+					for x in sezioni:
+						if x == "Settings":
+							sezpresent = True
+					if not sezpresent:
+						Config.add_section('Settings')
+					cfgfile = open(confile,'w')
+					Config.set('Settings','Translated',False)
+					Config.write(cfgfile)
+					cfgfile.close()
+					self.poview[2]=False
+			else:
+					Config.read(confile)
+					sezpresent = False
+					men=self.savemenu.FindItem(76)
+					men.SetMarked(1)
+					sezioni=Config.sections()
+					for x in sezioni:
+						if x == "Settings":
+							sezpresent = True
+					if not sezpresent:
+						Config.add_section('Settings')
+					cfgfile = open(confile,'w')
+					Config.set('Settings','Translated',True)
+					Config.write(cfgfile)
+					cfgfile.close()
+					self.poview[2]=True
+					
+		if msg.what == 77:
+			if self.poview[3]:
+				#try:
+					Config.read(confile)
+					sezpresent = False
+					men=self.savemenu.FindItem(77)
+					men.SetMarked(0)
+					sezioni=Config.sections()
+					for x in sezioni:
+						if x == "Settings":
+							sezpresent = True
+					if not sezpresent:
+						Config.add_section('Settings')
+					cfgfile = open(confile,'w')
+					Config.set('Settings','Obsolete',False)
+					Config.write(cfgfile)
+					cfgfile.close()
+					self.poview[3]=False
+			else:
+					Config.read(confile)
+					sezpresent = False
+					men=self.savemenu.FindItem(77)
+					men.SetMarked(1)
+					sezioni=Config.sections()
+					for x in sezioni:
+						if x == "Settings":
+							sezpresent = True
+					if not sezpresent:
+						Config.add_section('Settings')
+					cfgfile = open(confile,'w')
+					Config.set('Settings','Obsolete',True)
+					Config.write(cfgfile)
+					cfgfile.close()
+					self.poview[3]=True
+
 
 		if msg.what == 305:
 			#USER CREATOR WIZARD
@@ -781,7 +1038,9 @@ class PoWindow(BWindow):
 							if mimeinstalled:
 								say = BAlert('oops', "The file is ok, but there's no gettext mimetype installed in your system", 'Ok',None, None, None, 3)
 								say.Go()
-							self.loadPOfile(txtpath,self.trc)
+								tfr = self.postabview.Bounds()
+								trc = (0.0, 0.0, tfr[2] - tfr[0], tfr[3] - tfr[1])
+							self.loadPOfile(txtpath,trc,self.pof)
 						except:
 							test = compiletest(mimesuptbool,mimesubtbool,extbool)
 							say = BAlert('oops', 'Failed to load: '+test, 'Ok',None, None, None, 3)
@@ -792,7 +1051,10 @@ class PoWindow(BWindow):
 							if mimeinstalled:
 								say = BAlert('oops', "The file is ok, but there's no gettext mimetype installed in your system", 'Ok',None, None, None, 3)
 								say.Go()
-							self.loadPOfile(txtpath,self.trc)
+							tfr = self.postabview.Bounds()
+							trc = (0.0, 0.0, tfr[2] - tfr[0], tfr[3] - tfr[1])
+							print ("riquadro passato",trc)
+							self.loadPOfile(txtpath,trc,self.pof)
 						#except:
 						#	test = compiletest(mimesuptbool,mimesubtbool,extbool)
 						#	say = BAlert('oops', 'Failed to load: '+test, 'Ok',None, None, None, 3)
@@ -809,13 +1071,13 @@ class PoWindow(BWindow):
 			self.SetFlags(0)
 			return
 			
-	def  loadPOfile(self,pathtofile,bounds):
+	def  loadPOfile(self,pathtofile,bounds,pofile):
 			########################## TODO ####################################
 			##### check if .name.temp.po file exists and is more recent than name.po
 			##### check for po compliance with user lang
 			##### add a tab in the editor's tabview
 			head, tail = os.path.split(pathtofile)
-			self.editorslist.append(POEditorBBox(bounds,tail,pathtofile))
+			self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile))
 			self.tabslabels.append(BTab())
 			x=len(self.editorslist)-1
 			self.postabview.AddTab(self.editorslist[x], self.tabslabels[x])
@@ -830,8 +1092,16 @@ class HaiPOApp(BApplication.BApplication):
 	def __init__(self):
 		BApplication.BApplication.__init__(self, "application/x-vnd.HaiPO-Editor")
 
+
 	def ReadyToRun(self):
 		window((100,80,800,600))
+		if len(sys.argv) > 1:
+			try:
+				percors = sys.argv[1]
+				print os.path.abspath(percors)
+				self.elaborate_path(os.path.abspath(percors))
+			except:
+				pass
 		
 	def RefsReceived(self, msg):
 		#msg.PrintToStream()
@@ -843,33 +1113,38 @@ class HaiPOApp(BApplication.BApplication):
 					entryref = BEntry(e,True) #BEntry.BEntry(e,True)
 					percors = entryref.GetPath()
 					self.txtpath= percors.Path()
+					self.elaborate_path(self.txtpath)
+#					filename, file_extension = os.path.splitext(self.txtpath)
+#					###### CHECK FOR PO MIME TYPE ???
+#					static = BMimeType()
+#					mime = static.GuessMimeType(self.txtpath)
+#					mimetype = repr(mime.Type()).replace('\'','')
+#					supertype,subtype = mimetype.split('/')
+#					smesg=BMessage(445380)
+#					smesg.AddString("path",self.txtpath)
+#					smesg.AddString("extension",file_extension)
+#					smesg.AddString("mime_supertype",supertype)
+#					smesg.AddString("mime_subtype",subtype)
+#					BApplication.be_app.WindowAt(0).PostMessage(smesg)
+				except:
+					e = None
+				if e is None:
+					break
+				i = i + 1
+	def elaborate_path(self,percors):
+					self.txtpath = percors
 					filename, file_extension = os.path.splitext(self.txtpath)
-					###### CHECK FOR PO MIME TYPE ???
 					static = BMimeType()
 					mime = static.GuessMimeType(self.txtpath)
 					mimetype = repr(mime.Type()).replace('\'','')
 					supertype,subtype = mimetype.split('/')
+					
 					smesg=BMessage(445380)
 					smesg.AddString("path",self.txtpath)
 					smesg.AddString("extension",file_extension)
 					smesg.AddString("mime_supertype",supertype)
 					smesg.AddString("mime_subtype",subtype)
 					BApplication.be_app.WindowAt(0).PostMessage(smesg)
-					
-					#this is for extensions accepted by mimetype and it sends it as a bmessage
-					#out = mime.GetFileExtensions()
-					#try:
-					#	e = out.FindString("extensions")
-					#	messaggio = BMessage(54173)
-					#	messaggio.AddString("extensions",e)
-					#	BApplication.be_app.WindowAt(0).PostMessage(messaggio)
-					#except:
-					#	print ("No extensions found for "+subtype+" mimetype")
-				except:
-					e = None
-				if e is None:
-					break
-				i = i + 1
 				
 	def QuitRequested(self):
 		return 1
