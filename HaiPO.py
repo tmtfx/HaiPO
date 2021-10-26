@@ -112,7 +112,8 @@ try:
 #	import BFilePanel, BEntry
 	from BFilePanel import BFilePanel
 	from BEntry import BEntry
-	from InterfaceKit import B_VERTICAL,B_FOLLOW_ALL,B_FOLLOW_TOP,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_WIDTH_FROM_LABEL,B_TRIANGLE_THUMB,B_BLOCK_THUMB,B_FLOATING_WINDOW,B_TITLED_WINDOW,B_WILL_DRAW,B_NAVIGABLE,B_FRAME_EVENTS,B_ALIGN_CENTER,B_FOLLOW_ALL_SIDES,B_MODAL_WINDOW,B_FOLLOW_TOP_BOTTOM,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT_RIGHT,B_SINGLE_SELECTION_LIST,B_NOT_RESIZABLE,B_NOT_ZOOMABLE,B_PLAIN_BORDER,B_FANCY_BORDER,B_NO_BORDER,B_ITEMS_IN_COLUMN,B_AVOID_FOCUS
+	from BScrollBar import BScrollBar
+	from InterfaceKit import B_V_SCROLL_BAR_WIDTH,B_FULL_UPDATE_ON_RESIZE,B_VERTICAL,B_FOLLOW_ALL,B_FOLLOW_TOP,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_WIDTH_FROM_LABEL,B_TRIANGLE_THUMB,B_BLOCK_THUMB,B_FLOATING_WINDOW,B_TITLED_WINDOW,B_WILL_DRAW,B_NAVIGABLE,B_FRAME_EVENTS,B_ALIGN_CENTER,B_FOLLOW_ALL_SIDES,B_MODAL_WINDOW,B_FOLLOW_TOP_BOTTOM,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT_RIGHT,B_SINGLE_SELECTION_LIST,B_NOT_RESIZABLE,B_NOT_ZOOMABLE,B_PLAIN_BORDER,B_FANCY_BORDER,B_NO_BORDER,B_ITEMS_IN_COLUMN,B_AVOID_FOCUS
 	from AppKit import B_QUIT_REQUESTED,B_KEY_UP,B_KEY_DOWN,B_MODIFIERS_CHANGED,B_UNMAPPED_KEY_DOWN,B_REFS_RECEIVED,B_SAVE_REQUESTED,B_CANCEL
 	from StorageKit import B_SAVE_PANEL,B_OPEN_PANEL,B_FILE_NODE,B_READ_ONLY
 	from SupportKit import B_ERROR,B_ENTRY_NOT_FOUND,B_OK
@@ -281,12 +282,9 @@ class ImpostazionsUtent(BWindow):
 			Config.read(confile)
 			cfgfile = open(confile,'w')
 			index=self.userstabview.Selection()
-			#print ("is "+self.userviewlist[index].name+" the old name?")
 			oldname = self.userviewlist[index].name
 			defname = ConfigSectionMap("Users")['default']
 			newusername = self.userviewlist[index].username.Text()
-			#self.userviewlist[index].name = newusername ----> no effect
-			#self.tabslabels[index] = newusername ---> no crash
 			if defname == oldname:
 				Config.set('Users','default', newusername)
 			newnames = ConfigSectionMap("Users")['names']
@@ -617,24 +615,20 @@ class AboutWindow(BWindow):
 			self.Quit()
 		else:
 			return
-			
-class FileOpened:
-	def __init__(self, path, index):
-		self.path = path
-		self.index = index
+
 
 class ScrollView:
 	HiWhat = 32 #Doppioclick --> set as fuzzy
-	Selmsgstr = 101
+	Selmsgstr = 460550
 #	SelezioneNotizia = 102
 
 	def __init__(self, rect, name):#, OPTION, type):
-		self.lv = BListView(rect, name, B_SINGLE_SELECTION_LIST,B_FOLLOW_ALL)#,OPTION)
+		self.lv = BListView(rect, name, B_SINGLE_SELECTION_LIST,B_FOLLOW_ALL_SIDES,B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_FRAME_EVENTS)#,OPTION)
 		msg=BMessage(self.Selmsgstr)
 		self.lv.SetSelectionMessage(msg)
 		msg = BMessage(self.HiWhat)
 		self.lv.SetInvocationMessage(msg)
-		self.sv = BScrollView('ScrollView', self.lv, B_FOLLOW_ALL, B_WILL_DRAW, 1, 1, B_FANCY_BORDER)
+		self.sv = BScrollView('ScrollView', self.lv, B_FOLLOW_ALL_SIDES, B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_NAVIGABLE|B_FRAME_EVENTS, 0, 0, B_FANCY_BORDER)
 
 	def reload(self):
 			i=0
@@ -646,36 +640,117 @@ class ScrollView:
 #			item = PaperItem("Trash",cont)
 #			self.lv.AddItem(item)
 			self.lv.Select(0)
+		
+	def SelectedText(self):
+			return self.lv.ItemAt(self.lv.CurrentSelection()).Text()
 
 	def topview(self):
 		return self.sv
 
 	def listview(self):
-		return self.lv		
+		return self.lv
+		
+class MsgStrItem(BListItem):
+	nocolor = (0, 0, 0, 0)
+	####  states table
+	untranslated = 0
+	translated = 1
+	fuzzy = 2
+	obslete = 3
+
+	def __init__(self, text,state,encoding):
+		self.text = text.encode(encoding)  #it's in english should this be always utf-8
+		self.state=state
+		BListItem.__init__(self)
+
+	def DrawItem(self, owner, frame,complete):
+		if self.IsSelected() or complete:
+			color = (200,200,200,255)
+			owner.SetHighColor(color)
+			owner.SetLowColor(color)
+			owner.FillRect(frame)
+			if self.state == 0: 
+				self.color = (0,0,255,0)
+			elif self.state == 1:
+				self.color = self.nocolor
+			elif self.state == 2:
+				self.color = (153,153,0,0)
+			elif self.state == 3:
+				self.color = (150,75,0)
+
+		if self.state == 0:
+				self.color = (0,0,255,0)
+		elif self.state == 1:
+				self.color = self.nocolor
+		elif self.state == 2:
+				self.color = (153,153,0,0)
+		elif self.state == 3:
+				self.color = (97,10,10,0)
+		owner.SetHighColor(self.color)
+		#if self.color == (200,0,0,0):
+		#	self.font = be_bold_font
+		#	owner.SetFont(self.font)
+		#else:	
+		#	self.font = be_plain_font
+		#	owner.SetFont(self.font)
+		owner.MovePenTo(frame[0],frame[3]-2)
+		owner.DrawString(self.text)
+		owner.SetLowColor((255,255,255,255))
+
+	def Text(self):
+		return self.text
 
 class POEditorBBox(BBox):
-	def __init__(self,frame,name,percors,pofileloaded):
+	def __init__(self,frame,name,percors,pofileloaded,arrayview,encoding):
 		self.pofile = pofileloaded
+		self.encoding=encoding
+		ind=0
+		datab=[]
+		for entry in self.pofile:
+				datab.append((ind,entry.msgid,entry.msgstr))
+				ind=ind+1
+				
 		contor = frame
 		a,s,d,f = contor
 		BBox.__init__(self,(a,s,d-5,f-35),name,B_FOLLOW_ALL,B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)#frame
 		contor=self.Bounds()
 		l, t, r, b = contor
-		self.list = ScrollView((l +5, t +5, r -22, b/3-15), name+'_ScrollView')
+		self.list = ScrollView((5, 5, r -22, b-247), name+'_ScrollView')
 		self.AddChild(self.list.topview())
-		playground=(l +5, b/3+7, r -5, b*2/3-2)
-		self.hsrc = playground[3] - playground[1]
-		self.source = BTextView(playground,name+'_source_BTextView',(5.0,5.0,playground[2]-2,playground[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW)
+		self.scrollb = BScrollBar((r -21,5,r-5,b-247),name+'_ScrollBar',self.list.listview(),0.0,float(len(datab)),B_VERTICAL)
+		self.AddChild(self.scrollb)
+		playground1 = (5,b-243,r -5, b-123)
+		self.hsrc = playground1[3] - playground1[1]
+		self.source = BTextView(playground1,name+'_source_BTextView',(5.0,5.0,playground1[2]-2,playground1[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW)
 		self.source.MakeEditable(False)
-		self.source.SetText("Text to translate")
 		self.AddChild(self.source)
-		playground=(l +5, b*2/3+2, r -5, b-5)
-		self.htrans= playground[3] - playground[1]
-		self.translation = BTextView(playground,name+'_translation_BTextView',(5.0,5.0,playground[2]-2,playground[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW)
+		playground2 = (5, b-120,r -5, b-5)
+		self.htrans= playground2[3] - playground2[1]
+		self.translation = BTextView(playground2,name+'_translation_BTextView',(5.0,5.0,playground2[2]-2,playground2[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW)
 		self.translation.MakeEditable(True)
 		self.AddChild(self.translation)
-		for entry in self.pofile:
-			pass
+		
+		if arrayview[2]:
+			for entry in self.pofile.fuzzy_entries():
+				item = MsgStrItem(entry.msgid,2,encoding)
+				self.list.lv.AddItem(item)
+		if arrayview[0]:
+			for entry in self.pofile.untranslated_entries():
+				item = MsgStrItem(entry.msgid,0,encoding)
+				self.list.lv.AddItem(item)
+		if arrayview[1]:
+			for entry in self.pofile.translated_entries():
+				item = MsgStrItem(entry.msgid,1,encoding)
+				self.list.lv.AddItem(item)
+		if arrayview[3]:
+			for entry in self.pofile.obsolete():
+				item = MsgStrItem(entry.msgid,3,encoding)
+				self.list.lv.AddItem(item)
+#		else:
+#			pass
+	
+	def reloadlist(self,arrayview):
+		pass
 		
 #	def FrameResized(self,x,y):
 #		z, w, c, v=self.Bounds()
@@ -771,7 +846,6 @@ class PoWindow(BWindow):
 		self.background = BBox((l, t + barheight, r, b), 'background', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(self.background)
 		binds = self.background.Bounds()
-		print ("riquadro sfondo applicazione",binds)
 		c,p,d,s = binds
 		###### SAVE PANEL
 		self.fp=BFilePanel(B_SAVE_PANEL) #BFilePanel.BFilePanel(B_SAVE_PANEL)
@@ -812,16 +886,46 @@ class PoWindow(BWindow):
 					except (ConfigParser.NoSectionError):
 						print ("custom encoding method specified but no encoding indicated")
 						self.setencoding = False
-				print self.setencoding
 			except (ConfigParser.NoSectionError):
 				print "ops! no Settings section for custom encoding"
 				self.setencoding = False
 			except (ConfigParser.NoOptionError):
 				self.setencoding = False
 			
-#	def FrameResized(self,x,y):
-#		for b in self.editorslist:
-#			b.FrameResized(x,y)
+	def FrameResized(self,x,y):
+			i=self.postabview.Selection()
+			h,j,k,l = self.editorslist[i].Bounds()
+			zx,xc,cv,vb = self.editorslist[i].scrollb.Bounds()
+			for b in self.editorslist:
+				if b == self.editorslist[i]:
+					pass
+					#######################  do you need this?
+#					z,x,c,v=b.list.sv.Bounds()
+#					b.list.sv.ResizeTo(c,v)
+#					b.list.lv.ResizeTo(c-20,v-20) #invece di numero fisso mettere larghezza scrollbars B_H_SCROLL_BAR_WIDTH B_V_SCROLL_BAR_WIDTH
+#					u,m,o,y= b.source.Bounds()
+#					boundos = (5.0, 5.0, (o - 5.0), (y-5.0))
+#					b.source.SetTextRect(boundos)
+#					u,m,o,y= b.translation.Bounds()
+#					boundos = (5.0, 5.0, (o - 5.0), (y-5.0))
+#					b.translation.SetTextRect(boundos)
+				else:
+					b.ResizeTo(k,l)
+					b.list.lv.ResizeTo(k-27,l-252)
+					b.list.sv.ResizeTo(k-23,l-248)
+					b.scrollb.MoveTo(k-21,5)
+					b.scrollb.ResizeTo(cv-zx,l-252) ############ No 16! This should be B_V_SCROLL_BAR_WIDTH
+					b.source.MoveTo(5,l-243)
+					b.source.ResizeTo(k-10,120)
+					u,m,o,y= b.source.Bounds()
+					boundos = (5,5,o-5,y-5)
+					b.source.SetTextRect(boundos)
+					b.translation.MoveTo(5,l-120)
+					b.translation.ResizeTo(k-10,115)
+					u,m,o,y= b.translation.Bounds()
+					boundos = (5.0, 5.0, (o - 5.0), (y-5.0))
+					b.translation.SetTextRect(boundos)
+		#BApplication.be_app.WindowAt(0).PostMessage(BMessage(130550))
 
 	def MessageReceived(self, msg):
 		if msg.what == 295485:
@@ -980,7 +1084,40 @@ class PoWindow(BWindow):
 					cfgfile.close()
 					self.poview[3]=True
 
-
+		if msg.what == 130550: ################ unused for now
+			pass
+#			i=self.postabview.Selection()
+#			h,j,k,l = self.editorslist[i].Bounds()
+#			for b in self.editorslist:
+#				if b == self.editorslist[i]:
+#					pass
+#					#######################  do you need this?
+##					z,x,c,v=b.list.sv.Bounds()
+##					b.list.sv.ResizeTo(c,v)
+##					b.list.lv.ResizeTo(c-20,v-20) #invece di numero fisso mettere larghezza scrollbars B_H_SCROLL_BAR_WIDTH B_V_SCROLL_BAR_WIDTH
+##					u,m,o,y= b.source.Bounds()
+##					boundos = (5.0, 5.0, (o - 5.0), (y-5.0))
+##					b.source.SetTextRect(boundos)
+##					u,m,o,y= b.translation.Bounds()
+##					boundos = (5.0, 5.0, (o - 5.0), (y-5.0))
+##					b.translation.SetTextRect(boundos)
+#				else:
+#					b.ResizeTo(k,l)
+#					b.list.lv.ResizeTo(k-27,l-252)
+#					b.list.sv.ResizeTo(k-23,l-248)
+#					b.scrollb.MoveTo(k-21,5)
+#					b.scrollb.ResizeTo(16,l-252) ############ No 16! This should be B_V_SCROLL_BAR_WIDTH
+#					b.source.MoveTo(5,l-243)
+#					b.source.ResizeTo(k-10,120)
+#					u,m,o,y= b.source.Bounds()
+#					boundos = (5,5,o-5,y-5)
+#					b.source.SetTextRect(boundos)
+#					b.translation.MoveTo(5,l-120)
+#					b.translation.ResizeTo(k-10,115)
+#					u,m,o,y= b.translation.Bounds()
+#					boundos = (5.0, 5.0, (o - 5.0), (y-5.0))
+#					b.translation.SetTextRect(boundos)
+				
 		if msg.what == 305:
 			#USER CREATOR WIZARD
 			self.maacutent = MaacUtent(True)
@@ -989,7 +1126,6 @@ class PoWindow(BWindow):
 			return
 		
 		if msg.what == 445380:
-			print "ben po! nin a cjariâ un pocje di robe"
 			#msg.PrintToStream()
 			txtpath=msg.FindString("path")
 			mimesuptbool = False
@@ -1034,7 +1170,7 @@ class PoWindow(BWindow):
 				if letsgo:
 					if self.setencoding:
 						try:
-							self.pof = polib.pofile(txtpath,self.encoding)
+							self.pof = polib.pofile(txtpath,encoding=self.encoding)
 							if mimeinstalled:
 								say = BAlert('oops', "The file is ok, but there's no gettext mimetype installed in your system", 'Ok',None, None, None, 3)
 								say.Go()
@@ -1046,14 +1182,15 @@ class PoWindow(BWindow):
 							say = BAlert('oops', 'Failed to load: '+test, 'Ok',None, None, None, 3)
 							say.Go()
 					else:
+						# reinsert commented lines
 						#try:
-							self.pof = polib.pofile(txtpath)
+							self.encoding="utf-8"
+							self.pof = polib.pofile(txtpath,encoding=self.encoding)
 							if mimeinstalled:
 								say = BAlert('oops', "The file is ok, but there's no gettext mimetype installed in your system", 'Ok',None, None, None, 3)
 								say.Go()
 							tfr = self.postabview.Bounds()
 							trc = (0.0, 0.0, tfr[2] - tfr[0], tfr[3] - tfr[1])
-							print ("riquadro passato",trc)
 							self.loadPOfile(txtpath,trc,self.pof)
 						#except:
 						#	test = compiletest(mimesuptbool,mimesubtbool,extbool)
@@ -1065,6 +1202,14 @@ class PoWindow(BWindow):
 			#if e is None:
 			#		pass
 			return
+			
+		if msg.what == 460550:
+			
+			txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText()
+			for entry in self.editorslist[self.postabview.Selection()].pofile:
+				if entry.msgid.encode(self.encoding) == txttosearch:
+					self.editorslist[self.postabview.Selection()].source.SetText(entry.msgid.encode(self.encoding))
+					self.editorslist[self.postabview.Selection()].translation.SetText(entry.msgstr.encode(self.encoding))
 
 		if msg.what ==  777:
 			#Removing B_AVOID_FOCUS flag
@@ -1075,12 +1220,15 @@ class PoWindow(BWindow):
 			########################## TODO ####################################
 			##### check if .name.temp.po file exists and is more recent than name.po
 			##### check for po compliance with user lang
+			
 			##### add a tab in the editor's tabview
 			head, tail = os.path.split(pathtofile)
-			self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile))
+			self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile,self.poview,self.encoding))
 			self.tabslabels.append(BTab())
 			x=len(self.editorslist)-1
 			self.postabview.AddTab(self.editorslist[x], self.tabslabels[x])
+			self.postabview.SetFocusTab(x,True)
+			self.postabview.Select(x)
 			
 	def QuitRequested(self):
 		print "So long and thanks for all the fish"
@@ -1097,9 +1245,12 @@ class HaiPOApp(BApplication.BApplication):
 		window((100,80,800,600))
 		if len(sys.argv) > 1:
 			try:
-				percors = sys.argv[1]
-				print os.path.abspath(percors)
-				self.elaborate_path(os.path.abspath(percors))
+				for item in sys.argv:
+					if item == sys.argv[0]:
+						pass
+					else:
+						percors = item
+						self.elaborate_path(os.path.abspath(percors))
 			except:
 				pass
 		
@@ -1110,27 +1261,16 @@ class HaiPOApp(BApplication.BApplication):
 			while 1:
 				try:
 					e = msg.FindRef("refs", i)
-					entryref = BEntry(e,True) #BEntry.BEntry(e,True)
+					entryref = BEntry(e,True)
 					percors = entryref.GetPath()
 					self.txtpath= percors.Path()
 					self.elaborate_path(self.txtpath)
-#					filename, file_extension = os.path.splitext(self.txtpath)
-#					###### CHECK FOR PO MIME TYPE ???
-#					static = BMimeType()
-#					mime = static.GuessMimeType(self.txtpath)
-#					mimetype = repr(mime.Type()).replace('\'','')
-#					supertype,subtype = mimetype.split('/')
-#					smesg=BMessage(445380)
-#					smesg.AddString("path",self.txtpath)
-#					smesg.AddString("extension",file_extension)
-#					smesg.AddString("mime_supertype",supertype)
-#					smesg.AddString("mime_subtype",subtype)
-#					BApplication.be_app.WindowAt(0).PostMessage(smesg)
 				except:
 					e = None
 				if e is None:
 					break
 				i = i + 1
+
 	def elaborate_path(self,percors):
 					self.txtpath = percors
 					filename, file_extension = os.path.splitext(self.txtpath)
