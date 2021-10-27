@@ -727,6 +727,29 @@ class MsgStrItem(BListItem):
 	def Text(self):
 		return self.text
 
+class EventTextView(BTextView):
+	def __init__(self,frame,name,textRect,resizingMode,flags):
+		self.oldtext=""
+		self.oldtextloaded=False
+		self.tosave=False
+		BTextView.__init__(self,frame,name,textRect,resizingMode,flags)
+
+	def KeyDown(self,char,bytes):
+		print ("pressed " +char)
+		#modifica stato
+		#controllo ortografia
+		#if char == B_SPACE:
+		#	break;
+		#elif char == 
+		#self.Insert(char)
+		self.tosave=True  #### This says you should save the string before proceeding
+		return BTextView.KeyDown(self,char,bytes)
+		
+	def SetPOReadText(self,text):
+		self.oldtext=text
+		self.oldtextloaded=True
+		self.SetText(text)
+
 class POEditorBBox(BBox):
 	def __init__(self,frame,name,percors,pofileloaded,arrayview,encoding):
 		self.pofile = pofileloaded
@@ -748,17 +771,16 @@ class POEditorBBox(BBox):
 		self.AddChild(self.scrollb)
 		playground1 = (5,b-243,r -5, b-123)
 		self.hsrc = playground1[3] - playground1[1]
-		self.source = BTextView(playground1,name+'_source_BTextView',(5.0,5.0,playground1[2]-2,playground1[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW)
+		self.source = BTextView(playground1,name+'_source_BTextView',(5.0,5.0,playground1[2]-2,playground1[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.source.MakeEditable(False)
 		self.AddChild(self.source)
 		playground2 = (5, b-120,r -5, b-5)
 		self.htrans= playground2[3] - playground2[1]
-		self.translation = BTextView(playground2,name+'_translation_BTextView',(5.0,5.0,playground2[2]-2,playground2[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW)
+		self.translation = EventTextView(playground2,name+'_translation_BTextView',(5.0,5.0,playground2[2]-2,playground2[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
 		#new BTextView with KeyDown() hook
 		#self.translation2 = BTextControl(playground2,name+'_translation_BTextControl','','',BMessage(303030),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW)
 		self.translation.MakeEditable(True)
 		self.AddChild(self.translation)
-		print arrayview
 		if arrayview[0]:
 			for entry in self.pofile.fuzzy_entries():
 				item = MsgStrItem(entry.msgid,2,encoding)
@@ -1249,7 +1271,7 @@ class PoWindow(BWindow):
 			for entry in self.editorslist[self.postabview.Selection()].pofile:
 				if entry.msgid.encode(self.encoding) == txttosearch:
 					self.editorslist[self.postabview.Selection()].source.SetText(entry.msgid.encode(self.encoding))
-					self.editorslist[self.postabview.Selection()].translation.SetText(entry.msgstr.encode(self.encoding))
+					self.editorslist[self.postabview.Selection()].translation.SetPOReadText(entry.msgstr.encode(self.encoding))
 
 		if msg.what ==  777:
 			#Removing B_AVOID_FOCUS flag
