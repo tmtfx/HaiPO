@@ -979,6 +979,19 @@ class PoWindow(BWindow):
 		#BApplication.be_app.WindowAt(0).PostMessage(BMessage(130550))
 
 	def MessageReceived(self, msg):
+		if msg.what == B_MODIFIERS_CHANGED:#B_KEY_UP:
+			print "modifier: "
+			msg.PrintToStream()
+			#if B_MODIFIERS_CHANGED:
+			#	print "sì"
+			#else:
+			#	print "no"
+			
+			#print "premuto tasto modificatore"
+			return
+		if msg.what == B_KEY_DOWN:
+			print "key down: "
+			msg.PrintToStream()
 		if msg.what == 295485:
 			self.ofp.Show()
 			return
@@ -1033,7 +1046,7 @@ class PoWindow(BWindow):
 				b.list.reload(self.poview,b.pofile,self.encoding)
 			msg = BMessage(460551) #clears TextViews
 			BApplication.be_app.WindowAt(0).PostMessage(msg)
-
+			return
 					
 		if msg.what == 75:
 			if self.poview[1]:
@@ -1073,7 +1086,7 @@ class PoWindow(BWindow):
 				b.list.reload(self.poview,b.pofile,self.encoding)
 			msg = BMessage(460551) #clears TextViews
 			BApplication.be_app.WindowAt(0).PostMessage(msg)
-
+			return
 
 		if msg.what == 76:
 			if self.poview[2]:
@@ -1113,7 +1126,7 @@ class PoWindow(BWindow):
 				b.list.reload(self.poview,b.pofile,self.encoding)
 			msg = BMessage(460551) #clears TextViews
 			BApplication.be_app.WindowAt(0).PostMessage(msg)
-
+			return
 		
 		if msg.what == 77:
 			if self.poview[3]:
@@ -1153,6 +1166,7 @@ class PoWindow(BWindow):
 				b.list.reload(self.poview,b.pofile,self.encoding)
 			msg = BMessage(460551) #clears TextViews
 			BApplication.be_app.WindowAt(0).PostMessage(msg)
+			return
 
 		if msg.what == 130550: ################ unused for now
 			pass
