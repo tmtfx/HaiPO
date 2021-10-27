@@ -24,7 +24,11 @@
 #
 #******************************************************
 
-import os,sys,ConfigParser,struct,re,polib
+import os,sys,ConfigParser,struct,re
+try:
+	import polib
+except:
+	print "Your python environment has no polib module"
 
 Config=ConfigParser.ConfigParser()
 def ConfigSectionMap(section):
@@ -56,7 +60,6 @@ if os.path.isfile(confile):
 
 	except (ConfigParser.NoSectionError):
 		os.rename(os.path.join(sys.path[0],'config.ini'),os.path.join(sys.path[0],'config_old.ini'))
-		#print("o cambi il non al file e lu torni a creâ just")
 		firstrun = True
 else:
 	firstrun = True
@@ -75,11 +78,6 @@ else:
 
 jes = False
 
-#try:
-#	import sqlite3
-#except:
-#	print "your system lacks of SQLite3 module"
-#	jes = True
 try:
 	import BApplication
 	from BStringItem import BStringItem
@@ -118,7 +116,7 @@ try:
 	from StorageKit import B_SAVE_PANEL,B_OPEN_PANEL,B_FILE_NODE,B_READ_ONLY
 	from SupportKit import B_ERROR,B_ENTRY_NOT_FOUND,B_OK
 except:
-	print "your system lacks of Bethon modules"
+	print "Your python environment has no Bethon modules"
 	jes = True
 
 if jes:
@@ -490,8 +488,7 @@ class MaacUtent(BWindow):
 					names=""
 					cfgfile = open(confile,'w')
 					Config.add_section('Users')
-					
-				#cfgfile = open(confile,'w')
+
 				
 				Config.set('Users','names', (names+sectname+";"))
 				Config.set('Users','default', sectname)
@@ -661,12 +658,10 @@ class ScrollView:
 				for entry in pofile.obsolete():
 					item = MsgStrItem(entry.msgid,3,encoding)
 					self.lv.AddItem(item)
-#			item = PaperItem("Status",0)
-#			self.lv.AddItem(item)
-
-#			item = PaperItem("Trash",cont)
-#			self.lv.AddItem(item)
-			self.lv.Select(0)
+			self.lv.DeselectAll()
+			
+			
+			#self.lv.Select(0) no need to select anything
 		
 	def SelectedText(self):
 			return self.lv.ItemAt(self.lv.CurrentSelection()).Text()
@@ -728,7 +723,8 @@ class MsgStrItem(BListItem):
 		return self.text
 
 class EventTextView(BTextView):
-	def __init__(self,frame,name,textRect,resizingMode,flags):
+	def __init__(self,superself,frame,name,textRect,resizingMode,flags):
+		self.superself=superself
 		self.oldtext=""
 		self.oldtextloaded=False
 		self.tosave=False
@@ -742,8 +738,9 @@ class EventTextView(BTextView):
 		#	break;
 		#elif char == 
 		#self.Insert(char)
-		self.tosave=True  #### This says you should save the string before proceeding
-		return BTextView.KeyDown(self,char,bytes)
+		if self.superself.source.Text() != "":
+			self.tosave=True  #### This says you should save the string before proceeding
+			return BTextView.KeyDown(self,char,bytes)
 		
 	def SetPOReadText(self,text):
 		self.oldtext=text
@@ -776,7 +773,7 @@ class POEditorBBox(BBox):
 		self.AddChild(self.source)
 		playground2 = (5, b-120,r -5, b-5)
 		self.htrans= playground2[3] - playground2[1]
-		self.translation = EventTextView(playground2,name+'_translation_BTextView',(5.0,5.0,playground2[2]-2,playground2[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
+		self.translation = EventTextView(self,playground2,name+'_translation_BTextView',(5.0,5.0,playground2[2]-2,playground2[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
 		#new BTextView with KeyDown() hook
 		#self.translation2 = BTextControl(playground2,name+'_translation_BTextControl','','',BMessage(303030),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW)
 		self.translation.MakeEditable(True)
@@ -1034,6 +1031,9 @@ class PoWindow(BWindow):
 					self.poview[0]=True
 			for b in self.editorslist:
 				b.list.reload(self.poview,b.pofile,self.encoding)
+			msg = BMessage(460551) #clears TextViews
+			BApplication.be_app.WindowAt(0).PostMessage(msg)
+
 					
 		if msg.what == 75:
 			if self.poview[1]:
@@ -1071,6 +1071,9 @@ class PoWindow(BWindow):
 					self.poview[1]=True
 			for b in self.editorslist:
 				b.list.reload(self.poview,b.pofile,self.encoding)
+			msg = BMessage(460551) #clears TextViews
+			BApplication.be_app.WindowAt(0).PostMessage(msg)
+
 
 		if msg.what == 76:
 			if self.poview[2]:
@@ -1108,6 +1111,9 @@ class PoWindow(BWindow):
 					self.poview[2]=True
 			for b in self.editorslist:
 				b.list.reload(self.poview,b.pofile,self.encoding)
+			msg = BMessage(460551) #clears TextViews
+			BApplication.be_app.WindowAt(0).PostMessage(msg)
+
 		
 		if msg.what == 77:
 			if self.poview[3]:
@@ -1145,6 +1151,8 @@ class PoWindow(BWindow):
 					self.poview[3]=True
 			for b in self.editorslist:
 				b.list.reload(self.poview,b.pofile,self.encoding)
+			msg = BMessage(460551) #clears TextViews
+			BApplication.be_app.WindowAt(0).PostMessage(msg)
 
 		if msg.what == 130550: ################ unused for now
 			pass
@@ -1266,12 +1274,24 @@ class PoWindow(BWindow):
 			return
 			
 		if msg.what == 460550:
-			
-			txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText()
-			for entry in self.editorslist[self.postabview.Selection()].pofile:
-				if entry.msgid.encode(self.encoding) == txttosearch:
-					self.editorslist[self.postabview.Selection()].source.SetText(entry.msgid.encode(self.encoding))
-					self.editorslist[self.postabview.Selection()].translation.SetPOReadText(entry.msgstr.encode(self.encoding))
+			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
+				txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText()
+				for entry in self.editorslist[self.postabview.Selection()].pofile:
+					if entry.msgid.encode(self.encoding) == txttosearch:
+						self.editorslist[self.postabview.Selection()].source.SetText(entry.msgid.encode(self.encoding))
+						self.editorslist[self.postabview.Selection()].translation.SetPOReadText(entry.msgstr.encode(self.encoding))
+			else:
+				self.editorslist[self.postabview.Selection()].source.SetText("")
+				self.editorslist[self.postabview.Selection()].translation.SetPOReadText("")
+				
+		if msg.what == 460551:
+			#### clears source textview text and translation specific textview parameters
+			for v in self.editorslist:
+				v.source.SetText("")
+				v.translation.SetText("")
+				v.translation.oldtext=""
+				v.translation.oldtextloaded=False
+				v.translation.tosave=False
 
 		if msg.what ==  777:
 			#Removing B_AVOID_FOCUS flag
