@@ -457,12 +457,19 @@ class MaacUtent(BWindow):
 			return
 			
 		elif msg.what == 380220:
-			BApplication.be_app.WindowAt(1).PostMessage(1)
-			BApplication.be_app.WindowAt(1).PostMessage(2)
-			BApplication.be_app.WindowAt(1).PostMessage(3)
-			BApplication.be_app.WindowAt(1).PostMessage(4)
-			BApplication.be_app.WindowAt(1).PostMessage(5)
-			BApplication.be_app.WindowAt(1).PostMessage(210220)
+			i = 1
+			w = BApplication.be_app.CountWindows()
+			while w > i:
+				if BApplication.be_app.WindowAt(i).Title()==self.kWindowName:
+					thiswindow=i
+				i=i+1
+			
+			BApplication.be_app.WindowAt(thiswindow).PostMessage(1)
+			BApplication.be_app.WindowAt(thiswindow).PostMessage(2)
+			BApplication.be_app.WindowAt(thiswindow).PostMessage(3)
+			BApplication.be_app.WindowAt(thiswindow).PostMessage(4)
+			BApplication.be_app.WindowAt(thiswindow).PostMessage(5)
+			BApplication.be_app.WindowAt(thiswindow).PostMessage(210220)
 			return
 			
 		elif msg.what == 210220:
@@ -476,11 +483,15 @@ class MaacUtent(BWindow):
 						say = BAlert('What', 'The user already exists. Nothing to do', 'Ok',None, None, None, 3)
 						say.Go()
 						return
+					else:
+						cfgfile = open(confile,'w')
+						
 				else:
 					names=""
+					cfgfile = open(confile,'w')
 					Config.add_section('Users')
 					
-				cfgfile = open(confile,'w')
+				#cfgfile = open(confile,'w')
 				
 				Config.set('Users','names', (names+sectname+";"))
 				Config.set('Users','default', sectname)
@@ -630,10 +641,26 @@ class ScrollView:
 		self.lv.SetInvocationMessage(msg)
 		self.sv = BScrollView('ScrollView', self.lv, B_FOLLOW_ALL_SIDES, B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_NAVIGABLE|B_FRAME_EVENTS, 0, 0, B_FANCY_BORDER)
 
-	def reload(self):
+	def reload(self,arrayview,pofile,encoding):
 			i=0
 			while self.lv.CountItems()>i:
 				self.lv.RemoveItem(self.lv.ItemAt(0))
+			if arrayview[0]:
+				for entry in pofile.fuzzy_entries():
+					item = MsgStrItem(entry.msgid,2,encoding)
+					self.lv.AddItem(item)
+			if arrayview[1]:
+				for entry in pofile.untranslated_entries():
+					item = MsgStrItem(entry.msgid,0,encoding)
+					self.lv.AddItem(item)
+			if arrayview[2]:
+				for entry in pofile.translated_entries():
+					item = MsgStrItem(entry.msgid,1,encoding)
+					self.lv.AddItem(item)
+			if arrayview[3]:
+				for entry in pofile.obsolete():
+					item = MsgStrItem(entry.msgid,3,encoding)
+					self.lv.AddItem(item)
 #			item = PaperItem("Status",0)
 #			self.lv.AddItem(item)
 
@@ -727,18 +754,20 @@ class POEditorBBox(BBox):
 		playground2 = (5, b-120,r -5, b-5)
 		self.htrans= playground2[3] - playground2[1]
 		self.translation = BTextView(playground2,name+'_translation_BTextView',(5.0,5.0,playground2[2]-2,playground2[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW)
+		#new BTextView with KeyDown() hook
+		#self.translation2 = BTextControl(playground2,name+'_translation_BTextControl','','',BMessage(303030),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW)
 		self.translation.MakeEditable(True)
 		self.AddChild(self.translation)
-		
-		if arrayview[2]:
+		print arrayview
+		if arrayview[0]:
 			for entry in self.pofile.fuzzy_entries():
 				item = MsgStrItem(entry.msgid,2,encoding)
 				self.list.lv.AddItem(item)
-		if arrayview[0]:
+		if arrayview[1]:
 			for entry in self.pofile.untranslated_entries():
 				item = MsgStrItem(entry.msgid,0,encoding)
 				self.list.lv.AddItem(item)
-		if arrayview[1]:
+		if arrayview[2]:
 			for entry in self.pofile.translated_entries():
 				item = MsgStrItem(entry.msgid,1,encoding)
 				self.list.lv.AddItem(item)
@@ -749,8 +778,8 @@ class POEditorBBox(BBox):
 #		else:
 #			pass
 	
-	def reloadlist(self,arrayview):
-		pass
+#	def reloadlist(self,arrayview):
+#		pass
 		
 #	def FrameResized(self,x,y):
 #		z, w, c, v=self.Bounds()
@@ -785,6 +814,7 @@ class PoWindow(BWindow):
 				Config.write(cfgfile)
 				cfgfile.close()
 		try:
+				Config.read(confile)
 				self.poview[1]=Config.getboolean('Settings', 'Untranslated')
 		except (ConfigParser.NoSectionError):
 				print "ops! no Settings section for po listing"
@@ -794,6 +824,7 @@ class PoWindow(BWindow):
 				Config.write(cfgfile)
 				cfgfile.close()
 		try:
+				Config.read(confile)
 				self.poview[2]=Config.getboolean('Settings', 'Translated')
 		except (ConfigParser.NoSectionError):
 				print "ops! no Settings section for po listing"
@@ -803,6 +834,7 @@ class PoWindow(BWindow):
 				Config.write(cfgfile)
 				cfgfile.close()
 		try:
+				Config.read(confile)
 				self.poview[3]=Config.getboolean('Settings', 'Obsolete')
 		except (ConfigParser.NoSectionError):
 				print "ops! no Settings section for po listing"
@@ -978,6 +1010,8 @@ class PoWindow(BWindow):
 					Config.write(cfgfile)
 					cfgfile.close()
 					self.poview[0]=True
+			for b in self.editorslist:
+				b.list.reload(self.poview,b.pofile,self.encoding)
 					
 		if msg.what == 75:
 			if self.poview[1]:
@@ -1013,6 +1047,8 @@ class PoWindow(BWindow):
 					Config.write(cfgfile)
 					cfgfile.close()
 					self.poview[1]=True
+			for b in self.editorslist:
+				b.list.reload(self.poview,b.pofile,self.encoding)
 
 		if msg.what == 76:
 			if self.poview[2]:
@@ -1048,7 +1084,9 @@ class PoWindow(BWindow):
 					Config.write(cfgfile)
 					cfgfile.close()
 					self.poview[2]=True
-					
+			for b in self.editorslist:
+				b.list.reload(self.poview,b.pofile,self.encoding)
+		
 		if msg.what == 77:
 			if self.poview[3]:
 				#try:
@@ -1083,6 +1121,8 @@ class PoWindow(BWindow):
 					Config.write(cfgfile)
 					cfgfile.close()
 					self.poview[3]=True
+			for b in self.editorslist:
+				b.list.reload(self.poview,b.pofile,self.encoding)
 
 		if msg.what == 130550: ################ unused for now
 			pass
@@ -1223,6 +1263,7 @@ class PoWindow(BWindow):
 			
 			##### add a tab in the editor's tabview
 			head, tail = os.path.split(pathtofile)
+			##update self.poview
 			self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile,self.poview,self.encoding))
 			self.tabslabels.append(BTab())
 			x=len(self.editorslist)-1
