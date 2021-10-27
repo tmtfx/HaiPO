@@ -24,7 +24,7 @@
 #
 #******************************************************
 
-import os,sys,ConfigParser,struct,re
+import os,sys,ConfigParser,struct,re,threading
 try:
 	import polib
 except:
@@ -111,7 +111,7 @@ try:
 	from BFilePanel import BFilePanel
 	from BEntry import BEntry
 	from BScrollBar import BScrollBar
-	from InterfaceKit import B_V_SCROLL_BAR_WIDTH,B_FULL_UPDATE_ON_RESIZE,B_VERTICAL,B_FOLLOW_ALL,B_FOLLOW_TOP,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_WIDTH_FROM_LABEL,B_TRIANGLE_THUMB,B_BLOCK_THUMB,B_FLOATING_WINDOW,B_TITLED_WINDOW,B_WILL_DRAW,B_NAVIGABLE,B_FRAME_EVENTS,B_ALIGN_CENTER,B_FOLLOW_ALL_SIDES,B_MODAL_WINDOW,B_FOLLOW_TOP_BOTTOM,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT_RIGHT,B_SINGLE_SELECTION_LIST,B_NOT_RESIZABLE,B_NOT_ZOOMABLE,B_PLAIN_BORDER,B_FANCY_BORDER,B_NO_BORDER,B_ITEMS_IN_COLUMN,B_AVOID_FOCUS
+	from InterfaceKit import B_PAGE_UP,B_PAGE_DOWN,B_TAB,B_ESCAPE,B_DOWN_ARROW,B_UP_ARROW,B_V_SCROLL_BAR_WIDTH,B_FULL_UPDATE_ON_RESIZE,B_VERTICAL,B_FOLLOW_ALL,B_FOLLOW_TOP,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_WIDTH_FROM_LABEL,B_TRIANGLE_THUMB,B_BLOCK_THUMB,B_FLOATING_WINDOW,B_TITLED_WINDOW,B_WILL_DRAW,B_NAVIGABLE,B_FRAME_EVENTS,B_ALIGN_CENTER,B_FOLLOW_ALL_SIDES,B_MODAL_WINDOW,B_FOLLOW_TOP_BOTTOM,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT_RIGHT,B_SINGLE_SELECTION_LIST,B_NOT_RESIZABLE,B_NOT_ZOOMABLE,B_PLAIN_BORDER,B_FANCY_BORDER,B_NO_BORDER,B_ITEMS_IN_COLUMN,B_AVOID_FOCUS
 	from AppKit import B_QUIT_REQUESTED,B_KEY_UP,B_KEY_DOWN,B_MODIFIERS_CHANGED,B_UNMAPPED_KEY_DOWN,B_REFS_RECEIVED,B_SAVE_REQUESTED,B_CANCEL
 	from StorageKit import B_SAVE_PANEL,B_OPEN_PANEL,B_FILE_NODE,B_READ_ONLY
 	from SupportKit import B_ERROR,B_ENTRY_NOT_FOUND,B_OK
@@ -731,16 +731,51 @@ class EventTextView(BTextView):
 		BTextView.__init__(self,frame,name,textRect,resizingMode,flags)
 
 	def KeyDown(self,char,bytes):
-		print ("pressed " +char)
+		
 		#modifica stato
+		
 		#controllo ortografia
 		#if char == B_SPACE:
 		#	break;
 		#elif char == 
 		#self.Insert(char)
-		if self.superself.source.Text() != "":
-			self.tosave=True  #### This says you should save the string before proceeding
-			return BTextView.KeyDown(self,char,bytes)
+		ochar=ord(char)
+		if ochar in (B_DOWN_ARROW,B_UP_ARROW,B_TAB,B_PAGE_UP,B_PAGE_DOWN):
+			self.superself.sem.acquire()
+			value=self.superself.modifier #CTRL pressed
+			self.superself.sem.release()
+			if ochar == B_DOWN_ARROW:
+				if value:
+					print "seleziono un elemento in giù"
+			elif ochar == B_UP_ARROW:
+				if value:
+					print "seleziono un elemento in sù"
+			elif ochar == B_PAGE_UP:
+				if value:
+					print "seleziono una pagina in sù"
+			elif ochar == B_PAGE_DOWN:
+				if value:
+					print "seleziono una pagina in giù"
+			if ochar == B_TAB:
+				if not value:
+					print "passo al prossimo non tradotto oppure al sucessivo vedi tu"
+				
+			print "FRECCIA Sù/GIù"
+			if ochar != B_TAB:
+				return BTextView.KeyDown(self,char,bytes)
+		elif ochar == B_ESCAPE: ######################## Restore to the saved string #####################
+			#self.superself.list.lv.DeselectAll()
+			#self.superself.source.SetText("")
+			self.SetText(self.oldtext)
+			#self.oldtext=""
+			#self.oldtextloaded=False
+			self.tosave=False
+			return
+		else:
+			if self.superself.list.lv.CurrentSelection()>-1:
+			#if self.superself.source.Text() != "":
+				self.tosave=True  #### This says you should save the string before proceeding
+				return BTextView.KeyDown(self,char,bytes)
 		
 	def SetPOReadText(self,text):
 		self.oldtext=text
@@ -750,13 +785,15 @@ class EventTextView(BTextView):
 class POEditorBBox(BBox):
 	def __init__(self,frame,name,percors,pofileloaded,arrayview,encoding):
 		self.pofile = pofileloaded
+		self.modifier=False
 		self.encoding=encoding
 		ind=0
 		datab=[]
 		for entry in self.pofile:
 				datab.append((ind,entry.msgid,entry.msgstr))
 				ind=ind+1
-				
+		
+		self.sem = threading.Semaphore()
 		contor = frame
 		a,s,d,f = contor
 		BBox.__init__(self,(a,s,d-5,f-35),name,B_FOLLOW_ALL,B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)#frame
@@ -774,8 +811,6 @@ class POEditorBBox(BBox):
 		playground2 = (5, b-120,r -5, b-5)
 		self.htrans= playground2[3] - playground2[1]
 		self.translation = EventTextView(self,playground2,name+'_translation_BTextView',(5.0,5.0,playground2[2]-2,playground2[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
-		#new BTextView with KeyDown() hook
-		#self.translation2 = BTextControl(playground2,name+'_translation_BTextControl','','',BMessage(303030),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW)
 		self.translation.MakeEditable(True)
 		self.AddChild(self.translation)
 		if arrayview[0]:
@@ -979,19 +1014,35 @@ class PoWindow(BWindow):
 		#BApplication.be_app.WindowAt(0).PostMessage(BMessage(130550))
 
 	def MessageReceived(self, msg):
-		if msg.what == B_MODIFIERS_CHANGED:#B_KEY_UP:
-			print "modifier: "
-			msg.PrintToStream()
+		if msg.what == B_MODIFIERS_CHANGED:#quando un modificatore cambia stato
+			value=msg.FindInt32("modifiers")
+			print value
+			self.editorslist[self.postabview.Selection()].sem.acquire()
+			if value==4132:
+				self.editorslist[self.postabview.Selection()].modifier=True
+			else:
+				self.editorslist[self.postabview.Selection()].modifier=False
+			self.editorslist[self.postabview.Selection()].sem.release()
+			#print "modifier: "	
+			#msg.PrintToStream()
+			#lock a variable
+			
+			#
+			#self.qq.LockLooper()
+			#set true or false
+			#self.qq.UnlockLooper()
+			#unlock a variable
+			
+			
 			#if B_MODIFIERS_CHANGED:
 			#	print "sì"
 			#else:
 			#	print "no"
-			
 			#print "premuto tasto modificatore"
 			return
-		if msg.what == B_KEY_DOWN:
-			print "key down: "
-			msg.PrintToStream()
+#		if msg.what == B_UNMAPPED_KEY_DOWN:#Quando viene premuto un tasto diverso da un carattere
+#			print "unmapped key down: "
+#			msg.PrintToStream()
 		if msg.what == 295485:
 			self.ofp.Show()
 			return
@@ -1294,9 +1345,21 @@ class PoWindow(BWindow):
 					if entry.msgid.encode(self.encoding) == txttosearch:
 						self.editorslist[self.postabview.Selection()].source.SetText(entry.msgid.encode(self.encoding))
 						self.editorslist[self.postabview.Selection()].translation.SetPOReadText(entry.msgstr.encode(self.encoding))
+				self.editorslist[self.postabview.Selection()].translation.MakeFocus()
+				
+				############################ TODO GO TO THE END OF THE TEXT #############################
+				#num=self.editorslist[self.postabview.Selection()].translation.CountLines()
+				#self.editorslist[self.postabview.Selection()].translation.GoToLine(num)
+				#txtlen=self.editorslist[self.postabview.Selection()].translation.TextLenght()
+#				pointer=self.editorslist[self.postabview.Selection()].translation.PointAt(len(self.editorslist[self.postabview.Selection()].translation.Text()))
+#				print pointer[0]
+#				self.editorslist[self.postabview.Selection()].translation.MovePenTo(pointer[0][0],pointer[0][1])
+#				print self.editorslist[self.postabview.Selection()].translation.PenLocation()
+				
 			else:
 				self.editorslist[self.postabview.Selection()].source.SetText("")
 				self.editorslist[self.postabview.Selection()].translation.SetPOReadText("")
+				
 				
 		if msg.what == 460551:
 			#### clears source textview text and translation specific textview parameters
