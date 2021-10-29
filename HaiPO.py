@@ -735,52 +735,63 @@ class EventTextView(BTextView):
 		####################### TODO   controllo ortografia ##############################
 		
 		#self.Insert(char)
-		ochar=ord(char)
-		if ochar in (B_DOWN_ARROW,B_UP_ARROW,B_TAB,B_PAGE_UP,B_PAGE_DOWN):
-			self.superself.sem.acquire()
-			value=self.superself.modifier #CTRL pressed
-			self.superself.sem.release()
-			kmesg=BMessage(130550)
-			if ochar == B_DOWN_ARROW:
-				if value:
-					print "seleziono un elemento in giù"
-					kmesg.AddInt8('movekind',0)
-					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
-			elif ochar == B_UP_ARROW:
-				if value:
-					print "seleziono un elemento in sù"
-					kmesg.AddInt8('movekind',1)
-					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
-			elif ochar == B_PAGE_UP:
-				if value:
-					kmesg.AddInt8('movekind',2)
-					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
-					print "seleziono una pagina in sù"
-			elif ochar == B_PAGE_DOWN:
-				if value:
-					kmesg.AddInt8('movekind',3)
-					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
-					print "seleziono una pagina in giù"
-			if ochar == B_TAB:
-				if not value:
-					kmesg.AddInt8('movekind',4)
-					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
-					print "passo al prossimo non tradotto oppure al sucessivo vedi tu"
-			if ochar != B_TAB:
-				return BTextView.KeyDown(self,char,bytes)
-		elif ochar == B_ESCAPE: ######################## Restore to the saved string #####################
-			#self.superself.list.lv.DeselectAll()
-			#self.superself.source.SetText("")
-			self.SetText(self.oldtext)
-			#self.oldtext=""
-			#self.oldtextloaded=False
-			self.tosave=False
-			return
-		else:
-			if self.superself.list.lv.CurrentSelection()>-1:
-			#if self.superself.source.Text() != "":
-				self.tosave=True  #### This says you should save the string before proceeding
-				return BTextView.KeyDown(self,char,bytes)
+		try:
+			ochar=ord(char)
+			if ochar in (B_DOWN_ARROW,B_UP_ARROW,B_TAB,B_PAGE_UP,B_PAGE_DOWN):
+				self.superself.sem.acquire()
+				value=self.superself.modifier #CTRL pressed
+				self.superself.sem.release()
+				kmesg=BMessage(130550)
+				if ochar == B_DOWN_ARROW:
+					if value:
+						# one element down
+						kmesg.AddInt8('movekind',0)
+						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
+						if self.tosave:
+							print "salvo errori salvo"
+				elif ochar == B_UP_ARROW:
+					if value:
+						# one element up
+						kmesg.AddInt8('movekind',1)
+						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
+						if self.tosave:
+							print "salvo errori salvo"
+				elif ochar == B_PAGE_UP:
+					if value:
+						# one page up
+						kmesg.AddInt8('movekind',2)
+						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
+						if self.tosave:
+							print "salvo errori salvo"
+				elif ochar == B_PAGE_DOWN:
+					if value:
+						# one page down
+						kmesg.AddInt8('movekind',3)
+						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
+						print "seleziono una pagina in giù"
+						if self.tosave:
+							print "salvo errori salvo"
+				if ochar == B_TAB:
+					if not value:
+						# next string needing work
+						kmesg.AddInt8('movekind',4)
+						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
+						if self.tosave:
+							print "salvo errori salvo"
+				if ochar != B_TAB:
+					return BTextView.KeyDown(self,char,bytes)
+					print self.tosave
+			elif ochar == B_ESCAPE: ######################## Restore to the saved string #####################
+				self.SetText(self.oldtext)
+				self.tosave=False
+				return
+			else:
+				if self.superself.list.lv.CurrentSelection()>-1:
+				#if self.superself.source.Text() != "":
+					self.tosave=True  #### This says you should save the string before proceeding
+					return BTextView.KeyDown(self,char,bytes)
+		except:
+			return BTextView.KeyDown(self,char,bytes)
 		
 	def SetPOReadText(self,text):
 		self.oldtext=text
@@ -834,16 +845,7 @@ class POEditorBBox(BBox):
 			for entry in self.pofile.obsolete():
 				item = MsgStrItem(entry.msgid,3,encoding)
 				self.list.lv.AddItem(item)
-#		else:
-#			pass
-	
-#	def reloadlist(self,arrayview):
-#		pass
-		
-#	def FrameResized(self,x,y):
-#		z, w, c, v=self.Bounds()
-##		self.ResizeTo(x,y)
-#		self.list.topview().ResizeTo(x,v-self.hsrc-self.htrans-15)
+
 		
 
 
@@ -955,7 +957,7 @@ class PoWindow(BWindow):
 		binds = self.background.Bounds()
 		c,p,d,s = binds
 		###### SAVE PANEL
-		self.fp=BFilePanel(B_SAVE_PANEL) #BFilePanel.BFilePanel(B_SAVE_PANEL)
+		self.fp=BFilePanel(B_SAVE_PANEL)
 		self.fp.SetPanelDirectory("/boot/home/Desktop")
 		self.fp.SetSaveText("lavôr.po")
 		###### OPEN PANEL
@@ -1032,7 +1034,6 @@ class PoWindow(BWindow):
 					u,m,o,y= b.translation.Bounds()
 					boundos = (5.0, 5.0, (o - 5.0), (y-5.0))
 					b.translation.SetTextRect(boundos)
-		#BApplication.be_app.WindowAt(0).PostMessage(BMessage(130550))
 
 	def MessageReceived(self, msg):
 		if msg.what == B_MODIFIERS_CHANGED: #quando modificatore ctrl cambia stato
@@ -1045,10 +1046,14 @@ class PoWindow(BWindow):
 				self.editorslist[self.postabview.Selection()].modifier=False
 			self.editorslist[self.postabview.Selection()].sem.release()
 			return
-		if msg.what == B_KEY_DOWN:#On tab key pressed, focus on listview
+		if msg.what == B_KEY_DOWN:	#on tab key pressed, focus on listview
 			if msg.FindInt32('key')==38:
-				if not self.editorslist[self.postabview.Selection()].translation.IsFocus():
-					self.editorslist[self.postabview.Selection()].list.lv.MakeFocus()
+				try:
+					if not self.editorslist[self.postabview.Selection()].translation.IsFocus():
+						self.editorslist[self.postabview.Selection()].list.lv.MakeFocus()
+						self.editorslist[self.postabview.Selection()].list.lv.Select(0)
+				except:
+					pass
 
 		if msg.what == 295485:
 			self.ofp.Show()
@@ -1274,6 +1279,7 @@ class PoWindow(BWindow):
 				self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
 					
 			elif  movetype == 4:
+				#select next untranslated (or needing work) string
 				next=True
 				if (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1):
 					spice = self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()
@@ -1282,7 +1288,6 @@ class PoWindow(BWindow):
 					spice=-1
 				while next:
 					if (spice+1)==self.editorslist[self.postabview.Selection()].list.lv.CountItems():
-						print "sino al ultin?"
 						spice=0
 						state=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(0).state
 						if state == 0 or state == 2:
@@ -1296,38 +1301,7 @@ class PoWindow(BWindow):
 					spice=spice+1
 				self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
 				return
-#			i=self.postabview.Selection()
-#			h,j,k,l = self.editorslist[i].Bounds()
-#			for b in self.editorslist:
-#				if b == self.editorslist[i]:
-#					pass
-#					#######################  do you need this?
-##					z,x,c,v=b.list.sv.Bounds()
-##					b.list.sv.ResizeTo(c,v)
-##					b.list.lv.ResizeTo(c-20,v-20) #invece di numero fisso mettere larghezza scrollbars B_H_SCROLL_BAR_WIDTH B_V_SCROLL_BAR_WIDTH
-##					u,m,o,y= b.source.Bounds()
-##					boundos = (5.0, 5.0, (o - 5.0), (y-5.0))
-##					b.source.SetTextRect(boundos)
-##					u,m,o,y= b.translation.Bounds()
-##					boundos = (5.0, 5.0, (o - 5.0), (y-5.0))
-##					b.translation.SetTextRect(boundos)
-#				else:
-#					b.ResizeTo(k,l)
-#					b.list.lv.ResizeTo(k-27,l-252)
-#					b.list.sv.ResizeTo(k-23,l-248)
-#					b.scrollb.MoveTo(k-21,5)
-#					b.scrollb.ResizeTo(16,l-252) ############ No 16! This should be B_V_SCROLL_BAR_WIDTH
-#					b.source.MoveTo(5,l-243)
-#					b.source.ResizeTo(k-10,120)
-#					u,m,o,y= b.source.Bounds()
-#					boundos = (5,5,o-5,y-5)
-#					b.source.SetTextRect(boundos)
-#					b.translation.MoveTo(5,l-120)
-#					b.translation.ResizeTo(k-10,115)
-#					u,m,o,y= b.translation.Bounds()
-#					boundos = (5.0, 5.0, (o - 5.0), (y-5.0))
-#					b.translation.SetTextRect(boundos)
-				
+
 		if msg.what == 305:
 			#USER CREATOR WIZARD
 			self.maacutent = MaacUtent(True)
