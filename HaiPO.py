@@ -732,35 +732,40 @@ class EventTextView(BTextView):
 
 	def KeyDown(self,char,bytes):
 		
-		#modifica stato
+		####################### TODO   controllo ortografia ##############################
 		
-		#controllo ortografia
-		#if char == B_SPACE:
-		#	break;
-		#elif char == 
 		#self.Insert(char)
 		ochar=ord(char)
 		if ochar in (B_DOWN_ARROW,B_UP_ARROW,B_TAB,B_PAGE_UP,B_PAGE_DOWN):
 			self.superself.sem.acquire()
 			value=self.superself.modifier #CTRL pressed
 			self.superself.sem.release()
+			kmesg=BMessage(130550)
 			if ochar == B_DOWN_ARROW:
 				if value:
 					print "seleziono un elemento in giù"
+					kmesg.AddInt8('movekind',0)
+					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 			elif ochar == B_UP_ARROW:
 				if value:
 					print "seleziono un elemento in sù"
+					kmesg.AddInt8('movekind',1)
+					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 			elif ochar == B_PAGE_UP:
 				if value:
+					kmesg.AddInt8('movekind',2)
+					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 					print "seleziono una pagina in sù"
 			elif ochar == B_PAGE_DOWN:
 				if value:
+					kmesg.AddInt8('movekind',3)
+					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 					print "seleziono una pagina in giù"
 			if ochar == B_TAB:
 				if not value:
+					kmesg.AddInt8('movekind',4)
+					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 					print "passo al prossimo non tradotto oppure al sucessivo vedi tu"
-				
-			print "FRECCIA Sù/GIù"
 			if ochar != B_TAB:
 				return BTextView.KeyDown(self,char,bytes)
 		elif ochar == B_ESCAPE: ######################## Restore to the saved string #####################
@@ -897,7 +902,23 @@ class PoWindow(BWindow):
 				Config.set('Settings','Obsolete',False)
 				Config.write(cfgfile)
 				cfgfile.close()
-				
+		try:
+				Config.read(confile)
+				self.modifiervalue=int(Config.get('Settings','modifierkey'))
+		except (ConfigParser.NoSectionError):
+				print "ops! no Settings section for modifier key"
+				cfgfile = open(confile,'w')
+				Config.add_section('Settings')
+				Config.set('Settings','modifierkey',4132)
+				Config.write(cfgfile)
+				cfgfile.close()
+				self.modifiervalue=4132 #1058 ALT;4132 CTRL
+		except (ConfigParser.NoOptionError):
+				cfgfile = open(confile,'w')
+				Config.set('Settings','modifierkey',4132)
+				Config.write(cfgfile)
+				cfgfile.close()
+				self.modifiervalue=4132 #1058 ALT;4132 CTRL
 		
 		for menu, items in self.Menus:
 			if menu == "View":
@@ -1014,35 +1035,23 @@ class PoWindow(BWindow):
 		#BApplication.be_app.WindowAt(0).PostMessage(BMessage(130550))
 
 	def MessageReceived(self, msg):
-		if msg.what == B_MODIFIERS_CHANGED:#quando un modificatore cambia stato
+		if msg.what == B_MODIFIERS_CHANGED: #quando modificatore ctrl cambia stato
+#			print "modifiers changed"
 			value=msg.FindInt32("modifiers")
 			print value
 			self.editorslist[self.postabview.Selection()].sem.acquire()
-			if value==4132:
+			if value==self.modifiervalue or value==self.modifiervalue+8:
 				self.editorslist[self.postabview.Selection()].modifier=True
 			else:
 				self.editorslist[self.postabview.Selection()].modifier=False
 			self.editorslist[self.postabview.Selection()].sem.release()
-			#print "modifier: "	
-			#msg.PrintToStream()
-			#lock a variable
-			
-			#
-			#self.qq.LockLooper()
-			#set true or false
-			#self.qq.UnlockLooper()
-			#unlock a variable
-			
-			
-			#if B_MODIFIERS_CHANGED:
-			#	print "sì"
-			#else:
-			#	print "no"
-			#print "premuto tasto modificatore"
 			return
-#		if msg.what == B_UNMAPPED_KEY_DOWN:#Quando viene premuto un tasto diverso da un carattere
-#			print "unmapped key down: "
-#			msg.PrintToStream()
+		if msg.what == B_KEY_DOWN:#Quando viene premuto il tasto tab
+			if msg.FindInt32('key')==38:
+				if not self.editorslist[self.postabview.Selection()].translation.IsFocus():
+					print "mi focalizzo su lista"
+					self.editorslist[self.postabview.Selection()].list.lv.MakeFocus()
+
 		if msg.what == 295485:
 			self.ofp.Show()
 			return
@@ -1220,7 +1229,39 @@ class PoWindow(BWindow):
 			return
 
 		if msg.what == 130550: ################ unused for now
-			pass
+			movetype=msg.FindInt8('movekind')
+			if movetype == 0:
+				#select one down
+				if (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1) and (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()<self.editorslist[self.postabview.Selection()].list.lv.CountItems()):
+					self.editorslist[self.postabview.Selection()].list.lv.Select(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()+1)
+					self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+			elif movetype == 1:
+				#select one up
+				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>0 :
+					self.editorslist[self.postabview.Selection()].list.lv.Select(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()-1)
+					self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+			elif movetype == 2:
+				#select one page up
+				rectangular=self.editorslist[self.postabview.Selection()].list.lv.ItemFrame(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+				hitem=rectangular[3]-rectangular[1]
+				rectangular=self.editorslist[self.postabview.Selection()].list.lv.Bounds()
+				hwhole=rectangular[3]-rectangular[1]
+				page=int(hwhole//hitem)
+				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>(page-1) :
+					self.editorslist[self.postabview.Selection()].list.lv.Select(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()-page)
+					self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+			elif movetype == 3:
+				#select one page down
+				rectangular=self.editorslist[self.postabview.Selection()].list.lv.ItemFrame(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+				hitem=rectangular[3]-rectangular[1]
+				rectangular=self.editorslist[self.postabview.Selection()].list.lv.Bounds()
+				hwhole=rectangular[3]-rectangular[1]
+				page=int(hwhole//hitem)
+				if (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1) and (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()<self.editorslist[self.postabview.Selection()].list.lv.CountItems()-page):
+					self.editorslist[self.postabview.Selection()].list.lv.Select(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()+page)
+					self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+			elif  movetype == 4:
+				pass
 #			i=self.postabview.Selection()
 #			h,j,k,l = self.editorslist[i].Bounds()
 #			for b in self.editorslist:
