@@ -1038,7 +1038,6 @@ class PoWindow(BWindow):
 		if msg.what == B_MODIFIERS_CHANGED: #quando modificatore ctrl cambia stato
 #			print "modifiers changed"
 			value=msg.FindInt32("modifiers")
-			print value
 			self.editorslist[self.postabview.Selection()].sem.acquire()
 			if value==self.modifiervalue or value==self.modifiervalue+8:
 				self.editorslist[self.postabview.Selection()].modifier=True
@@ -1046,10 +1045,9 @@ class PoWindow(BWindow):
 				self.editorslist[self.postabview.Selection()].modifier=False
 			self.editorslist[self.postabview.Selection()].sem.release()
 			return
-		if msg.what == B_KEY_DOWN:#Quando viene premuto il tasto tab
+		if msg.what == B_KEY_DOWN:#On tab key pressed, focus on listview
 			if msg.FindInt32('key')==38:
 				if not self.editorslist[self.postabview.Selection()].translation.IsFocus():
-					print "mi focalizzo su lista"
 					self.editorslist[self.postabview.Selection()].list.lv.MakeFocus()
 
 		if msg.what == 295485:
@@ -1104,7 +1102,7 @@ class PoWindow(BWindow):
 					self.poview[0]=True
 			for b in self.editorslist:
 				b.list.reload(self.poview,b.pofile,self.encoding)
-			msg = BMessage(460551) #clears TextViews
+			msg = BMessage(460551) 								#clears TextViews
 			BApplication.be_app.WindowAt(0).PostMessage(msg)
 			return
 					
@@ -1144,7 +1142,7 @@ class PoWindow(BWindow):
 					self.poview[1]=True
 			for b in self.editorslist:
 				b.list.reload(self.poview,b.pofile,self.encoding)
-			msg = BMessage(460551) #clears TextViews
+			msg = BMessage(460551)								#clears TextViews
 			BApplication.be_app.WindowAt(0).PostMessage(msg)
 			return
 
@@ -1184,7 +1182,7 @@ class PoWindow(BWindow):
 					self.poview[2]=True
 			for b in self.editorslist:
 				b.list.reload(self.poview,b.pofile,self.encoding)
-			msg = BMessage(460551) #clears TextViews
+			msg = BMessage(460551)								#clears TextViews
 			BApplication.be_app.WindowAt(0).PostMessage(msg)
 			return
 		
@@ -1224,11 +1222,11 @@ class PoWindow(BWindow):
 					self.poview[3]=True
 			for b in self.editorslist:
 				b.list.reload(self.poview,b.pofile,self.encoding)
-			msg = BMessage(460551) #clears TextViews
+			msg = BMessage(460551)								#clears TextViews
 			BApplication.be_app.WindowAt(0).PostMessage(msg)
 			return
 
-		if msg.what == 130550: ################ unused for now
+		if msg.what == 130550: # change listview selection
 			movetype=msg.FindInt8('movekind')
 			if movetype == 0:
 				#select one down
@@ -1242,26 +1240,62 @@ class PoWindow(BWindow):
 					self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
 			elif movetype == 2:
 				#select one page up
-				rectangular=self.editorslist[self.postabview.Selection()].list.lv.ItemFrame(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+				thisitem=self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()
+				if thisitem > -1:
+					pass
+				else:
+					thisitem=0
+				rectangular=self.editorslist[self.postabview.Selection()].list.lv.ItemFrame(thisitem)
 				hitem=rectangular[3]-rectangular[1]
 				rectangular=self.editorslist[self.postabview.Selection()].list.lv.Bounds()
 				hwhole=rectangular[3]-rectangular[1]
 				page=int(hwhole//hitem)
 				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>(page-1) :
 					self.editorslist[self.postabview.Selection()].list.lv.Select(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()-page)
-					self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+				else:
+					self.editorslist[self.postabview.Selection()].list.lv.Select(0)
+				self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
 			elif movetype == 3:
 				#select one page down
-				rectangular=self.editorslist[self.postabview.Selection()].list.lv.ItemFrame(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+				thisitem=self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()
+				if thisitem > -1:
+					pass
+				else:
+					thisitem=0
+				rectangular=self.editorslist[self.postabview.Selection()].list.lv.ItemFrame(thisitem)
 				hitem=rectangular[3]-rectangular[1]
 				rectangular=self.editorslist[self.postabview.Selection()].list.lv.Bounds()
 				hwhole=rectangular[3]-rectangular[1]
 				page=int(hwhole//hitem)
 				if (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1) and (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()<self.editorslist[self.postabview.Selection()].list.lv.CountItems()-page):
-					self.editorslist[self.postabview.Selection()].list.lv.Select(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()+page)
-					self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+					self.editorslist[self.postabview.Selection()].list.lv.Select(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()+page)	
+				else:
+					self.editorslist[self.postabview.Selection()].list.lv.Select(self.editorslist[self.postabview.Selection()].list.lv.CountItems()-1)	
+				self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+					
 			elif  movetype == 4:
-				pass
+				next=True
+				if (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1):
+					spice = self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()
+				else:
+					self.editorslist[self.postabview.Selection()].list.lv.Select(0)
+					spice=-1
+				while next:
+					if (spice+1)==self.editorslist[self.postabview.Selection()].list.lv.CountItems():
+						print "sino al ultin?"
+						spice=0
+						state=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(0).state
+						if state == 0 or state == 2:
+							self.editorslist[self.postabview.Selection()].list.lv.Select(0)
+							next=False
+					else:
+						state=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(spice+1).state
+						if state == 0 or state == 2:
+							self.editorslist[self.postabview.Selection()].list.lv.Select(spice+1)
+							next=False
+					spice=spice+1
+				self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+				return
 #			i=self.postabview.Selection()
 #			h,j,k,l = self.editorslist[i].Bounds()
 #			for b in self.editorslist:
