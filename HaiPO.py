@@ -720,8 +720,6 @@ class MsgStrItem(BListItem):
 				self.color = (153,153,0,0)
 			elif self.state == 3:
 				self.color = (150,75,0)
-			#owner.StrokeTriangle((float(frame[2]-10),float(frame[3]+3)),(frame[2]-2,frame[3]+3),(frame[2]-6,frame[3]+7.5));
-			#print "ho disegnato il triangolo anche se selezionato"
 
 		if self.state == 0:
 				self.color = (0,0,255,0)
@@ -732,15 +730,6 @@ class MsgStrItem(BListItem):
 		elif self.state == 3:
 				self.color = (97,10,10,0)
 		
-		#if self.color == (200,0,0,0):
-		#	self.font = be_bold_font
-		#	owner.SetFont(self.font)
-		#else:	
-		#	self.font = be_plain_font
-		#	owner.SetFont(self.font)
-		#point1=BPoint(float(frame[0]+2),float(frame[3]))
-		#point2=BPoint(frame[0]+7,frame[3])
-		#point3=BPoint(frame[0]+4.5,frame[3]+4.5)
 		if self.hasplural:
 			owner.MovePenTo(frame[0],frame[3]-2)
 			self.font = be_bold_font
@@ -758,12 +747,7 @@ class MsgStrItem(BListItem):
 			owner.MovePenTo(frame[0],frame[3]-2)
 			owner.DrawString(self.text)
 			owner.SetLowColor((255,255,255,255))
-		#owner.SetHighColor(self.nocolor)
 		#owner.StrokeTriangle((float(frame[2]-10),float(frame[3]+3)),(frame[2]-2,frame[3]+3),(frame[2]-6,frame[3]+7.5));#,B_SOLID_HIGH
-		
-#	def Update(self, owner, caratar):
-#		owner.StrokeTriangle((self.frame[2]-10,self.frame[3]+3),(self.frame[2]-2,self.frame[3]+3),(self.frame[2]-6,self.frame[3]+7.5));
-#		return BListItem.Update(self,owner,caratar)
 		
 	def Text(self):
 		return self.text
@@ -859,6 +843,33 @@ class EventTextView(BTextView):
 		self.oldtextloaded=True
 		self.SetText(text)
 		self.tosave=False
+		
+class srctabbox(BBox):
+	def __init__(self,playground1,name,altece):
+		self.name = name
+#		print playground1
+#		print (0,0,playground1[3]-playground1[1],playground1[3]-playground1[0])
+		#(0,0,playground1[3]-playground1[1],playground1[3]-playground1[0])
+		#newplayground=(playground1[0],playground1[1],playground1[2]-5,playground1[3]-5)
+		BBox.__init__(self,(0,0,playground1[2]-playground1[0],playground1[3]-playground1[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW | B_FRAME_EVENTS,B_NO_BORDER)#frame
+		self.hsrc = playground1[3] - playground1[1] - altece 
+		self.src = BTextView((playground1[0]-3,playground1[1]-3,playground1[2]-playground1[0],playground1[3]-playground1[1]),name+'_source_BTextView',(5.0,5.0,playground1[2]-5,playground1[3]-5),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
+		self.src.MakeEditable(False)
+		self.AddChild(self.src)
+class trnsltabbox(BBox):
+	def __init__(self,playground2,name,altece,superself):
+		self.name = name
+#		print playground1
+#		print (0,0,playground1[3]-playground1[1],playground1[3]-playground1[0])
+		#print playground2
+		#(0,0,playground2[3]-playground2[1],playground2[3]-playground2[0])
+		BBox.__init__(self,(0,0,playground2[2]-playground2[0],playground2[3]-playground2[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW | B_FRAME_EVENTS,B_NO_BORDER)#frame
+		#self.htrans= playground2[3] - playground2[1] - altece
+		#newplayground2 = (playground2[0]+1,playground2[1]+1,playground2[2]-2,playground2[3]-2)
+		#print newplayground2
+		self.trnsl = EventTextView(superself,(playground2[0]-3,playground2[1]-3,playground2[2]-playground2[0],playground2[3]-playground2[1]),name+'_translation_BTextView',(5.0,5.0,playground2[2]-5,playground2[3]-5),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
+		self.trnsl.MakeEditable(True)
+		self.AddChild(self.trnsl)
 
 class POEditorBBox(BBox):
 	def __init__(self,frame,name,percors,pofileloaded,arrayview,encoding):
@@ -892,19 +903,49 @@ class POEditorBBox(BBox):
 		self.scrollb = BScrollBar((r -21,5,r-5,b-247),name+'_ScrollBar',self.list.listview(),0.0,float(len(datab)),B_VERTICAL)
 		self.AddChild(self.scrollb)
 		playground1 = (5,b-243,r -5, b-123)
-		self.hsrc = playground1[3] - playground1[1]
-		self.source = BTextView(playground1,name+'_source_BTextView',(5.0,5.0,playground1[2]-2,playground1[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
-		self.source.MakeEditable(False)
-		self.AddChild(self.source)
+		self.srctabview = BTabView(playground1, 'sourcetabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT)
+#		tabfr = (5.0, 5.0, d*3/4-5, s-5)#(10.0, 10.0, d-25, s - 5 - altece)
+		tabfr = self.srctabview.Bounds()
+#		print tabfr
+		#tabrc = (1.0,1.0, tabfr[2]-2,tabfr[3]-2)
+#		print tabrc #playground1[2] - playground1[0], playground1[3] - playground1[1])
+		altece = self.srctabview.TabHeight()
+		tabrc = (3.0, 3.0, playground1[2] - playground1[0], playground1[3] - playground1[1]-altece)
+		self.srctablabels=[]
+		self.listemsgid=[]
+		self.AddChild(self.srctabview)
+		
+		self.sourcebox=srctabbox(tabrc,'msgid',altece)
+#		self.AddChild(self.source)
+		self.listemsgid.append(self.sourcebox)
+		self.srctablabels.append(BTab())
+		self.srctabview.AddTab(self.listemsgid[0], self.srctablabels[0])
+		self.source = self.listemsgid[0].src
+#####################################################################################################
+		
 		playground2 = (5, b-120,r -5, b-5)
-		self.htrans= playground2[3] - playground2[1]
-		self.translation = EventTextView(self,playground2,name+'_translation_BTextView',(5.0,5.0,playground2[2]-2,playground2[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
-		self.translation.MakeEditable(True)
-		self.AddChild(self.translation)
+		self.transtabview = BTabView(playground2, 'translationtabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT)
+
+		tabrc = (3, 3, playground2[2] - playground2[0], playground2[3] - playground2[1]-altece)
+		print tabrc
+		self.transtablabels=[]
+		self.listemsgstr=[]
+		self.AddChild(self.transtabview)
+		
+#		self.htrans= playground2[3] - playground2[1] - altece
+#		self.trnsl = EventTextView(self,playground2,name+'_translation_BTextView',(5.0,5.0,playground2[2]-2,playground2[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
+#		self.trnsl.MakeEditable(True)
+		self.transbox=trnsltabbox(tabrc,'msgstr',altece,self)
+		self.listemsgstr.append(self.transbox)
+		self.transtablabels.append(BTab())
+		self.transtabview.AddTab(self.listemsgstr[0], self.transtablabels[0])
+		self.translation = self.listemsgstr[0].trnsl
+		#self.AddChild(self.translation)
+		
 		if arrayview[0]:
 			for entry in self.pofile.fuzzy_entries():
 				if entry and entry.msgid_plural:
-					print (entry.msgid + " has plural")
+#					print (entry.msgid + " has plural")
 					item = MsgStrItem(entry.msgid,2,encoding,True)
 				else:
 					item = MsgStrItem(entry.msgid,2,encoding,False)
@@ -912,7 +953,7 @@ class POEditorBBox(BBox):
 		if arrayview[1]:
 			for entry in self.pofile.untranslated_entries():
 				if entry and entry.msgid_plural:
-					print (entry.msgid + " has plural")
+#					print (entry.msgid + " has plural")
 					item = MsgStrItem(entry.msgid,0,encoding,True)
 				else:
 					item = MsgStrItem(entry.msgid,0,encoding,False)
@@ -920,7 +961,7 @@ class POEditorBBox(BBox):
 		if arrayview[2]:
 			for entry in self.pofile.translated_entries():
 				if entry and entry.msgid_plural:
-					print (entry.msgid + " has plural")
+#					print (entry.msgid + " has plural")
 					item = MsgStrItem(entry.msgid,1,encoding,True)
 				else:
 					item = MsgStrItem(entry.msgid,1,encoding,False)
@@ -928,7 +969,7 @@ class POEditorBBox(BBox):
 		if arrayview[3]:
 			for entry in self.pofile.obsolete():
 				if entry and entry.msgid_plural:
-					print (entry.msgid + " has plural")
+#					print (entry.msgid + " has plural")
 					item = MsgStrItem(entry.msgid,3,encoding,True)
 				else:
 					item = MsgStrItem(entry.msgid,3,encoding,False)
@@ -1499,9 +1540,15 @@ class PoWindow(BWindow):
 				self.editorslist[self.postabview.Selection()].list.reload(self.poview,self.editorslist[self.postabview.Selection()].pofile,self.encoding)
 							
 		elif msg.what == 460550:
-			
+			# selection from listview
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
 				#self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).Update()
+				###############################################################################################
+				##################################  DA RIVEDERE ###############################################
+				###############################################################################################
+				################################# PER IL PLURALE ##############################################
+				###############################################################################################
+				#rimuovere schede tabview sorgente e traduzione
 				txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText()
 				#entry = self.editorslist[self.postabview.Selection()].pofile.find(txttosearch)
 				for entry in self.editorslist[self.postabview.Selection()].pofile:
