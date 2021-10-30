@@ -626,9 +626,8 @@ class AboutWindow(BWindow):
 
 
 class ScrollView:
-	HiWhat = 32 #Doppioclick --> set as fuzzy
+	HiWhat = 32 #Doppioclick --> set as fuzzy?
 	Selmsgstr = 460550
-#	SelezioneNotizia = 102
 
 	def __init__(self, rect, name):#, OPTION, type):
 		self.lv = BListView(rect, name, B_SINGLE_SELECTION_LIST,B_FOLLOW_ALL_SIDES,B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_FRAME_EVENTS)#,OPTION)
@@ -644,23 +643,38 @@ class ScrollView:
 				self.lv.RemoveItem(self.lv.ItemAt(0))
 			if arrayview[0]:
 				for entry in pofile.fuzzy_entries():
-					item = MsgStrItem(entry.msgid,2,encoding)
+					if entry and entry.msgid_plural:
+						print (entry.msgid + " has plural")
+						item = MsgStrItem(entry.msgid,2,encoding,True)
+					else:
+						item = MsgStrItem(entry.msgid,2,encoding,False)
 					self.lv.AddItem(item)
 			if arrayview[1]:
 				for entry in pofile.untranslated_entries():
-					item = MsgStrItem(entry.msgid,0,encoding)
+					if entry and entry.msgid_plural:
+						print (entry.msgid + " has plural")
+						item = MsgStrItem(entry.msgid,0,encoding,True)
+					else:
+						item = MsgStrItem(entry.msgid,0,encoding,False)
 					self.lv.AddItem(item)
 			if arrayview[2]:
 				for entry in pofile.translated_entries():
-					item = MsgStrItem(entry.msgid,1,encoding)
+					if entry and entry.msgid_plural:
+						print (entry.msgid + " has plural")
+						item = MsgStrItem(entry.msgid,1,encoding,True)
+					else:
+						item = MsgStrItem(entry.msgid,1,encoding,False)
 					self.lv.AddItem(item)
 			if arrayview[3]:
 				for entry in pofile.obsolete():
-					item = MsgStrItem(entry.msgid,3,encoding)
+					if entry and entry.msgid_plural:
+						print (entry.msgid + " has plural")
+						item = MsgStrItem(entry.msgid,3,encoding,True)
+					else:
+						item = MsgStrItem(entry.msgid,3,encoding,False)
 					self.lv.AddItem(item)
 			self.lv.DeselectAll()
-			
-			
+
 			#self.lv.Select(0) no need to select anything
 		
 	def SelectedText(self):
@@ -671,6 +685,8 @@ class ScrollView:
 
 	def listview(self):
 		return self.lv
+
+
 		
 class MsgStrItem(BListItem):
 	nocolor = (0, 0, 0, 0)
@@ -679,14 +695,19 @@ class MsgStrItem(BListItem):
 	translated = 1
 	fuzzy = 2
 	obslete = 3
+	hasplural = False
+	frame=[0,0,0,0]
 
-	def __init__(self, text,state,encoding):
+	def __init__(self, text,state,encoding,plural):
 		self.text = text.encode(encoding)  #it's in english should this be always utf-8
 		self.state=state
+		self.hasplural=plural
 		BListItem.__init__(self)
 
 	def DrawItem(self, owner, frame,complete):
-		if self.IsSelected() or complete:
+		self.frame = frame
+		#complete = True
+		if self.IsSelected() or complete: # 
 			color = (200,200,200,255)
 			owner.SetHighColor(color)
 			owner.SetLowColor(color)
@@ -699,6 +720,8 @@ class MsgStrItem(BListItem):
 				self.color = (153,153,0,0)
 			elif self.state == 3:
 				self.color = (150,75,0)
+			#owner.StrokeTriangle((float(frame[2]-10),float(frame[3]+3)),(frame[2]-2,frame[3]+3),(frame[2]-6,frame[3]+7.5));
+			#print "ho disegnato il triangolo anche se selezionato"
 
 		if self.state == 0:
 				self.color = (0,0,255,0)
@@ -708,19 +731,43 @@ class MsgStrItem(BListItem):
 				self.color = (153,153,0,0)
 		elif self.state == 3:
 				self.color = (97,10,10,0)
-		owner.SetHighColor(self.color)
+		
 		#if self.color == (200,0,0,0):
 		#	self.font = be_bold_font
 		#	owner.SetFont(self.font)
 		#else:	
 		#	self.font = be_plain_font
 		#	owner.SetFont(self.font)
-		owner.MovePenTo(frame[0],frame[3]-2)
-		owner.DrawString(self.text)
-		owner.SetLowColor((255,255,255,255))
-
+		#point1=BPoint(float(frame[0]+2),float(frame[3]))
+		#point2=BPoint(frame[0]+7,frame[3])
+		#point3=BPoint(frame[0]+4.5,frame[3]+4.5)
+		if self.hasplural:
+			owner.MovePenTo(frame[0],frame[3]-2)
+			self.font = be_bold_font
+			tempcolor = (200,0,0,0)
+			owner.SetHighColor(tempcolor)
+			owner.SetFont(self.font)
+			owner.DrawString('Pl >>')
+			owner.SetHighColor(self.color)
+			self.font = be_plain_font
+			owner.SetFont(self.font)
+			owner.MovePenTo(frame[0]+30,frame[3]-2)
+			owner.DrawString(self.text)
+		else:
+			owner.SetHighColor(self.color)
+			owner.MovePenTo(frame[0],frame[3]-2)
+			owner.DrawString(self.text)
+			owner.SetLowColor((255,255,255,255))
+		#owner.SetHighColor(self.nocolor)
+		#owner.StrokeTriangle((float(frame[2]-10),float(frame[3]+3)),(frame[2]-2,frame[3]+3),(frame[2]-6,frame[3]+7.5));#,B_SOLID_HIGH
+		
+#	def Update(self, owner, caratar):
+#		owner.StrokeTriangle((self.frame[2]-10,self.frame[3]+3),(self.frame[2]-2,self.frame[3]+3),(self.frame[2]-6,self.frame[3]+7.5));
+#		return BListItem.Update(self,owner,caratar)
+		
 	def Text(self):
 		return self.text
+
 
 class EventTextView(BTextView):
 	def __init__(self,superself,frame,name,textRect,resizingMode,flags):
@@ -733,10 +780,10 @@ class EventTextView(BTextView):
 	def KeyDown(self,char,bytes):
 		
 		####################### TODO   controllo ortografia ##############################
-		
 		#self.Insert(char)
 		try:
 			ochar=ord(char)
+			print ochar
 			if ochar in (B_DOWN_ARROW,B_UP_ARROW,B_TAB,B_PAGE_UP,B_PAGE_DOWN):
 				self.superself.sem.acquire()
 				value=self.superself.modifier #CTRL pressed
@@ -748,21 +795,27 @@ class EventTextView(BTextView):
 						kmesg.AddInt8('movekind',0)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 						if self.tosave:
-							print "salvo errori salvo"
+							bckpmsg=BMessage(17893)
+							bckpmsg.AddString('bckppath',self.superself.backupfile)
+							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
 				elif ochar == B_UP_ARROW:
 					if value:
 						# one element up
 						kmesg.AddInt8('movekind',1)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 						if self.tosave:
-							print "salvo errori salvo"
+							bckpmsg=BMessage(17893)
+							bckpmsg.AddString('bckppath',self.superself.backupfile)
+							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
 				elif ochar == B_PAGE_UP:
 					if value:
 						# one page up
 						kmesg.AddInt8('movekind',2)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 						if self.tosave:
-							print "salvo errori salvo"
+							bckpmsg=BMessage(17893)
+							bckpmsg.AddString('bckppath',self.superself.backupfile)
+							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
 				elif ochar == B_PAGE_DOWN:
 					if value:
 						# one page down
@@ -770,39 +823,58 @@ class EventTextView(BTextView):
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 						print "seleziono una pagina in giù"
 						if self.tosave:
-							print "salvo errori salvo"
-				if ochar == B_TAB:
+							bckpmsg=BMessage(17893)
+							bckpmsg.AddString('bckppath',self.superself.backupfile)
+							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
+				elif ochar == B_TAB:
 					if not value:
 						# next string needing work
 						kmesg.AddInt8('movekind',4)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 						if self.tosave:
-							print "salvo errori salvo"
-				if ochar != B_TAB:
+							bckpmsg=BMessage(17893)
+							bckpmsg.AddString('bckppath',self.superself.backupfile)
+							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
+				elif ochar == 103 or ochar == 7:
+					print "passo di qui?"
+					if value:
+						BApplication.be_app.WindowAt(0).PostMessage(BMessage(71))
+				if ochar != B_TAB: # needed to pass up/down keys to textview
 					return BTextView.KeyDown(self,char,bytes)
-					print self.tosave
 			elif ochar == B_ESCAPE: ######################## Restore to the saved string #####################
 				self.SetText(self.oldtext)
 				self.tosave=False
 				return
 			else:
 				if self.superself.list.lv.CurrentSelection()>-1:
-				#if self.superself.source.Text() != "":
 					self.tosave=True  #### This says you should save the string before proceeding
 					return BTextView.KeyDown(self,char,bytes)
 		except:
-			return BTextView.KeyDown(self,char,bytes)
+			if self.superself.list.lv.CurrentSelection()>-1:
+				self.tosave=True   #### This says you should save the string before proceeding
+				return BTextView.KeyDown(self,char,bytes)
 		
 	def SetPOReadText(self,text):
 		self.oldtext=text
 		self.oldtextloaded=True
 		self.SetText(text)
+		self.tosave=False
 
 class POEditorBBox(BBox):
 	def __init__(self,frame,name,percors,pofileloaded,arrayview,encoding):
 		self.pofile = pofileloaded
 		self.modifier=False
 		self.encoding=encoding
+		filen, file_ext = os.path.splitext(percors)
+#		if file_ext=='.po':
+#			self.typefile=0
+#		elif file_ext=='.mo':
+#			self.typefile=1
+#		elif file_ext=='.gmo':
+#			self.typefile=2
+#		elif file_ext=='.pot':
+#			
+		self.backupfile= filen+".temp"+file_ext
 		ind=0
 		datab=[]
 		for entry in self.pofile:
@@ -831,19 +903,35 @@ class POEditorBBox(BBox):
 		self.AddChild(self.translation)
 		if arrayview[0]:
 			for entry in self.pofile.fuzzy_entries():
-				item = MsgStrItem(entry.msgid,2,encoding)
+				if entry and entry.msgid_plural:
+					print (entry.msgid + " has plural")
+					item = MsgStrItem(entry.msgid,2,encoding,True)
+				else:
+					item = MsgStrItem(entry.msgid,2,encoding,False)
 				self.list.lv.AddItem(item)
 		if arrayview[1]:
 			for entry in self.pofile.untranslated_entries():
-				item = MsgStrItem(entry.msgid,0,encoding)
+				if entry and entry.msgid_plural:
+					print (entry.msgid + " has plural")
+					item = MsgStrItem(entry.msgid,0,encoding,True)
+				else:
+					item = MsgStrItem(entry.msgid,0,encoding,False)
 				self.list.lv.AddItem(item)
 		if arrayview[2]:
 			for entry in self.pofile.translated_entries():
-				item = MsgStrItem(entry.msgid,1,encoding)
+				if entry and entry.msgid_plural:
+					print (entry.msgid + " has plural")
+					item = MsgStrItem(entry.msgid,1,encoding,True)
+				else:
+					item = MsgStrItem(entry.msgid,1,encoding,False)
 				self.list.lv.AddItem(item)
 		if arrayview[3]:
 			for entry in self.pofile.obsolete():
-				item = MsgStrItem(entry.msgid,3,encoding)
+				if entry and entry.msgid_plural:
+					print (entry.msgid + " has plural")
+					item = MsgStrItem(entry.msgid,3,encoding,True)
+				else:
+					item = MsgStrItem(entry.msgid,3,encoding,False)
 				self.list.lv.AddItem(item)
 
 		
@@ -852,7 +940,7 @@ class POEditorBBox(BBox):
 class PoWindow(BWindow):
 	Menus = (
 		('File', ((295485, 'Open'), (2, 'Save'), (1, 'Close'), (5, 'Save as...'),(None, None),(B_QUIT_REQUESTED, 'Quit'))),
-		('Translation', ((3, 'Copy from source'), (4,'Edit comment'), (70,'Done and next'), (71,'Mark as fuzzy'), (72, 'Previous'),(73,'Next'),(None, None), (6, 'Find'), (7, 'Replace'))),
+		('Translation', ((3, 'Copy from source'), (4,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy'), (72, 'Previous'),(73,'Next'),(None, None), (6, 'Find'), (7, 'Replace'))),
 		('View', ((74,'Fuzzy'), (75, 'Untranslated'),(76,'Translated'),(77, 'Obsolete'))),
 		('Settings', ((41, 'User settings'), (42, 'Po properties')	)),
 		('About', ((3, 'Help'),(None, None),(4, 'About')))
@@ -1036,6 +1124,7 @@ class PoWindow(BWindow):
 					b.translation.SetTextRect(boundos)
 
 	def MessageReceived(self, msg):
+	#B_UNMAPPED_KEY_DOWN
 		if msg.what == B_MODIFIERS_CHANGED: #quando modificatore ctrl cambia stato
 #			print "modifiers changed"
 			value=msg.FindInt32("modifiers")
@@ -1046,7 +1135,7 @@ class PoWindow(BWindow):
 				self.editorslist[self.postabview.Selection()].modifier=False
 			self.editorslist[self.postabview.Selection()].sem.release()
 			return
-		if msg.what == B_KEY_DOWN:	#on tab key pressed, focus on listview
+		elif msg.what == B_KEY_DOWN:	#on tab key pressed, focus on listview
 			if msg.FindInt32('key')==38:
 				try:
 					if not self.editorslist[self.postabview.Selection()].translation.IsFocus():
@@ -1054,24 +1143,25 @@ class PoWindow(BWindow):
 						self.editorslist[self.postabview.Selection()].list.lv.Select(0)
 				except:
 					pass
+			return
 
-		if msg.what == 295485:
+		elif msg.what == 295485:
 			self.ofp.Show()
 			return
-		if msg.what == 4:
+		elif msg.what == 4:
 			#ABOUT
 			self.About = AboutWindow()
 			self.About.Show()
 			return
 		
-		if msg.what == 41:
+		elif msg.what == 41:
 			#USER SETTINGS
 			self.usersettings = ImpostazionsUtent()
 			self.usersettings.Show()
 			self.SetFlags(B_AVOID_FOCUS)
 			return
 		
-		if msg.what == 74:
+		elif msg.what == 74:
 			if self.poview[0]:
 				#try:
 					Config.read(confile)
@@ -1111,7 +1201,7 @@ class PoWindow(BWindow):
 			BApplication.be_app.WindowAt(0).PostMessage(msg)
 			return
 					
-		if msg.what == 75:
+		elif msg.what == 75:
 			if self.poview[1]:
 				#try:
 					Config.read(confile)
@@ -1151,7 +1241,7 @@ class PoWindow(BWindow):
 			BApplication.be_app.WindowAt(0).PostMessage(msg)
 			return
 
-		if msg.what == 76:
+		elif msg.what == 76:
 			if self.poview[2]:
 				#try:
 					Config.read(confile)
@@ -1191,7 +1281,7 @@ class PoWindow(BWindow):
 			BApplication.be_app.WindowAt(0).PostMessage(msg)
 			return
 		
-		if msg.what == 77:
+		elif msg.what == 77:
 			if self.poview[3]:
 				#try:
 					Config.read(confile)
@@ -1231,7 +1321,7 @@ class PoWindow(BWindow):
 			BApplication.be_app.WindowAt(0).PostMessage(msg)
 			return
 
-		if msg.what == 130550: # change listview selection
+		elif msg.what == 130550: # change listview selection
 			movetype=msg.FindInt8('movekind')
 			if movetype == 0:
 				#select one down
@@ -1300,17 +1390,23 @@ class PoWindow(BWindow):
 							next=False
 					spice=spice+1
 				self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
-				return
+			return
 
-		if msg.what == 305:
+		elif msg.what == 305:
 			#USER CREATOR WIZARD
 			self.maacutent = MaacUtent(True)
 			self.maacutent.Show()
 			self.SetFlags(B_AVOID_FOCUS)
 			return
-		
-		if msg.what == 445380:
-			#msg.PrintToStream()
+			
+		elif msg.what == 17893:
+			bckppath = msg.FindString('bckppath')
+			self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
+			print "salvo backup"
+			return
+			
+		elif msg.what == 445380:
+			#open procedure
 			txtpath=msg.FindString("path")
 			mimesuptbool = False
 			mimesubtbool = False
@@ -1387,9 +1483,27 @@ class PoWindow(BWindow):
 			#		pass
 			return
 			
-		if msg.what == 460550:
+		elif msg.what == 71:
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
 				txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText()
+				for entry in self.editorslist[self.postabview.Selection()].pofile:
+					if entry.msgid.encode(self.encoding) == txttosearch:
+						if 'fuzzy' in entry.flags:
+							entry.flags.remove('fuzzy')
+						else:
+							entry.flags.append('fuzzy')
+						bckpmsg=BMessage(17893)
+						bckpmsg.AddString('bckppath',self.editorslist[self.postabview.Selection()].backupfile)
+						BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save to backup file
+						break
+				self.editorslist[self.postabview.Selection()].list.reload(self.poview,self.editorslist[self.postabview.Selection()].pofile,self.encoding)
+							
+		elif msg.what == 460550:
+			
+			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
+				#self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).Update()
+				txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText()
+				#entry = self.editorslist[self.postabview.Selection()].pofile.find(txttosearch)
 				for entry in self.editorslist[self.postabview.Selection()].pofile:
 					if entry.msgid.encode(self.encoding) == txttosearch:
 						self.editorslist[self.postabview.Selection()].source.SetText(entry.msgid.encode(self.encoding))
@@ -1408,9 +1522,10 @@ class PoWindow(BWindow):
 			else:
 				self.editorslist[self.postabview.Selection()].source.SetText("")
 				self.editorslist[self.postabview.Selection()].translation.SetPOReadText("")
+#				self.editorslist[self.postabview.Selection()].translation.tosave=False
+			return
 				
-				
-		if msg.what == 460551:
+		elif msg.what == 460551:
 			#### clears source textview text and translation specific textview parameters
 			for v in self.editorslist:
 				v.source.SetText("")
@@ -1418,11 +1533,14 @@ class PoWindow(BWindow):
 				v.translation.oldtext=""
 				v.translation.oldtextloaded=False
 				v.translation.tosave=False
+			return
 
-		if msg.what ==  777:
+		elif msg.what ==  777:
 			#Removing B_AVOID_FOCUS flag
 			self.SetFlags(0)
 			return
+		else:
+			BWindow.MessageReceived(self, msg)
 			
 	def  loadPOfile(self,pathtofile,bounds,pofile):
 			########################## TODO ####################################
