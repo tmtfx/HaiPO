@@ -112,7 +112,7 @@ try:
 	from BEntry import BEntry
 	from BScrollBar import BScrollBar
 	from InterfaceKit import B_PAGE_UP,B_PAGE_DOWN,B_TAB,B_ESCAPE,B_DOWN_ARROW,B_UP_ARROW,B_V_SCROLL_BAR_WIDTH,B_FULL_UPDATE_ON_RESIZE,B_VERTICAL,B_FOLLOW_ALL,B_FOLLOW_TOP,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_WIDTH_FROM_LABEL,B_TRIANGLE_THUMB,B_BLOCK_THUMB,B_FLOATING_WINDOW,B_TITLED_WINDOW,B_WILL_DRAW,B_NAVIGABLE,B_FRAME_EVENTS,B_ALIGN_CENTER,B_FOLLOW_ALL_SIDES,B_MODAL_WINDOW,B_FOLLOW_TOP_BOTTOM,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT_RIGHT,B_SINGLE_SELECTION_LIST,B_NOT_RESIZABLE,B_NOT_ZOOMABLE,B_PLAIN_BORDER,B_FANCY_BORDER,B_NO_BORDER,B_ITEMS_IN_COLUMN,B_AVOID_FOCUS
-	from AppKit import B_QUIT_REQUESTED,B_KEY_UP,B_KEY_DOWN,B_MODIFIERS_CHANGED,B_UNMAPPED_KEY_DOWN,B_REFS_RECEIVED,B_SAVE_REQUESTED,B_CANCEL
+	from AppKit import B_QUIT_REQUESTED,B_KEY_UP,B_KEY_DOWN,B_MODIFIERS_CHANGED,B_UNMAPPED_KEY_DOWN,B_REFS_RECEIVED,B_SAVE_REQUESTED,B_CANCEL,B_WINDOW_RESIZED
 	from StorageKit import B_SAVE_PANEL,B_OPEN_PANEL,B_FILE_NODE,B_READ_ONLY
 	from SupportKit import B_ERROR,B_ENTRY_NOT_FOUND,B_OK
 except:
@@ -820,7 +820,6 @@ class EventTextView(BTextView):
 							bckpmsg.AddString('bckppath',self.superself.backupfile)
 							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
 				elif ochar == 103 or ochar == 7:
-					print "passo di qui?"
 					if value:
 						BApplication.be_app.WindowAt(0).PostMessage(BMessage(71))
 				if ochar != B_TAB: # needed to pass up/down keys to textview
@@ -851,7 +850,7 @@ class srctabbox(BBox):
 #		print (0,0,playground1[3]-playground1[1],playground1[3]-playground1[0])
 		#(0,0,playground1[3]-playground1[1],playground1[3]-playground1[0])
 		#newplayground=(playground1[0],playground1[1],playground1[2]-5,playground1[3]-5)
-		BBox.__init__(self,(0,0,playground1[2]-playground1[0],playground1[3]-playground1[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW | B_FRAME_EVENTS,B_NO_BORDER)#frame
+		BBox.__init__(self,(0,0,playground1[2]-playground1[0],playground1[3]-playground1[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)#frame
 		self.hsrc = playground1[3] - playground1[1] - altece 
 		self.src = BTextView((playground1[0]-3,playground1[1]-3,playground1[2]-playground1[0],playground1[3]-playground1[1]),name+'_source_BTextView',(5.0,5.0,playground1[2]-5,playground1[3]-5),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.src.MakeEditable(False)
@@ -863,7 +862,7 @@ class trnsltabbox(BBox):
 #		print (0,0,playground1[3]-playground1[1],playground1[3]-playground1[0])
 		#print playground2
 		#(0,0,playground2[3]-playground2[1],playground2[3]-playground2[0])
-		BBox.__init__(self,(0,0,playground2[2]-playground2[0],playground2[3]-playground2[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW | B_FRAME_EVENTS,B_NO_BORDER)#frame
+		BBox.__init__(self,(0,0,playground2[2]-playground2[0],playground2[3]-playground2[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)#frame
 		#self.htrans= playground2[3] - playground2[1] - altece
 		#newplayground2 = (playground2[0]+1,playground2[1]+1,playground2[2]-2,playground2[3]-2)
 		#print newplayground2
@@ -874,6 +873,7 @@ class trnsltabbox(BBox):
 class POEditorBBox(BBox):
 	def __init__(self,frame,name,percors,pofileloaded,arrayview,encoding):
 		self.pofile = pofileloaded
+		self.name = name
 		self.modifier=False
 		self.encoding=encoding
 		filen, file_ext = os.path.splitext(percors)
@@ -895,52 +895,53 @@ class POEditorBBox(BBox):
 		self.sem = threading.Semaphore()
 		contor = frame
 		a,s,d,f = contor
-		BBox.__init__(self,(a,s,d-5,f-35),name,B_FOLLOW_ALL,B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)#frame
+		BBox.__init__(self,(a,s,d-5,f-35),name,B_FOLLOW_ALL,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)#frame
 		contor=self.Bounds()
 		l, t, r, b = contor
-		self.list = ScrollView((5, 5, r -22, b-247), name+'_ScrollView')
+		self.list = ScrollView((5, 5, r -22, b-5), name+'_ScrollView')#-247
 		self.AddChild(self.list.topview())
-		self.scrollb = BScrollBar((r -21,5,r-5,b-247),name+'_ScrollBar',self.list.listview(),0.0,float(len(datab)),B_VERTICAL)
+		self.scrollb = BScrollBar((r -21,5,r-5,b-5),name+'_ScrollBar',self.list.listview(),0.0,float(len(datab)),B_VERTICAL)#-247
 		self.AddChild(self.scrollb)
-		playground1 = (5,b-243,r -5, b-123)
-		self.srctabview = BTabView(playground1, 'sourcetabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT)
-#		tabfr = (5.0, 5.0, d*3/4-5, s-5)#(10.0, 10.0, d-25, s - 5 - altece)
-		tabfr = self.srctabview.Bounds()
-#		print tabfr
-		#tabrc = (1.0,1.0, tabfr[2]-2,tabfr[3]-2)
-#		print tabrc #playground1[2] - playground1[0], playground1[3] - playground1[1])
-		altece = self.srctabview.TabHeight()
-		tabrc = (3.0, 3.0, playground1[2] - playground1[0], playground1[3] - playground1[1]-altece)
-		self.srctablabels=[]
-		self.listemsgid=[]
-		self.AddChild(self.srctabview)
 		
-		self.sourcebox=srctabbox(tabrc,'msgid',altece)
-#		self.AddChild(self.source)
-		self.listemsgid.append(self.sourcebox)
-		self.srctablabels.append(BTab())
-		self.srctabview.AddTab(self.listemsgid[0], self.srctablabels[0])
-		self.source = self.listemsgid[0].src
-#####################################################################################################
-		
-		playground2 = (5, b-120,r -5, b-5)
-		self.transtabview = BTabView(playground2, 'translationtabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT)
 
-		tabrc = (3, 3, playground2[2] - playground2[0], playground2[3] - playground2[1]-altece)
-		print tabrc
-		self.transtablabels=[]
-		self.listemsgstr=[]
-		self.AddChild(self.transtabview)
-		
-#		self.htrans= playground2[3] - playground2[1] - altece
-#		self.trnsl = EventTextView(self,playground2,name+'_translation_BTextView',(5.0,5.0,playground2[2]-2,playground2[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
-#		self.trnsl.MakeEditable(True)
-		self.transbox=trnsltabbox(tabrc,'msgstr',altece,self)
-		self.listemsgstr.append(self.transbox)
-		self.transtablabels.append(BTab())
-		self.transtabview.AddTab(self.listemsgstr[0], self.transtablabels[0])
-		self.translation = self.listemsgstr[0].trnsl
-		#self.AddChild(self.translation)
+#		playground1 = (5,b-243,r -5, b-123)
+#		self.srctabview = BTabView(playground1, 'sourcetabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS)
+##		tabfr = (5.0, 5.0, d*3/4-5, s-5)#(10.0, 10.0, d-25, s - 5 - altece)
+#		tabfr = self.srctabview.Bounds()
+##		print tabfr
+#		#tabrc = (1.0,1.0, tabfr[2]-2,tabfr[3]-2)
+##		print tabrc #playground1[2] - playground1[0], playground1[3] - playground1[1])
+#		altece = self.srctabview.TabHeight()
+#		tabrc = (3.0, 3.0, playground1[2] - playground1[0], playground1[3] - playground1[1]-altece)
+#		self.srctablabels=[]
+#		self.listemsgid=[]
+#		self.AddChild(self.srctabview)
+#		
+#		self.sourcebox=srctabbox(tabrc,'msgid',altece)
+##		self.AddChild(self.source)
+#		self.listemsgid.append(self.sourcebox)
+#		self.srctablabels.append(BTab())
+#		self.srctabview.AddTab(self.listemsgid[0], self.srctablabels[0])
+#		self.source = self.listemsgid[0].src
+######################################################################################################
+#		
+#		playground2 = (5, b-120,r -5, b-5)
+#		self.transtabview = translationtabview(playground2, 'translationtabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS)#BTabView(playground2, 'translationtabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT)
+#
+#		tabrc = (3, 3, playground2[2] - playground2[0], playground2[3] - playground2[1]-altece)
+#		self.transtablabels=[]
+#		self.listemsgstr=[]
+#		self.AddChild(self.transtabview)
+##		
+##		self.htrans= playground2[3] - playground2[1] - altece
+##		self.trnsl = EventTextView(self,playground2,name+'_translation_BTextView',(5.0,5.0,playground2[2]-2,playground2[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
+##		self.trnsl.MakeEditable(True)
+#		self.transbox=trnsltabbox(tabrc,'msgstr',altece,self)
+#		self.listemsgstr.append(self.transbox)
+#		self.transtablabels.append(BTab())
+#		self.transtabview.AddTab(self.listemsgstr[0], self.transtablabels[0])
+#		self.translation = self.listemsgstr[0].trnsl
+#		#self.AddChild(self.translation)
 		
 		if arrayview[0]:
 			for entry in self.pofile.fuzzy_entries():
@@ -961,9 +962,11 @@ class POEditorBBox(BBox):
 		if arrayview[2]:
 			for entry in self.pofile.translated_entries():
 				if entry and entry.msgid_plural:
+#					print "len msgstrplural",len(sorted(entry.msgstr_plural.keys()))
 #					print (entry.msgid + " has plural")
 					item = MsgStrItem(entry.msgid,1,encoding,True)
 				else:
+
 					item = MsgStrItem(entry.msgid,1,encoding,False)
 				self.list.lv.AddItem(item)
 		if arrayview[3]:
@@ -975,8 +978,20 @@ class POEditorBBox(BBox):
 					item = MsgStrItem(entry.msgid,3,encoding,False)
 				self.list.lv.AddItem(item)
 
-		
-
+class translationtabview(BTabView):
+	def __init__(self,frame,name,width,risizingMode,flags):
+		BTabView.__init__(self,frame,name,width,risizingMode,flags)
+	def Draw(self,updateRect):
+		BTabView.Draw(self,updateRect)
+#	def DrawBox(self,selTabRect):
+#		return BTabView.DrawBox(self,selTabRect)
+#	def DrawTabs(self): #non esiste!!!
+#		return BTabView.DrawTabs(self)
+	def MouseDown(self,point):
+		#BApplication.be_app.PostMessage(BMessage(B_WINDOW_RESIZED))
+		print self.TabFrame(self.Selection())
+		print "ho mandato il messaggio"
+		return BTabView.MouseDown(self,point)
 
 class PoWindow(BWindow):
 	Menus = (
@@ -1081,9 +1096,11 @@ class PoWindow(BWindow):
 		l, t, r, b = bounds
 		self.AddChild(self.bar)
 		##### COLOR GRAY UNDER LISTS
-		self.background = BBox((l, t + barheight, r, b), 'background', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+
+		self.background = BBox((l, t + barheight, r, b), 'background', B_FOLLOW_ALL,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(self.background)
 		binds = self.background.Bounds()
+		
 		c,p,d,s = binds
 		###### SAVE PANEL
 		self.fp=BFilePanel(B_SAVE_PANEL)
@@ -1097,9 +1114,10 @@ class PoWindow(BWindow):
 #		else:
 #			print "node initialized"
 		self.ofp=BFilePanel()
-		self.lubox=BBox((d*3/4,2,d,s), 'leftunderbox', B_FOLLOW_TOP_BOTTOM|B_FOLLOW_RIGHT, B_WILL_DRAW|B_NAVIGABLE,B_FANCY_BORDER)# B_NO_BORDER)B_FOLLOW_ALL_SIDES // B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM|B_FOLLOW_TOP//B_FOLLOW_TOP|B_FOLLOW_RIGHT
+		self.lubox=BBox((d*3/4,2,d,s), 'leftunderbox', B_FOLLOW_TOP_BOTTOM|B_FOLLOW_RIGHT, B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS|B_NAVIGABLE,B_FANCY_BORDER)# B_NO_BORDER)B_FOLLOW_ALL_SIDES // B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM|B_FOLLOW_TOP//B_FOLLOW_TOP|B_FOLLOW_RIGHT
 		self.background.AddChild(self.lubox)
-		self.postabview = BTabView((5.0, 5.0, d*3/4-5, s-5), 'postabview',B_WIDTH_FROM_LABEL)#,B_WIDTH_FROM_LABEL,B_FOLLOW_ALL,B_NAVIGABLE)
+		self.postabview = BTabView((5.0, 5.0, d*3/4-5, b-barheight-245), 'postabview',B_WIDTH_FROM_LABEL)#,B_WIDTH_FROM_LABEL,B_FOLLOW_ALL,B_NAVIGABLE) s-5 o b-260 circa
+		#print(5.0, 5.0, d*3/4-5, s-5)
 		altece = self.postabview.TabHeight()
 		tfr = (5.0, 5.0, d*3/4-5, s-5)#(10.0, 10.0, d-25, s - 5 - altece)
 		self.trc = (0.0, 0.0, tfr[2] - tfr[0], tfr[3] - tfr[1])
@@ -1108,6 +1126,52 @@ class PoWindow(BWindow):
 		self.editorslist=[]
 		
 		self.background.AddChild(self.postabview)
+		
+		
+		
+		
+		playground1 = (5,b-268,r - d*1/4-5, s-120)
+		self.srctabview = BTabView(playground1, 'sourcetabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS)
+#		tabfr = (5.0, 5.0, d*3/4-5, s-5)#(10.0, 10.0, d-25, s - 5 - altece)
+		tabfr = self.srctabview.Bounds()
+#		print tabfr
+		#tabrc = (1.0,1.0, tabfr[2]-2,tabfr[3]-2)
+#		print tabrc #playground1[2] - playground1[0], playground1[3] - playground1[1])
+		altece = self.srctabview.TabHeight()
+		tabrc = (3.0, 3.0, playground1[2] - playground1[0], playground1[3] - playground1[1]-altece)
+		self.srctablabels=[]
+		self.listemsgid=[]
+		self.background.AddChild(self.srctabview)
+		
+		self.sourcebox=srctabbox(tabrc,'msgid',altece)
+#		self.AddChild(self.source)
+		self.listemsgid.append(self.sourcebox)
+		self.srctablabels.append(BTab())
+		self.srctabview.AddTab(self.listemsgid[0], self.srctablabels[0])
+		self.source = self.listemsgid[0].src
+######################################################################################################
+		
+		playground2 = (5, b-142,r -d*1/4-5, s-2)
+		self.transtabview = translationtabview(playground2, 'translationtabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS)#BTabView(playground2, 'translationtabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT)
+
+		tabrc = (3, 3, playground2[2] - playground2[0], playground2[3] - playground2[1]-altece)
+		print tabrc,"original tabrc"
+		self.transtablabels=[]
+		self.listemsgstr=[]
+		self.background.AddChild(self.transtabview)
+#		
+#		self.htrans= playground2[3] - playground2[1] - altece
+#		self.trnsl = EventTextView(self,playground2,name+'_translation_BTextView',(5.0,5.0,playground2[2]-2,playground2[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
+#		self.trnsl.MakeEditable(True)
+		self.transbox=trnsltabbox(tabrc,'msgstr',altece,self)
+		self.listemsgstr.append(self.transbox)
+		self.transtablabels.append(BTab())
+		self.transtabview.AddTab(self.listemsgstr[0], self.transtablabels[0])
+		self.translation = self.listemsgstr[0].trnsl
+		#self.AddChild(self.translation)
+		
+		
+		
 
 		
 		##### if first launch, it opens the profile creator wizard and sets default enconding for polib
@@ -1149,20 +1213,57 @@ class PoWindow(BWindow):
 #					b.translation.SetTextRect(boundos)
 				else:
 					b.ResizeTo(k,l)
-					b.list.lv.ResizeTo(k-27,l-252)
-					b.list.sv.ResizeTo(k-23,l-248)
+					print(self.editorslist[i].list.sv.Bounds())
+					b.list.lv.ResizeTo(k-27,l-10)#-252
+					b.list.sv.ResizeTo(k-23,l-6)#-248
+					print b.list.sv.Bounds()
 					b.scrollb.MoveTo(k-21,5)
-					b.scrollb.ResizeTo(cv-zx,l-252) ############ No 16! This should be B_V_SCROLL_BAR_WIDTH
-					b.source.MoveTo(5,l-243)
-					b.source.ResizeTo(k-10,120)
-					u,m,o,y= b.source.Bounds()
-					boundos = (5,5,o-5,y-5)
-					b.source.SetTextRect(boundos)
-					b.translation.MoveTo(5,l-120)
-					b.translation.ResizeTo(k-10,115)
-					u,m,o,y= b.translation.Bounds()
-					boundos = (5.0, 5.0, (o - 5.0), (y-5.0))
-					b.translation.SetTextRect(boundos)
+					b.scrollb.ResizeTo(cv-zx,l-10) #-252########### No 16! This should be B_V_SCROLL_BAR_WIDTH
+#					b.srctabview.MoveTo(5,l-243)
+#					b.srctabview.ResizeTo(k-10,120)
+#					#if len(b.listemsgid)>0:
+#					#	for schedis in b.listemsgstr:
+#					a,s,d,f = b.srctabview.Bounds()
+#					print ("POBox: ",self.editorslist[i].Bounds())
+#					print ("srctabview: ",b.srctabview.Bounds())
+#					for schedis in b.listemsgid:
+#						schedis.ResizeTo(d-5,f-33)
+#						print ("box: ",schedis.Bounds())
+#						schedis.src.ResizeTo(d-5,87)
+#						print ("text box: ",schedis.src.Bounds())
+#						schedis.src.SetTextRect((5,5,d-5,87))
+#						print ("text rect: ", schedis.src.TextRect())
+#						
+##		self.listemsgstr.append(self.transbox)
+##		self.transtablabels.append(BTab())
+##		self.transtabview.AddTab(self.listemsgstr[0], self.transtablabels[0])
+#
+#					b.transtabview.MoveTo(5,l-120)
+#					b.transtabview.ResizeTo(k-10,115)
+#					a,s,d,f = b.transtabview.Bounds()
+#					print ("POBox: ",self.editorslist[i].Bounds())
+#					print ("transtabview: ",b.transtabview.Bounds())
+##					i=len(b.listemsgstr)-1
+##					while i>-1:
+##						b.transtabview.RemoveTab(i)
+##						i=i-1
+##					i=len(b.listemsgstr)-1
+##					p=0
+##					while p<=i:
+###						b.transtabview.AddTab(b.listemsgstr[p],b.transtablabels[p])
+##						print "ho aggiunto", p
+##						p=p+1
+#					for schedis in b.listemsgstr:
+#						schedis.ResizeTo(d-5,f-33)
+##						print ("box: ",schedis.Bounds())
+#						schedis.trnsl.MoveTo(0,0)
+#						schedis.trnsl.ResizeTo(d-10,87)
+##						print ("text box: ",schedis.trnsl.Bounds())
+#						schedis.trnsl.SetTextRect((5,5,d-5,87))
+##						print ("text rect: ", schedis.trnsl.TextRect())
+					
+			#return BWindow.FrameResized(self,x,y)
+
 
 	def MessageReceived(self, msg):
 	#B_UNMAPPED_KEY_DOWN
@@ -1525,6 +1626,7 @@ class PoWindow(BWindow):
 			return
 			
 		elif msg.what == 71:
+			# mark unmark as fuzzy
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
 				txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText()
 				for entry in self.editorslist[self.postabview.Selection()].pofile:
@@ -1549,15 +1651,129 @@ class PoWindow(BWindow):
 				################################# PER IL PLURALE ##############################################
 				###############################################################################################
 				#rimuovere schede tabview sorgente e traduzione
+				bounds = self.Bounds()
+				l, t, r, b = bounds
+				binds = self.background.Bounds()
+				c,p,d,s = binds
+				plygrnd1 = (5,b-268,r - d*1/4-5, s-120)
+				altece = self.srctabview.TabHeight()
+				tabrc = (3.0, 3.0, plygrnd1[2] - plygrnd1[0], plygrnd1[3] - plygrnd1[1]-altece)
 				txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText()
 				#entry = self.editorslist[self.postabview.Selection()].pofile.find(txttosearch)
+				####### check for multiple occurencies ########
+				count=0
 				for entry in self.editorslist[self.postabview.Selection()].pofile:
 					if entry.msgid.encode(self.encoding) == txttosearch:
-						self.editorslist[self.postabview.Selection()].source.SetText(entry.msgid.encode(self.encoding))
-						self.editorslist[self.postabview.Selection()].translation.SetPOReadText(entry.msgstr.encode(self.encoding))
-				self.editorslist[self.postabview.Selection()].translation.MakeFocus()
+						count = count +1
+				if count > 1:
+					print "multiple entries occurrencies function not implemented"
+				for entry in self.editorslist[self.postabview.Selection()].pofile:
+					if entry.msgid.encode(self.encoding) == txttosearch:
+						alfa = (len(self.listemsgid)-1) #ELEMENTS IN LISTEMSGID TO KNOW IF WE HAVE A PLURAL OR NOT
+						if entry and not entry.msgid_plural:
+							if alfa == 1:    #IF THERE'S A PLURAL, REMOVE IT
+									self.srctabview.RemoveTab(1)
+									self.listemsgid.pop(1)
+									self.srctablabels.pop(1)
+									self.srctabview.Hide()
+									self.srctabview.Show()
+									#AS IN TRANSLATION BOX WE CAN HAVE MORE THAN 1 PLURAL (FOR SOME LANGUAGES)...
+									#WE SHOULD REMOVE ALL THE TABS
+							ww=len(self.listemsgstr)-1
+							while ww>0:					#removes plural translation tabs
+								self.transtabview.RemoveTab(ww)
+								self.listemsgstr.pop(ww)
+								self.transtablabels.pop(ww)
+								self.transtabview.Hide()
+								self.transtabview.Show()
+								ww=ww-1
+##### Removing tab 0 on translation tabview and renaming it as msgstr
+							self.transtabview.RemoveTab(0)
+							self.listemsgstr.pop(0)
+							self.transtablabels.pop(0)
+							self.transtabview.Hide()
+							self.transtabview.Show()
+
+							self.listemsgstr.append(trnsltabbox(tabrc,'msgstr',altece,self))
+							self.transtablabels.append(BTab())
+							self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
+							self.transtabview.Hide()
+							self.transtabview.Show()
+#######################################################################
+							self.listemsgid[0].src.SetText(entry.msgid.encode(self.encoding))
+							self.listemsgstr[0].trnsl.SetPOReadText(entry.msgstr.encode(self.encoding))
+############################### bugfix workaround? ####################
+							self.transtabview.SetFocusTab(1,True)						#################  <----- needed to fix 
+							self.transtabview.Select(1)									#################  <----- a bug, tab0 will not appear
+							self.transtabview.Select(0)									#################  <----- so forcing a tabview update
+#######################################################################
+						if entry and entry.msgid_plural:
+							beta=len(sorted(entry.msgstr_plural.keys()))
+							print "beta is",beta
+							if alfa ==1: 	#IF THERE'S A PLURAL, REMOVE IT
+									self.srctabview.RemoveTab(1)
+									self.listemsgid.pop(1)
+									self.srctablabels.pop(1)
+									self.srctabview.Hide()
+									self.srctabview.Show()
+									#AS IN TRANSLATION BOX WE CAN HAVE MORE THAN 1 PLURAL (FOR SOME LANGUAGES)...
+									#WE SHOULD REMOVE ALL THE TABS
+							ww=len(self.listemsgstr)-1
+							while ww>0: 				#removes plural translation tabs
+								self.transtabview.RemoveTab(ww)
+								self.listemsgstr.pop(ww)
+								self.transtablabels.pop(ww)
+								self.transtabview.Hide()
+								self.transtabview.Show()
+								ww=ww-1
+
+							self.transtabview.RemoveTab(0)
+							self.listemsgstr.pop(0)
+							self.transtablabels.pop(0)
+							self.transtabview.Hide()
+							self.transtabview.Show()
+
+							self.listemsgstr.append(trnsltabbox(tabrc,'msgstr[0]',altece,self))
+							self.transtablabels.append(BTab())
+							self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
+							self.transtabview.Hide()
+							self.transtabview.Show()
+							##########################################							aggiungo il plurale in listemsgid
+							self.listemsgid.append(srctabbox(tabrc,'msgid_plural',altece))
+							self.srctablabels.append(BTab())
+							self.srctabview.AddTab(self.listemsgid[1], self.srctablabels[1])
+							x=len(self.listemsgid)-1
+							self.srctabview.SetFocusTab(x,True)
+							self.srctabview.Select(x)
+							self.srctabview.Select(0)
+							self.listemsgid[0].src.SetText(entry.msgid.encode(self.encoding))
+							self.listemsgid[1].src.SetText(entry.msgid_plural.encode(self.encoding))
+							ww=0
+							while ww<beta:
+								self.transtablabels.append(BTab())
+								if ww == 0:
+									self.listemsgstr[0].trnsl.SetPOReadText(entry.msgstr_plural[0].encode(self.encoding))
+									#self.listemsgstr.append(trnsltabbox(tabrc,'msgstr[0]',altece,self))
+									#self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
+									self.transtabview.SetFocusTab(x,True)
+									self.transtabview.Select(x)
+									self.transtabview.Select(0)
+								else:
+									self.listemsgstr.append(trnsltabbox(self.listemsgstr[0].trnsl.Bounds(),'msgstr['+str(ww)+']',altece,self))
+									self.listemsgstr[ww].trnsl.SetPOReadText(entry.msgstr_plural[ww].encode(self.encoding))
+									self.transtabview.AddTab(self.listemsgstr[ww],self.transtablabels[ww])
+									#self.
+									#self.listemsgstr[ww].trnsl.SetPOReadText(entry.msgstr_plural[ww].encode(self.encoding))
+								ww=ww+1
+							#da 0 a beta-1 do
+							 
+							
+						#else:
+						#self.editorslist[self.postabview.Selection()].source.SetText(entry.msgid.encode(self.encoding))
+						#self.editorslist[self.postabview.Selection()].translation.SetPOReadText(entry.msgstr.encode(self.encoding))
+# riscrivere		self.editorslist[self.postabview.Selection()].translation.MakeFocus()
 				
-				############################ TODO GO TO THE END OF THE TEXT #############################
+				############################ TODO: GO TO THE END OF THE TEXT #############################
 				#num=self.editorslist[self.postabview.Selection()].translation.CountLines()
 				#self.editorslist[self.postabview.Selection()].translation.GoToLine(num)
 				#txtlen=self.editorslist[self.postabview.Selection()].translation.TextLenght()
