@@ -852,7 +852,7 @@ class srctabbox(BBox):
 		#newplayground=(playground1[0],playground1[1],playground1[2]-5,playground1[3]-5)
 		BBox.__init__(self,(0,0,playground1[2]-playground1[0],playground1[3]-playground1[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)#frame
 		self.hsrc = playground1[3] - playground1[1] - altece 
-		self.src = BTextView((playground1[0]-3,playground1[1]-3,playground1[2]-playground1[0],playground1[3]-playground1[1]),name+'_source_BTextView',(5.0,5.0,playground1[2]-5,playground1[3]-5),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
+		self.src = BTextView((playground1[0],playground1[1],playground1[2]-playground1[0],playground1[3]-playground1[1]),name+'_source_BTextView',(5.0,5.0,playground1[2]-5,playground1[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)#B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT
 		self.src.MakeEditable(False)
 		self.AddChild(self.src)
 class trnsltabbox(BBox):
@@ -865,8 +865,7 @@ class trnsltabbox(BBox):
 		BBox.__init__(self,(0,0,playground2[2]-playground2[0],playground2[3]-playground2[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)#frame
 		#self.htrans= playground2[3] - playground2[1] - altece
 		#newplayground2 = (playground2[0]+1,playground2[1]+1,playground2[2]-2,playground2[3]-2)
-		#print newplayground2
-		self.trnsl = EventTextView(superself,(playground2[0]-3,playground2[1]-3,playground2[2]-playground2[0],playground2[3]-playground2[1]),name+'_translation_BTextView',(5.0,5.0,playground2[2]-5,playground2[3]-5),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
+		self.trnsl = EventTextView(superself,(playground2[0],playground2[1],playground2[2]-playground2[0],playground2[3]-playground2[1]),name+'_translation_BTextView',(5.0,5.0,playground2[2]-5,playground2[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)#B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT
 		self.trnsl.MakeEditable(True)
 		self.AddChild(self.trnsl)
 
@@ -1133,7 +1132,7 @@ class PoWindow(BWindow):
 		playground1 = (5,b-268,r - d*1/4-5, s-120)
 		self.srctabview = BTabView(playground1, 'sourcetabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS)
 #		tabfr = (5.0, 5.0, d*3/4-5, s-5)#(10.0, 10.0, d-25, s - 5 - altece)
-		tabfr = self.srctabview.Bounds()
+#		tabfr = self.srctabview.Bounds()
 #		print tabfr
 		#tabrc = (1.0,1.0, tabfr[2]-2,tabfr[3]-2)
 #		print tabrc #playground1[2] - playground1[0], playground1[3] - playground1[1])
@@ -1644,13 +1643,6 @@ class PoWindow(BWindow):
 		elif msg.what == 460550:
 			# selection from listview
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
-				#self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).Update()
-				###############################################################################################
-				##################################  DA RIVEDERE ###############################################
-				###############################################################################################
-				################################# PER IL PLURALE ##############################################
-				###############################################################################################
-				#rimuovere schede tabview sorgente e traduzione
 				bounds = self.Bounds()
 				l, t, r, b = bounds
 				binds = self.background.Bounds()
@@ -1660,6 +1652,8 @@ class PoWindow(BWindow):
 				tabrc = (3.0, 3.0, plygrnd1[2] - plygrnd1[0], plygrnd1[3] - plygrnd1[1]-altece)
 				txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText()
 				#entry = self.editorslist[self.postabview.Selection()].pofile.find(txttosearch)
+				
+				
 				####### check for multiple occurencies ########
 				count=0
 				for entry in self.editorslist[self.postabview.Selection()].pofile:
@@ -1667,9 +1661,11 @@ class PoWindow(BWindow):
 						count = count +1
 				if count > 1:
 					print "multiple entries occurrencies function not implemented"
+					
+					
 				for entry in self.editorslist[self.postabview.Selection()].pofile:
 					if entry.msgid.encode(self.encoding) == txttosearch:
-						alfa = (len(self.listemsgid)-1) #ELEMENTS IN LISTEMSGID TO KNOW IF WE HAVE A PLURAL OR NOT
+						alfa = (len(self.listemsgid)-1)
 						if entry and not entry.msgid_plural:
 							if alfa == 1:    #IF THERE'S A PLURAL, REMOVE IT
 									self.srctabview.RemoveTab(1)
@@ -1677,8 +1673,6 @@ class PoWindow(BWindow):
 									self.srctablabels.pop(1)
 									self.srctabview.Hide()
 									self.srctabview.Show()
-									#AS IN TRANSLATION BOX WE CAN HAVE MORE THAN 1 PLURAL (FOR SOME LANGUAGES)...
-									#WE SHOULD REMOVE ALL THE TABS
 							ww=len(self.listemsgstr)-1
 							while ww>0:					#removes plural translation tabs
 								self.transtabview.RemoveTab(ww)
@@ -1693,7 +1687,7 @@ class PoWindow(BWindow):
 							self.transtablabels.pop(0)
 							self.transtabview.Hide()
 							self.transtabview.Show()
-
+							tabrc=(3,3,self.listemsgid[0].Bounds()[2],tabrc[3]-10)
 							self.listemsgstr.append(trnsltabbox(tabrc,'msgstr',altece,self))
 							self.transtablabels.append(BTab())
 							self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
@@ -1709,15 +1703,13 @@ class PoWindow(BWindow):
 #######################################################################
 						if entry and entry.msgid_plural:
 							beta=len(sorted(entry.msgstr_plural.keys()))
-							print "beta is",beta
+							tabrc=(3,3,self.listemsgid[0].Bounds()[2],tabrc[3]-10)
 							if alfa ==1: 	#IF THERE'S A PLURAL, REMOVE IT
 									self.srctabview.RemoveTab(1)
 									self.listemsgid.pop(1)
 									self.srctablabels.pop(1)
 									self.srctabview.Hide()
 									self.srctabview.Show()
-									#AS IN TRANSLATION BOX WE CAN HAVE MORE THAN 1 PLURAL (FOR SOME LANGUAGES)...
-									#WE SHOULD REMOVE ALL THE TABS
 							ww=len(self.listemsgstr)-1
 							while ww>0: 				#removes plural translation tabs
 								self.transtabview.RemoveTab(ww)
@@ -1738,8 +1730,7 @@ class PoWindow(BWindow):
 							self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
 							self.transtabview.Hide()
 							self.transtabview.Show()
-							##########################################							aggiungo il plurale in listemsgid
-							self.listemsgid.append(srctabbox(tabrc,'msgid_plural',altece))
+							self.listemsgid.append(srctabbox((3,3,self.listemsgid[0].Bounds()[2]+3,self.listemsgid[0].Bounds()[3]+3),'msgid_plural',altece))
 							self.srctablabels.append(BTab())
 							self.srctabview.AddTab(self.listemsgid[1], self.srctablabels[1])
 							x=len(self.listemsgid)-1
@@ -1753,25 +1744,18 @@ class PoWindow(BWindow):
 								self.transtablabels.append(BTab())
 								if ww == 0:
 									self.listemsgstr[0].trnsl.SetPOReadText(entry.msgstr_plural[0].encode(self.encoding))
-									#self.listemsgstr.append(trnsltabbox(tabrc,'msgstr[0]',altece,self))
-									#self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
 									self.transtabview.SetFocusTab(x,True)
 									self.transtabview.Select(x)
 									self.transtabview.Select(0)
 								else:
-									self.listemsgstr.append(trnsltabbox(self.listemsgstr[0].trnsl.Bounds(),'msgstr['+str(ww)+']',altece,self))
+									asd=self.listemsgstr[0].trnsl.Bounds()
+									tabrect=(3,3,asd[2]+6,asd[3]+6)
+									self.listemsgstr.append(trnsltabbox(tabrect,'msgstr['+str(ww)+']',altece,self))
 									self.listemsgstr[ww].trnsl.SetPOReadText(entry.msgstr_plural[ww].encode(self.encoding))
 									self.transtabview.AddTab(self.listemsgstr[ww],self.transtablabels[ww])
-									#self.
-									#self.listemsgstr[ww].trnsl.SetPOReadText(entry.msgstr_plural[ww].encode(self.encoding))
 								ww=ww+1
-							#da 0 a beta-1 do
 							 
-							
-						#else:
-						#self.editorslist[self.postabview.Selection()].source.SetText(entry.msgid.encode(self.encoding))
-						#self.editorslist[self.postabview.Selection()].translation.SetPOReadText(entry.msgstr.encode(self.encoding))
-# riscrivere		self.editorslist[self.postabview.Selection()].translation.MakeFocus()
+					self.listemsgstr[0].trnsl.MakeFocus()
 				
 				############################ TODO: GO TO THE END OF THE TEXT #############################
 				#num=self.editorslist[self.postabview.Selection()].translation.CountLines()
