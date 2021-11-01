@@ -770,8 +770,9 @@ class EventTextView(BTextView):
 			print ochar
 			if ochar in (B_DOWN_ARROW,B_UP_ARROW,B_TAB,B_PAGE_UP,B_PAGE_DOWN):
 				self.superself.sem.acquire()
-				value=self.superself.modifier #CTRL pressed
+				value=self.superself.modifier#self.superself.modifier #CTRL pressed
 				self.superself.sem.release()
+				
 				kmesg=BMessage(130550)
 				if ochar == B_DOWN_ARROW:
 					if value:
@@ -829,11 +830,11 @@ class EventTextView(BTextView):
 				self.tosave=False
 				return
 			else:
-				if self.superself.list.lv.CurrentSelection()>-1:
+				if self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()>-1:
 					self.tosave=True  #### This says you should save the string before proceeding
 					return BTextView.KeyDown(self,char,bytes)
 		except:
-			if self.superself.list.lv.CurrentSelection()>-1:
+			if self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()>-1:
 				self.tosave=True   #### This says you should save the string before proceeding
 				return BTextView.KeyDown(self,char,bytes)
 		
@@ -873,7 +874,7 @@ class POEditorBBox(BBox):
 	def __init__(self,frame,name,percors,pofileloaded,arrayview,encoding):
 		self.pofile = pofileloaded
 		self.name = name
-		self.modifier=False
+		#self.modifier=False      #perchè sta qui questo?
 		self.encoding=encoding
 		filen, file_ext = os.path.splitext(percors)
 #		if file_ext=='.po':
@@ -891,7 +892,6 @@ class POEditorBBox(BBox):
 				datab.append((ind,entry.msgid,entry.msgstr))
 				ind=ind+1
 		
-		self.sem = threading.Semaphore()
 		contor = frame
 		a,s,d,f = contor
 		BBox.__init__(self,(a,s,d-5,f-35),name,B_FOLLOW_ALL,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)#frame
@@ -1006,7 +1006,9 @@ class PoWindow(BWindow):
 		bounds = self.Bounds()
 		self.bar = BMenuBar(bounds, 'Bar')
 		x, barheight = self.bar.GetPreferredSize()
+		self.modifier=False
 		self.poview=[True,True,True,False]
+		self.sem = threading.Semaphore()
 		try:
 				Config.read(confile)
 				self.poview[0]=Config.getboolean('Settings', 'Fuzzy')
@@ -1147,6 +1149,7 @@ class PoWindow(BWindow):
 		self.listemsgid.append(self.sourcebox)
 		self.srctablabels.append(BTab())
 		self.srctabview.AddTab(self.listemsgid[0], self.srctablabels[0])
+		############################################################################################################### ELIMINARE SELF.SOURCE ###########################################################################################################
 		self.source = self.listemsgid[0].src
 ######################################################################################################
 		
@@ -1166,6 +1169,7 @@ class PoWindow(BWindow):
 		self.listemsgstr.append(self.transbox)
 		self.transtablabels.append(BTab())
 		self.transtabview.AddTab(self.listemsgstr[0], self.transtablabels[0])
+		#################################################################################################################### ELIMINARE SELF.TRANSLATION ############################################################################################
 		self.translation = self.listemsgstr[0].trnsl
 		#self.AddChild(self.translation)
 		
@@ -1269,19 +1273,28 @@ class PoWindow(BWindow):
 		if msg.what == B_MODIFIERS_CHANGED: #quando modificatore ctrl cambia stato
 #			print "modifiers changed"
 			value=msg.FindInt32("modifiers")
-			self.editorslist[self.postabview.Selection()].sem.acquire()
+			self.sem.acquire()
 			if value==self.modifiervalue or value==self.modifiervalue+8:
-				self.editorslist[self.postabview.Selection()].modifier=True
+				self.modifier=True
 			else:
-				self.editorslist[self.postabview.Selection()].modifier=False
-			self.editorslist[self.postabview.Selection()].sem.release()
+				self.modifier=False
+			self.sem.release()
 			return
-		elif msg.what == B_KEY_DOWN:	#on tab key pressed, focus on listview
+		elif msg.what == B_KEY_DOWN:	#on tab key pressed, focus on translation or translation of first item list of translations
 			if msg.FindInt32('key')==38:
+				run=True
 				try:
-					if not self.editorslist[self.postabview.Selection()].translation.IsFocus():
-						self.editorslist[self.postabview.Selection()].list.lv.MakeFocus()
-						self.editorslist[self.postabview.Selection()].list.lv.Select(0)
+					lung=len(self.listemsgstr)-1
+					pp=0
+					while lung>=pp:
+						if self.listemsgstr[pp].trnsl.IsFocus():
+							run=False
+						pp=pp+1
+					if run:
+						if self.postabview.Selection()>-1:
+							self.listemsgstr[self.transtabview.Selection()].trnsl.MakeFocus()
+						else:
+							self.editorslist[self.postabview.Selection()].list.lv.Select(0)
 				except:
 					pass
 			return
@@ -1767,12 +1780,14 @@ class PoWindow(BWindow):
 #				print self.editorslist[self.postabview.Selection()].translation.PenLocation()
 				
 			else:
+			################################################## fix this ###########################################################################################################################################################
 				self.editorslist[self.postabview.Selection()].source.SetText("")
 				self.editorslist[self.postabview.Selection()].translation.SetPOReadText("")
 #				self.editorslist[self.postabview.Selection()].translation.tosave=False
 			return
 				
 		elif msg.what == 460551:
+		################################################## fix this ###########################################################################################################################################################
 			#### clears source textview text and translation specific textview parameters
 			for v in self.editorslist:
 				v.source.SetText("")
