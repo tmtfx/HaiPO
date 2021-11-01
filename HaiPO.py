@@ -847,11 +847,7 @@ class EventTextView(BTextView):
 class srctabbox(BBox):
 	def __init__(self,playground1,name,altece):
 		self.name = name
-#		print playground1
-#		print (0,0,playground1[3]-playground1[1],playground1[3]-playground1[0])
-		#(0,0,playground1[3]-playground1[1],playground1[3]-playground1[0])
-		#newplayground=(playground1[0],playground1[1],playground1[2]-5,playground1[3]-5)
-		BBox.__init__(self,(0,0,playground1[2]-playground1[0],playground1[3]-playground1[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)#frame
+		BBox.__init__(self,(0,0,playground1[2]-playground1[0],playground1[3]-playground1[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
 		self.hsrc = playground1[3] - playground1[1] - altece 
 		self.src = BTextView((playground1[0],playground1[1],playground1[2]-playground1[0],playground1[3]-playground1[1]),name+'_source_BTextView',(5.0,5.0,playground1[2]-5,playground1[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)#B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT
 		self.src.MakeEditable(False)
@@ -859,16 +855,15 @@ class srctabbox(BBox):
 class trnsltabbox(BBox):
 	def __init__(self,playground2,name,altece,superself):
 		self.name = name
-#		print playground1
-#		print (0,0,playground1[3]-playground1[1],playground1[3]-playground1[0])
-		#print playground2
-		#(0,0,playground2[3]-playground2[1],playground2[3]-playground2[0])
-		BBox.__init__(self,(0,0,playground2[2]-playground2[0],playground2[3]-playground2[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)#frame
-		#self.htrans= playground2[3] - playground2[1] - altece
-		#newplayground2 = (playground2[0]+1,playground2[1]+1,playground2[2]-2,playground2[3]-2)
-		self.trnsl = EventTextView(superself,(playground2[0],playground2[1],playground2[2]-playground2[0],playground2[3]-playground2[1]),name+'_translation_BTextView',(5.0,5.0,playground2[2]-5,playground2[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)#B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT
+		BBox.__init__(self,(0,0,playground2[2]-playground2[0],playground2[3]-playground2[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
+		self.trnsl = EventTextView(superself,(playground2[0],playground2[1],playground2[2]-playground2[0]-20,playground2[3]-playground2[1]),name+'_translation_BTextView',(5.0,5.0,playground2[2]-5,playground2[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)#B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT
+		print "trnsltabbox alla creazione", (0,0,playground2[2]-playground2[0],playground2[3]-playground2[1])
+		print "eventtextview alla creazione",(playground2[0],playground2[1],playground2[2]-playground2[0]-20,playground2[3]-playground2[1])
 		self.trnsl.MakeEditable(True)
 		self.AddChild(self.trnsl)
+		bi,bu,bo,ba = playground2
+		self.scrollbtrans=BScrollBar((bo -21,1,bo-5,ba-5),name+'_ScrollBar',self.trnsl,0.0,0.0,B_VERTICAL)
+		self.AddChild(self.scrollbtrans)
 
 class POEditorBBox(BBox):
 	def __init__(self,frame,name,percors,pofileloaded,arrayview,encoding):
@@ -978,18 +973,38 @@ class POEditorBBox(BBox):
 				self.list.lv.AddItem(item)
 
 class translationtabview(BTabView):
-	def __init__(self,frame,name,width,risizingMode,flags):
+	def __init__(self,frame,name,width,risizingMode,flags,superself):
+		self.superself=superself
+		BTabView.__init__(self,frame,name,width,risizingMode,flags)
+		
+	def Draw(self,updateRect):
+		BTabView.Draw(self,updateRect)
+	def MouseDown(self,point):
+		numtabs=len(self.superself.listemsgstr)
+		gg=0
+		while gg<numtabs:
+			if (point[0]>=self.TabFrame(gg)[0]) and (point[0]<=self.TabFrame(gg)[2]) and (point[1]>=self.TabFrame(gg)[1]) and (point[1]<=self.TabFrame(gg)[3]):
+				self.superself.srctabview.Select(gg)
+			gg=gg+1
+		print "ho mandato il messaggio da translationtabview"
+		return BTabView.MouseDown(self,point)
+
+class sourcetabview(BTabView):
+	def __init__(self,frame,name,width,risizingMode,flags,superself):
+		print frame
+		self.superself=superself
 		BTabView.__init__(self,frame,name,width,risizingMode,flags)
 	def Draw(self,updateRect):
 		BTabView.Draw(self,updateRect)
-#	def DrawBox(self,selTabRect):
-#		return BTabView.DrawBox(self,selTabRect)
-#	def DrawTabs(self): #non esiste!!!
-#		return BTabView.DrawTabs(self)
 	def MouseDown(self,point):
-		#BApplication.be_app.PostMessage(BMessage(B_WINDOW_RESIZED))
-		print self.TabFrame(self.Selection())
-		print "ho mandato il messaggio"
+		numtabs=len(self.superself.listemsgstr)
+		gg=0
+		while gg<numtabs:
+			if (point[0]>=self.TabFrame(gg)[0]) and (point[0]<=self.TabFrame(gg)[2]) and (point[1]>=self.TabFrame(gg)[1]) and (point[1]<=self.TabFrame(gg)[3]):
+				self.superself.transtabview.Select(gg)
+			gg=gg+1
+		
+		print "ho mandato il messaggio da sourcetabview"
 		return BTabView.MouseDown(self,point)
 
 class PoWindow(BWindow):
@@ -1002,7 +1017,7 @@ class PoWindow(BWindow):
 		)
 	def __init__(self, frame):
 		selectionmenu=0
-		BWindow.__init__(self, frame, 'Simple PO editor for Haiku!', B_TITLED_WINDOW,0)#, B_WILL_DRAW
+		BWindow.__init__(self, frame, 'Simple PO editor for Haiku!', B_TITLED_WINDOW,0)
 		bounds = self.Bounds()
 		self.bar = BMenuBar(bounds, 'Bar')
 		x, barheight = self.bar.GetPreferredSize()
@@ -1118,7 +1133,7 @@ class PoWindow(BWindow):
 		self.lubox=BBox((d*3/4,2,d,s), 'leftunderbox', B_FOLLOW_TOP_BOTTOM|B_FOLLOW_RIGHT, B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS|B_NAVIGABLE,B_FANCY_BORDER)# B_NO_BORDER)B_FOLLOW_ALL_SIDES // B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM|B_FOLLOW_TOP//B_FOLLOW_TOP|B_FOLLOW_RIGHT
 		self.background.AddChild(self.lubox)
 		self.postabview = BTabView((5.0, 5.0, d*3/4-5, b-barheight-245), 'postabview',B_WIDTH_FROM_LABEL)#,B_WIDTH_FROM_LABEL,B_FOLLOW_ALL,B_NAVIGABLE) s-5 o b-260 circa
-		#print(5.0, 5.0, d*3/4-5, s-5)
+
 		altece = self.postabview.TabHeight()
 		tfr = (5.0, 5.0, d*3/4-5, s-5)#(10.0, 10.0, d-25, s - 5 - altece)
 		self.trc = (0.0, 0.0, tfr[2] - tfr[0], tfr[3] - tfr[1])
@@ -1132,12 +1147,8 @@ class PoWindow(BWindow):
 		
 		
 		playground1 = (5,b-268,r - d*1/4-5, s-120)
-		self.srctabview = BTabView(playground1, 'sourcetabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS)
-#		tabfr = (5.0, 5.0, d*3/4-5, s-5)#(10.0, 10.0, d-25, s - 5 - altece)
-#		tabfr = self.srctabview.Bounds()
-#		print tabfr
-		#tabrc = (1.0,1.0, tabfr[2]-2,tabfr[3]-2)
-#		print tabrc #playground1[2] - playground1[0], playground1[3] - playground1[1])
+		self.srctabview = sourcetabview(playground1, 'sourcetabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS,self)
+
 		altece = self.srctabview.TabHeight()
 		tabrc = (3.0, 3.0, playground1[2] - playground1[0], playground1[3] - playground1[1]-altece)
 		self.srctablabels=[]
@@ -1145,33 +1156,23 @@ class PoWindow(BWindow):
 		self.background.AddChild(self.srctabview)
 		
 		self.sourcebox=srctabbox(tabrc,'msgid',altece)
-#		self.AddChild(self.source)
 		self.listemsgid.append(self.sourcebox)
 		self.srctablabels.append(BTab())
 		self.srctabview.AddTab(self.listemsgid[0], self.srctablabels[0])
-		############################################################################################################### ELIMINARE SELF.SOURCE ###########################################################################################################
-		self.source = self.listemsgid[0].src
-######################################################################################################
 		
 		playground2 = (5, b-142,r -d*1/4-5, s-2)
-		self.transtabview = translationtabview(playground2, 'translationtabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS)#BTabView(playground2, 'translationtabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT)
+		self.transtabview = translationtabview(playground2, 'translationtabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS,self)#BTabView(playground2, 'translationtabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT)
 
 		tabrc = (3, 3, playground2[2] - playground2[0], playground2[3] - playground2[1]-altece)
-		print tabrc,"original tabrc"
 		self.transtablabels=[]
 		self.listemsgstr=[]
 		self.background.AddChild(self.transtabview)
-#		
-#		self.htrans= playground2[3] - playground2[1] - altece
-#		self.trnsl = EventTextView(self,playground2,name+'_translation_BTextView',(5.0,5.0,playground2[2]-2,playground2[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
-#		self.trnsl.MakeEditable(True)
+
 		self.transbox=trnsltabbox(tabrc,'msgstr',altece,self)
 		self.listemsgstr.append(self.transbox)
 		self.transtablabels.append(BTab())
 		self.transtabview.AddTab(self.listemsgstr[0], self.transtablabels[0])
-		#################################################################################################################### ELIMINARE SELF.TRANSLATION ############################################################################################
-		self.translation = self.listemsgstr[0].trnsl
-		#self.AddChild(self.translation)
+
 		
 		
 		
@@ -1266,6 +1267,28 @@ class PoWindow(BWindow):
 ##						print ("text rect: ", schedis.trnsl.TextRect())
 					
 			#return BWindow.FrameResized(self,x,y)
+			
+	def Nichilize(self):
+					if (len(self.listemsgid)-1) == 1:    #IF THERE'S A PLURAL, REMOVE IT
+							self.srctabview.RemoveTab(1)
+							self.listemsgid.pop(1)
+							self.srctablabels.pop(1)
+							self.srctabview.Hide()
+							self.srctabview.Show()
+					ww=len(self.listemsgstr)-1
+					while ww>0:					#removes plural translation tabs
+						self.transtabview.RemoveTab(ww)
+						self.listemsgstr.pop(ww)
+						self.transtablabels.pop(ww)
+						self.transtabview.Hide()
+						self.transtabview.Show()
+						ww=ww-1
+##### Removing tab 0 on translation tabview and renaming it as msgstr
+					self.transtabview.RemoveTab(0)
+					self.listemsgstr.pop(0)
+					self.transtablabels.pop(0)
+					self.transtabview.Hide()
+					self.transtabview.Show()
 
 
 	def MessageReceived(self, msg):
@@ -1659,10 +1682,13 @@ class PoWindow(BWindow):
 				bounds = self.Bounds()
 				l, t, r, b = bounds
 				binds = self.background.Bounds()
+				luwidth=self.lubox.Bounds()[2]-self.lubox.Bounds()[0]
 				c,p,d,s = binds
-				plygrnd1 = (5,b-268,r - d*1/4-5, s-120)
+				plygrnd1 = (5,b-268,r - luwidth-5, s-120)
+				plygrnd2 = (5, b-142,r -luwidth-5, s-2)
 				altece = self.srctabview.TabHeight()
 				tabrc = (3.0, 3.0, plygrnd1[2] - plygrnd1[0], plygrnd1[3] - plygrnd1[1]-altece)
+				tabrc2 = (3, 3, plygrnd2[2] - plygrnd2[0], plygrnd2[3] - plygrnd2[1]-altece)
 				txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText()
 				#entry = self.editorslist[self.postabview.Selection()].pofile.find(txttosearch)
 				
@@ -1678,30 +1704,32 @@ class PoWindow(BWindow):
 					
 				for entry in self.editorslist[self.postabview.Selection()].pofile:
 					if entry.msgid.encode(self.encoding) == txttosearch:
-						alfa = (len(self.listemsgid)-1)
+#						alfa = (len(self.listemsgid)-1)
 						if entry and not entry.msgid_plural:
-							if alfa == 1:    #IF THERE'S A PLURAL, REMOVE IT
-									self.srctabview.RemoveTab(1)
-									self.listemsgid.pop(1)
-									self.srctablabels.pop(1)
-									self.srctabview.Hide()
-									self.srctabview.Show()
-							ww=len(self.listemsgstr)-1
-							while ww>0:					#removes plural translation tabs
-								self.transtabview.RemoveTab(ww)
-								self.listemsgstr.pop(ww)
-								self.transtablabels.pop(ww)
-								self.transtabview.Hide()
-								self.transtabview.Show()
-								ww=ww-1
+							self.Nichilize()
+#							if alfa == 1:    #IF THERE'S A PLURAL, REMOVE IT
+#									self.srctabview.RemoveTab(1)
+#									self.listemsgid.pop(1)
+#									self.srctablabels.pop(1)
+#									self.srctabview.Hide()
+#									self.srctabview.Show()
+#							ww=len(self.listemsgstr)-1
+#							while ww>0:					#removes plural translation tabs
+#								self.transtabview.RemoveTab(ww)
+#								self.listemsgstr.pop(ww)
+#								self.transtablabels.pop(ww)
+#								self.transtabview.Hide()
+#								self.transtabview.Show()
+#								ww=ww-1
 ##### Removing tab 0 on translation tabview and renaming it as msgstr
-							self.transtabview.RemoveTab(0)
-							self.listemsgstr.pop(0)
-							self.transtablabels.pop(0)
-							self.transtabview.Hide()
-							self.transtabview.Show()
-							tabrc=(3,3,self.listemsgid[0].Bounds()[2],tabrc[3]-10)
-							self.listemsgstr.append(trnsltabbox(tabrc,'msgstr',altece,self))
+#							self.transtabview.RemoveTab(0)
+#							self.listemsgstr.pop(0)
+#							self.transtablabels.pop(0)
+#							self.transtabview.Hide()
+#							self.transtabview.Show()
+							##################################tabrc=(0,0,self.listemsgid[0].Bounds()[2],tabrc[3]-5)###########################    10     ########################################## 3,3,...
+							print "trnsltabbox alla selezione",tabrc2
+							self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
 							self.transtablabels.append(BTab())
 							self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
 							self.transtabview.Hide()
@@ -1716,29 +1744,30 @@ class PoWindow(BWindow):
 #######################################################################
 						if entry and entry.msgid_plural:
 							beta=len(sorted(entry.msgstr_plural.keys()))
-							tabrc=(3,3,self.listemsgid[0].Bounds()[2],tabrc[3]-10)
-							if alfa ==1: 	#IF THERE'S A PLURAL, REMOVE IT
-									self.srctabview.RemoveTab(1)
-									self.listemsgid.pop(1)
-									self.srctablabels.pop(1)
-									self.srctabview.Hide()
-									self.srctabview.Show()
-							ww=len(self.listemsgstr)-1
-							while ww>0: 				#removes plural translation tabs
-								self.transtabview.RemoveTab(ww)
-								self.listemsgstr.pop(ww)
-								self.transtablabels.pop(ww)
-								self.transtabview.Hide()
-								self.transtabview.Show()
-								ww=ww-1
+							#############################################tabrc=(0,0,self.listemsgid[0].Bounds()[2],tabrc[3]-10) 																				#3,3...
+							self.Nichilize()
+#							if alfa ==1: 	#IF THERE'S A PLURAL, REMOVE IT
+#									self.srctabview.RemoveTab(1)
+#									self.listemsgid.pop(1)
+#									self.srctablabels.pop(1)
+#									self.srctabview.Hide()
+#									self.srctabview.Show()
+#							ww=len(self.listemsgstr)-1
+#							while ww>0: 				#removes plural translation tabs
+#								self.transtabview.RemoveTab(ww)
+#								self.listemsgstr.pop(ww)
+#								self.transtablabels.pop(ww)
+#								self.transtabview.Hide()
+#								self.transtabview.Show()
+#								ww=ww-1
+#
+#							self.transtabview.RemoveTab(0)
+#							self.listemsgstr.pop(0)
+#							self.transtablabels.pop(0)
+#							self.transtabview.Hide()
+#							self.transtabview.Show()
 
-							self.transtabview.RemoveTab(0)
-							self.listemsgstr.pop(0)
-							self.transtablabels.pop(0)
-							self.transtabview.Hide()
-							self.transtabview.Show()
-
-							self.listemsgstr.append(trnsltabbox(tabrc,'msgstr[0]',altece,self))
+							self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr[0]',altece,self))
 							self.transtablabels.append(BTab())
 							self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
 							self.transtabview.Hide()
@@ -1761,9 +1790,9 @@ class PoWindow(BWindow):
 									self.transtabview.Select(x)
 									self.transtabview.Select(0)
 								else:
-									asd=self.listemsgstr[0].trnsl.Bounds()
-									tabrect=(3,3,asd[2]+6,asd[3]+6)
-									self.listemsgstr.append(trnsltabbox(tabrect,'msgstr['+str(ww)+']',altece,self))
+									#asd=self.listemsgstr[0].trnsl.Bounds()
+									#tabrect=(0,0,asd[2]+6,asd[3]+6)																						#3,3....
+									self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr['+str(ww)+']',altece,self)) #tabrect
 									self.listemsgstr[ww].trnsl.SetPOReadText(entry.msgstr_plural[ww].encode(self.encoding))
 									self.transtabview.AddTab(self.listemsgstr[ww],self.transtablabels[ww])
 								ww=ww+1
@@ -1781,8 +1810,39 @@ class PoWindow(BWindow):
 				
 			else:
 			################################################## fix this ###########################################################################################################################################################
-				self.editorslist[self.postabview.Selection()].source.SetText("")
-				self.editorslist[self.postabview.Selection()].translation.SetPOReadText("")
+				alfa = (len(self.listemsgid)-1)
+				if entry and not entry.msgid_plural:
+					self.Nichilize()
+#					if alfa == 1:    #IF THERE'S A PLURAL, REMOVE IT
+#							self.srctabview.RemoveTab(1)
+#							self.listemsgid.pop(1)
+#							self.srctablabels.pop(1)
+#							self.srctabview.Hide()
+#							self.srctabview.Show()
+#					ww=len(self.listemsgstr)-1
+#					while ww>0:					#removes plural translation tabs
+#						self.transtabview.RemoveTab(ww)
+#						self.listemsgstr.pop(ww)
+#						self.transtablabels.pop(ww)
+#						self.transtabview.Hide()
+#						self.transtabview.Show()
+#						ww=ww-1
+##### Removing tab 0 on translation tabview and renaming it as msgstr
+#					self.transtabview.RemoveTab(0)
+#					self.listemsgstr.pop(0)
+#					self.transtablabels.pop(0)
+#					self.transtabview.Hide()
+#					self.transtabview.Show()
+					
+					tabrc=(3,3,self.listemsgid[0].Bounds()[2],tabrc[3]-10)
+					self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
+					self.transtablabels.append(BTab())
+					self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
+					self.transtabview.Hide()
+					self.transtabview.Show()
+				
+				self.listemsgid[0].src.SetText("")
+				self.listemsgstr[0].trnsl.SetPOReadText("")
 #				self.editorslist[self.postabview.Selection()].translation.tosave=False
 			return
 				
