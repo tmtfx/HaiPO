@@ -24,7 +24,7 @@
 #
 #******************************************************
 
-import os,sys,ConfigParser,struct,re,threading
+import os,sys,ConfigParser,struct,re,threading,uptime
 try:
 	import polib
 except:
@@ -623,6 +623,17 @@ class AboutWindow(BWindow):
 			self.Quit()
 		else:
 			return
+			
+class MyListView(BListView):
+	def __init__(self, frame, name, type, resizingMode, flags):
+		BListView.__init__(self, frame, name, type, resizingMode, flags)
+		self.preselected=-1
+
+	def SelectionChanged(self):
+		if self.preselected>-1:
+			if self.ItemAt(self.preselected).tosave:
+				print "salvo al cambiamento"
+		self.preselected=self.CurrentSelection()
 
 
 class ScrollView:
@@ -630,7 +641,7 @@ class ScrollView:
 	Selmsgstr = 460550
 
 	def __init__(self, rect, name):#, OPTION, type):
-		self.lv = BListView(rect, name, B_SINGLE_SELECTION_LIST,B_FOLLOW_ALL_SIDES,B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_FRAME_EVENTS)#,OPTION)
+		self.lv = MyListView(rect, name, B_SINGLE_SELECTION_LIST,B_FOLLOW_ALL_SIDES,B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_FRAME_EVENTS)#,OPTION)BListView
 		msg=BMessage(self.Selmsgstr)
 		self.lv.SetSelectionMessage(msg)
 		msg = BMessage(self.HiWhat)
@@ -639,12 +650,13 @@ class ScrollView:
 
 	def reload(self,arrayview,pofile,encoding):
 			i=0
+			self.lv.DeselectAll()
 			while self.lv.CountItems()>i:
 				self.lv.RemoveItem(self.lv.ItemAt(0))
 			if arrayview[0]:
 				for entry in pofile.fuzzy_entries():
 					if entry and entry.msgid_plural:
-						print (entry.msgid + " has plural")
+#						print (entry.msgid + " has plural")
 						item = MsgStrItem(entry.msgid,2,encoding,True)
 					else:
 						item = MsgStrItem(entry.msgid,2,encoding,False)
@@ -652,7 +664,7 @@ class ScrollView:
 			if arrayview[1]:
 				for entry in pofile.untranslated_entries():
 					if entry and entry.msgid_plural:
-						print (entry.msgid + " has plural")
+#						print (entry.msgid + " has plural")
 						item = MsgStrItem(entry.msgid,0,encoding,True)
 					else:
 						item = MsgStrItem(entry.msgid,0,encoding,False)
@@ -660,22 +672,21 @@ class ScrollView:
 			if arrayview[2]:
 				for entry in pofile.translated_entries():
 					if entry and entry.msgid_plural:
-						print (entry.msgid + " has plural")
+#						print (entry.msgid + " has plural")
 						item = MsgStrItem(entry.msgid,1,encoding,True)
 					else:
 						item = MsgStrItem(entry.msgid,1,encoding,False)
 					self.lv.AddItem(item)
 			if arrayview[3]:
-				for entry in pofile.obsolete():
+				for entry in pofile.obsolete_entries():
 					if entry and entry.msgid_plural:
-						print (entry.msgid + " has plural")
+#						print (entry.msgid + " has plural")
 						item = MsgStrItem(entry.msgid,3,encoding,True)
 					else:
 						item = MsgStrItem(entry.msgid,3,encoding,False)
 					self.lv.AddItem(item)
-			self.lv.DeselectAll()
+			
 
-			#self.lv.Select(0) no need to select anything
 		
 	def SelectedText(self):
 			return self.lv.ItemAt(self.lv.CurrentSelection()).Text()
@@ -697,6 +708,8 @@ class MsgStrItem(BListItem):
 	obslete = 3
 	hasplural = False
 	frame=[0,0,0,0]
+	tosave=False
+	txttosave=""
 
 	def __init__(self, text,state,encoding,plural):
 		self.text = text.encode(encoding)  #it's in english should this be always utf-8
@@ -764,10 +777,9 @@ class EventTextView(BTextView):
 	def KeyDown(self,char,bytes):
 		
 		####################### TODO   controllo ortografia ##############################
-		#self.Insert(char)
 		try:
 			ochar=ord(char)
-			print ochar
+#			print ochar
 			if ochar in (B_DOWN_ARROW,B_UP_ARROW,B_TAB,B_PAGE_UP,B_PAGE_DOWN):
 				self.superself.sem.acquire()
 				value=self.superself.modifier#self.superself.modifier #CTRL pressed
@@ -777,64 +789,131 @@ class EventTextView(BTextView):
 				if ochar == B_DOWN_ARROW:
 					if value:
 						# one element down
+
+						if self.tosave:
+							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+							thisBlistitem.tosave=True
+							thisBlistitem.txttosave=self.Text()
+							bckpmsg=BMessage(17893)
+							bckpmsg.AddInt8('savetype',1)
+							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+							bckpmsg.AddString('translation',self.Text())
+							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
+							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
+
 						kmesg.AddInt8('movekind',0)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
-						if self.tosave:
-							bckpmsg=BMessage(17893)
-							bckpmsg.AddString('bckppath',self.superself.backupfile)
-							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
+					return
 				elif ochar == B_UP_ARROW:
 					if value:
 						# one element up
+
+						if self.tosave:
+							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+							thisBlistitem.tosave=True
+							thisBlistitem.txttosave=self.Text()
+							bckpmsg=BMessage(17893)
+							bckpmsg.AddInt8('savetype',1)
+							bckpmsg.AddString('translation',self.Text())
+							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
+							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
+
 						kmesg.AddInt8('movekind',1)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
-						if self.tosave:
-							bckpmsg=BMessage(17893)
-							bckpmsg.AddString('bckppath',self.superself.backupfile)
-							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
+					return
 				elif ochar == B_PAGE_UP:
 					if value:
 						# one page up
+
+						if self.tosave:
+							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+							thisBlistitem.tosave=True
+							thisBlistitem.txttosave=self.Text()
+							bckpmsg=BMessage(17893)
+							bckpmsg.AddInt8('savetype',1)
+							bckpmsg.AddString('translation',self.Text())
+							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
+							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
+
 						kmesg.AddInt8('movekind',2)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
-						if self.tosave:
-							bckpmsg=BMessage(17893)
-							bckpmsg.AddString('bckppath',self.superself.backupfile)
-							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
+					return
 				elif ochar == B_PAGE_DOWN:
 					if value:
 						# one page down
-						kmesg.AddInt8('movekind',3)
-						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 						print "seleziono una pagina in giù"
 						if self.tosave:
+							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+							thisBlistitem.tosave=True
+							thisBlistitem.txttosave=self.Text()
 							bckpmsg=BMessage(17893)
-							bckpmsg.AddString('bckppath',self.superself.backupfile)
+							bckpmsg.AddInt8('savetype',1)
+							bckpmsg.AddString('translation',self.Text())
+							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
 							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
+
+						kmesg.AddInt8('movekind',3)
+						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
+					return
 				elif ochar == B_TAB:
 					if not value:
 						# next string needing work
+
+						if self.tosave:
+							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+							thisBlistitem.tosave=True
+							thisBlistitem.txttosave=self.Text()
+							bckpmsg=BMessage(17893)
+							bckpmsg.AddInt8('savetype',1)
+							bckpmsg.AddString('translation',self.Text())
+							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
+							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
+							
 						kmesg.AddInt8('movekind',4)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
-						if self.tosave:
-							bckpmsg=BMessage(17893)
-							bckpmsg.AddString('bckppath',self.superself.backupfile)
-							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
-				elif ochar == 103 or ochar == 7:
-					if value:
-						BApplication.be_app.WindowAt(0).PostMessage(BMessage(71))
-				if ochar != B_TAB: # needed to pass up/down keys to textview
+					return
+				if ochar != B_TAB: # needed to pass up/down keys to textview	
 					return BTextView.KeyDown(self,char,bytes)
+					
+			elif ochar == 2 or ochar == 98:				# ctrl+B or ctrl+b key to mark/umark as fuzzy
+				self.superself.sem.acquire()
+				value=self.superself.modifier#self.superself.modifier #CTRL pressed
+				self.superself.sem.release()
+				if value:
+					BApplication.be_app.WindowAt(0).PostMessage(BMessage(71))
+					return
+				else:
+					if self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()>-1:
+						self.tosave=True
+						print "ho salvato"
+						return BTextView.KeyDown(self,char,bytes)
+				return		
 			elif ochar == B_ESCAPE: ######################## Restore to the saved string #####################
 				self.SetText(self.oldtext)
 				self.tosave=False
+				thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+				thisBlistitem.tosave=False
+				thisBlistitem.txttosave=""
 				return
 			else:
 				if self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()>-1:
+					#print self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()
+					print "carattere normale inserito"
+					thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+					thisBlistitem.tosave=True
+					thisBlistitem.txttosave=self.Text()
 					self.tosave=True  #### This says you should save the string before proceeding
 					return BTextView.KeyDown(self,char,bytes)
 		except:
 			if self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()>-1:
+				print "carattere particolare inserito"
+				thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+				thisBlistitem.tosave=True
+				thisBlistitem.txttosave=self.Text()
 				self.tosave=True   #### This says you should save the string before proceeding
 				return BTextView.KeyDown(self,char,bytes)
 		
@@ -857,8 +936,6 @@ class trnsltabbox(BBox):
 		self.name = name
 		BBox.__init__(self,(0,0,playground2[2]-playground2[0],playground2[3]-playground2[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
 		self.trnsl = EventTextView(superself,(playground2[0],playground2[1],playground2[2]-playground2[0]-20,playground2[3]-playground2[1]),name+'_translation_BTextView',(5.0,5.0,playground2[2]-5,playground2[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)#B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT
-		print "trnsltabbox alla creazione", (0,0,playground2[2]-playground2[0],playground2[3]-playground2[1])
-		print "eventtextview alla creazione",(playground2[0],playground2[1],playground2[2]-playground2[0]-20,playground2[3]-playground2[1])
 		self.trnsl.MakeEditable(True)
 		self.AddChild(self.trnsl)
 		bi,bu,bo,ba = playground2
@@ -869,7 +946,6 @@ class POEditorBBox(BBox):
 	def __init__(self,frame,name,percors,pofileloaded,arrayview,encoding):
 		self.pofile = pofileloaded
 		self.name = name
-		#self.modifier=False      #perchè sta qui questo?
 		self.encoding=encoding
 		filen, file_ext = os.path.splitext(percors)
 #		if file_ext=='.po':
@@ -889,58 +965,17 @@ class POEditorBBox(BBox):
 		
 		contor = frame
 		a,s,d,f = contor
-		BBox.__init__(self,(a,s,d-5,f-35),name,B_FOLLOW_ALL,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)#frame
+		BBox.__init__(self,(a,s,d-5,f-35),name,B_FOLLOW_ALL,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
 		contor=self.Bounds()
 		l, t, r, b = contor
-		self.list = ScrollView((5, 5, r -22, b-5), name+'_ScrollView')#-247
+		self.list = ScrollView((5, 5, r -22, b-5), name+'_ScrollView')
 		self.AddChild(self.list.topview())
-		self.scrollb = BScrollBar((r -21,5,r-5,b-5),name+'_ScrollBar',self.list.listview(),0.0,float(len(datab)),B_VERTICAL)#-247
+		self.scrollb = BScrollBar((r -21,5,r-5,b-5),name+'_ScrollBar',self.list.listview(),0.0,float(len(datab)),B_VERTICAL)
 		self.AddChild(self.scrollb)
-		
-
-#		playground1 = (5,b-243,r -5, b-123)
-#		self.srctabview = BTabView(playground1, 'sourcetabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS)
-##		tabfr = (5.0, 5.0, d*3/4-5, s-5)#(10.0, 10.0, d-25, s - 5 - altece)
-#		tabfr = self.srctabview.Bounds()
-##		print tabfr
-#		#tabrc = (1.0,1.0, tabfr[2]-2,tabfr[3]-2)
-##		print tabrc #playground1[2] - playground1[0], playground1[3] - playground1[1])
-#		altece = self.srctabview.TabHeight()
-#		tabrc = (3.0, 3.0, playground1[2] - playground1[0], playground1[3] - playground1[1]-altece)
-#		self.srctablabels=[]
-#		self.listemsgid=[]
-#		self.AddChild(self.srctabview)
-#		
-#		self.sourcebox=srctabbox(tabrc,'msgid',altece)
-##		self.AddChild(self.source)
-#		self.listemsgid.append(self.sourcebox)
-#		self.srctablabels.append(BTab())
-#		self.srctabview.AddTab(self.listemsgid[0], self.srctablabels[0])
-#		self.source = self.listemsgid[0].src
-######################################################################################################
-#		
-#		playground2 = (5, b-120,r -5, b-5)
-#		self.transtabview = translationtabview(playground2, 'translationtabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS)#BTabView(playground2, 'translationtabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT)
-#
-#		tabrc = (3, 3, playground2[2] - playground2[0], playground2[3] - playground2[1]-altece)
-#		self.transtablabels=[]
-#		self.listemsgstr=[]
-#		self.AddChild(self.transtabview)
-##		
-##		self.htrans= playground2[3] - playground2[1] - altece
-##		self.trnsl = EventTextView(self,playground2,name+'_translation_BTextView',(5.0,5.0,playground2[2]-2,playground2[3]-2),B_FOLLOW_BOTTOM | B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
-##		self.trnsl.MakeEditable(True)
-#		self.transbox=trnsltabbox(tabrc,'msgstr',altece,self)
-#		self.listemsgstr.append(self.transbox)
-#		self.transtablabels.append(BTab())
-#		self.transtabview.AddTab(self.listemsgstr[0], self.transtablabels[0])
-#		self.translation = self.listemsgstr[0].trnsl
-#		#self.AddChild(self.translation)
 		
 		if arrayview[0]:
 			for entry in self.pofile.fuzzy_entries():
 				if entry and entry.msgid_plural:
-#					print (entry.msgid + " has plural")
 					item = MsgStrItem(entry.msgid,2,encoding,True)
 				else:
 					item = MsgStrItem(entry.msgid,2,encoding,False)
@@ -948,7 +983,6 @@ class POEditorBBox(BBox):
 		if arrayview[1]:
 			for entry in self.pofile.untranslated_entries():
 				if entry and entry.msgid_plural:
-#					print (entry.msgid + " has plural")
 					item = MsgStrItem(entry.msgid,0,encoding,True)
 				else:
 					item = MsgStrItem(entry.msgid,0,encoding,False)
@@ -956,17 +990,14 @@ class POEditorBBox(BBox):
 		if arrayview[2]:
 			for entry in self.pofile.translated_entries():
 				if entry and entry.msgid_plural:
-#					print "len msgstrplural",len(sorted(entry.msgstr_plural.keys()))
-#					print (entry.msgid + " has plural")
 					item = MsgStrItem(entry.msgid,1,encoding,True)
 				else:
 
 					item = MsgStrItem(entry.msgid,1,encoding,False)
 				self.list.lv.AddItem(item)
 		if arrayview[3]:
-			for entry in self.pofile.obsolete():
+			for entry in self.pofile.obsolete_entries():
 				if entry and entry.msgid_plural:
-#					print (entry.msgid + " has plural")
 					item = MsgStrItem(entry.msgid,3,encoding,True)
 				else:
 					item = MsgStrItem(entry.msgid,3,encoding,False)
@@ -976,7 +1007,6 @@ class translationtabview(BTabView):
 	def __init__(self,frame,name,width,risizingMode,flags,superself):
 		self.superself=superself
 		BTabView.__init__(self,frame,name,width,risizingMode,flags)
-		
 	def Draw(self,updateRect):
 		BTabView.Draw(self,updateRect)
 	def MouseDown(self,point):
@@ -986,12 +1016,10 @@ class translationtabview(BTabView):
 			if (point[0]>=self.TabFrame(gg)[0]) and (point[0]<=self.TabFrame(gg)[2]) and (point[1]>=self.TabFrame(gg)[1]) and (point[1]<=self.TabFrame(gg)[3]):
 				self.superself.srctabview.Select(gg)
 			gg=gg+1
-		print "ho mandato il messaggio da translationtabview"
 		return BTabView.MouseDown(self,point)
 
 class sourcetabview(BTabView):
 	def __init__(self,frame,name,width,risizingMode,flags,superself):
-		print frame
 		self.superself=superself
 		BTabView.__init__(self,frame,name,width,risizingMode,flags)
 	def Draw(self,updateRect):
@@ -1003,8 +1031,21 @@ class sourcetabview(BTabView):
 			if (point[0]>=self.TabFrame(gg)[0]) and (point[0]<=self.TabFrame(gg)[2]) and (point[1]>=self.TabFrame(gg)[1]) and (point[1]<=self.TabFrame(gg)[3]):
 				self.superself.transtabview.Select(gg)
 			gg=gg+1
-		
-		print "ho mandato il messaggio da sourcetabview"
+		return BTabView.MouseDown(self,point)
+
+class postabview(BTabView):
+	def __init__(self,superself,frame,name,width):
+		self.superself=superself
+		BTabView.__init__(self,frame,name,width)
+	def Draw(self,updateRect):
+		BTabView.Draw(self,updateRect)
+	def MouseDown(self,point):
+		numtabs=len(self.superself.editorslist)
+		gg=0
+		while gg<numtabs:
+			if (point[0]>=self.TabFrame(gg)[0]) and (point[0]<=self.TabFrame(gg)[2]) and (point[1]>=self.TabFrame(gg)[1]) and (point[1]<=self.TabFrame(gg)[3]):
+				print "stai cambiando file occhio!"
+			gg=gg+1
 		return BTabView.MouseDown(self,point)
 
 class PoWindow(BWindow):
@@ -1132,7 +1173,7 @@ class PoWindow(BWindow):
 		self.ofp=BFilePanel()
 		self.lubox=BBox((d*3/4,2,d,s), 'leftunderbox', B_FOLLOW_TOP_BOTTOM|B_FOLLOW_RIGHT, B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS|B_NAVIGABLE,B_FANCY_BORDER)# B_NO_BORDER)B_FOLLOW_ALL_SIDES // B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM|B_FOLLOW_TOP//B_FOLLOW_TOP|B_FOLLOW_RIGHT
 		self.background.AddChild(self.lubox)
-		self.postabview = BTabView((5.0, 5.0, d*3/4-5, b-barheight-245), 'postabview',B_WIDTH_FROM_LABEL)#,B_WIDTH_FROM_LABEL,B_FOLLOW_ALL,B_NAVIGABLE) s-5 o b-260 circa
+		self.postabview = postabview(self,(5.0, 5.0, d*3/4-5, b-barheight-245), 'postabview',B_WIDTH_FROM_LABEL)#,B_WIDTH_FROM_LABEL,B_FOLLOW_ALL,B_NAVIGABLE) s-5 o b-260 circa
 
 		altece = self.postabview.TabHeight()
 		tfr = (5.0, 5.0, d*3/4-5, s-5)#(10.0, 10.0, d-25, s - 5 - altece)
@@ -1142,10 +1183,9 @@ class PoWindow(BWindow):
 		self.editorslist=[]
 		
 		self.background.AddChild(self.postabview)
-		
-		
-		
-		
+
+
+
 		playground1 = (5,b-268,r - d*1/4-5, s-120)
 		self.srctabview = sourcetabview(playground1, 'sourcetabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS,self)
 
@@ -1160,7 +1200,8 @@ class PoWindow(BWindow):
 		self.srctablabels.append(BTab())
 		self.srctabview.AddTab(self.listemsgid[0], self.srctablabels[0])
 		
-		playground2 = (5, b-142,r -d*1/4-5, s-2)
+		luwidth=self.lubox.Bounds()[2]-self.lubox.Bounds()[0]
+		playground2 = (5, b-142,r -luwidth-5, s-2)
 		self.transtabview = translationtabview(playground2, 'translationtabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS,self)#BTabView(playground2, 'translationtabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT)
 
 		tabrc = (3, 3, playground2[2] - playground2[0], playground2[3] - playground2[1]-altece)
@@ -1173,9 +1214,7 @@ class PoWindow(BWindow):
 		self.transtablabels.append(BTab())
 		self.transtabview.AddTab(self.listemsgstr[0], self.transtablabels[0])
 
-		
-		
-		
+
 
 		
 		##### if first launch, it opens the profile creator wizard and sets default enconding for polib
@@ -1200,72 +1239,20 @@ class PoWindow(BWindow):
 			
 	def FrameResized(self,x,y):
 			i=self.postabview.Selection()
-			h,j,k,l = self.editorslist[i].Bounds()
-			zx,xc,cv,vb = self.editorslist[i].scrollb.Bounds()
-			for b in self.editorslist:
-				if b == self.editorslist[i]:
-					pass
-					#######################  do you need this?
-#					z,x,c,v=b.list.sv.Bounds()
-#					b.list.sv.ResizeTo(c,v)
-#					b.list.lv.ResizeTo(c-20,v-20) #invece di numero fisso mettere larghezza scrollbars B_H_SCROLL_BAR_WIDTH B_V_SCROLL_BAR_WIDTH
-#					u,m,o,y= b.source.Bounds()
-#					boundos = (5.0, 5.0, (o - 5.0), (y-5.0))
-#					b.source.SetTextRect(boundos)
-#					u,m,o,y= b.translation.Bounds()
-#					boundos = (5.0, 5.0, (o - 5.0), (y-5.0))
-#					b.translation.SetTextRect(boundos)
-				else:
-					b.ResizeTo(k,l)
-					print(self.editorslist[i].list.sv.Bounds())
-					b.list.lv.ResizeTo(k-27,l-10)#-252
-					b.list.sv.ResizeTo(k-23,l-6)#-248
-					print b.list.sv.Bounds()
-					b.scrollb.MoveTo(k-21,5)
-					b.scrollb.ResizeTo(cv-zx,l-10) #-252########### No 16! This should be B_V_SCROLL_BAR_WIDTH
-#					b.srctabview.MoveTo(5,l-243)
-#					b.srctabview.ResizeTo(k-10,120)
-#					#if len(b.listemsgid)>0:
-#					#	for schedis in b.listemsgstr:
-#					a,s,d,f = b.srctabview.Bounds()
-#					print ("POBox: ",self.editorslist[i].Bounds())
-#					print ("srctabview: ",b.srctabview.Bounds())
-#					for schedis in b.listemsgid:
-#						schedis.ResizeTo(d-5,f-33)
-#						print ("box: ",schedis.Bounds())
-#						schedis.src.ResizeTo(d-5,87)
-#						print ("text box: ",schedis.src.Bounds())
-#						schedis.src.SetTextRect((5,5,d-5,87))
-#						print ("text rect: ", schedis.src.TextRect())
-#						
-##		self.listemsgstr.append(self.transbox)
-##		self.transtablabels.append(BTab())
-##		self.transtabview.AddTab(self.listemsgstr[0], self.transtablabels[0])
-#
-#					b.transtabview.MoveTo(5,l-120)
-#					b.transtabview.ResizeTo(k-10,115)
-#					a,s,d,f = b.transtabview.Bounds()
-#					print ("POBox: ",self.editorslist[i].Bounds())
-#					print ("transtabview: ",b.transtabview.Bounds())
-##					i=len(b.listemsgstr)-1
-##					while i>-1:
-##						b.transtabview.RemoveTab(i)
-##						i=i-1
-##					i=len(b.listemsgstr)-1
-##					p=0
-##					while p<=i:
-###						b.transtabview.AddTab(b.listemsgstr[p],b.transtablabels[p])
-##						print "ho aggiunto", p
-##						p=p+1
-#					for schedis in b.listemsgstr:
-#						schedis.ResizeTo(d-5,f-33)
-##						print ("box: ",schedis.Bounds())
-#						schedis.trnsl.MoveTo(0,0)
-#						schedis.trnsl.ResizeTo(d-10,87)
-##						print ("text box: ",schedis.trnsl.Bounds())
-#						schedis.trnsl.SetTextRect((5,5,d-5,87))
-##						print ("text rect: ", schedis.trnsl.TextRect())
+			if i>-1:
+				h,j,k,l = self.editorslist[i].Bounds()
+				zx,xc,cv,vb = self.editorslist[i].scrollb.Bounds()
+				for b in self.editorslist:
+					if b == self.editorslist[i]:
+						pass
+					else:
+						b.ResizeTo(k,l)
+						#print(self.editorslist[i].list.sv.Bounds())
+						b.list.lv.ResizeTo(k-27,l-10)
+						b.list.sv.ResizeTo(k-23,l-6)
 					
+						b.scrollb.MoveTo(k-21,5)
+						b.scrollb.ResizeTo(cv-zx,l-10)
 			#return BWindow.FrameResized(self,x,y)
 			
 	def Nichilize(self):
@@ -1273,26 +1260,25 @@ class PoWindow(BWindow):
 							self.srctabview.RemoveTab(1)
 							self.listemsgid.pop(1)
 							self.srctablabels.pop(1)
-							self.srctabview.Hide()
-							self.srctabview.Show()
 					ww=len(self.listemsgstr)-1
 					while ww>0:					#removes plural translation tabs
 						self.transtabview.RemoveTab(ww)
 						self.listemsgstr.pop(ww)
 						self.transtablabels.pop(ww)
-						self.transtabview.Hide()
-						self.transtabview.Show()
 						ww=ww-1
-##### Removing tab 0 on translation tabview and renaming it as msgstr
+##### Removing tab 0 on translation tabview for renaming it as msgstr or msgstr[0]
 					self.transtabview.RemoveTab(0)
 					self.listemsgstr.pop(0)
 					self.transtablabels.pop(0)
-					self.transtabview.Hide()
-					self.transtabview.Show()
+
+####### TOODO: send a B_END(value 4) keypress when itemselected on listview
+#######		   clean/change the source textview and translation text view when changing the postabview selection
 
 
 	def MessageReceived(self, msg):
-	#B_UNMAPPED_KEY_DOWN
+#		msg.PrintToStream()
+
+#		print "This is a system message?", msg.IsSystem()
 		if msg.what == B_MODIFIERS_CHANGED: #quando modificatore ctrl cambia stato
 #			print "modifiers changed"
 			value=msg.FindInt32("modifiers")
@@ -1303,7 +1289,10 @@ class PoWindow(BWindow):
 				self.modifier=False
 			self.sem.release()
 			return
+#		elif msg.what == B_UNMAPPED_KEY_DOWN:
+#			msg.PrintToStream()
 		elif msg.what == B_KEY_DOWN:	#on tab key pressed, focus on translation or translation of first item list of translations
+			#msg.PrintToStream()
 			if msg.FindInt32('key')==38:
 				run=True
 				try:
@@ -1320,6 +1309,21 @@ class PoWindow(BWindow):
 							self.editorslist[self.postabview.Selection()].list.lv.Select(0)
 				except:
 					pass
+#			elif msg.FindInt32('key')==53:
+#				st = msg.FindString('bytes')
+#				result=[]
+#				for ch in st:
+#					bits = bin(ord(ch))[2:]
+#					bits = '00000000'[len(bits):] + bits
+#					result.extend([int(b) for b in bits])
+#				print result
+#				newst=""
+#				result=[]
+#				for ch in st:
+#					bits = bin(ord(ch))[2:]
+#					bits = '00000000'[len(bits):] + bits
+#					result.extend([int(b) for b in bits])
+#				print result
 			return
 
 		elif msg.what == 295485:
@@ -1374,8 +1378,6 @@ class PoWindow(BWindow):
 					self.poview[0]=True
 			for b in self.editorslist:
 				b.list.reload(self.poview,b.pofile,self.encoding)
-			msg = BMessage(460551) 								#clears TextViews
-			BApplication.be_app.WindowAt(0).PostMessage(msg)
 			return
 					
 		elif msg.what == 75:
@@ -1414,8 +1416,6 @@ class PoWindow(BWindow):
 					self.poview[1]=True
 			for b in self.editorslist:
 				b.list.reload(self.poview,b.pofile,self.encoding)
-			msg = BMessage(460551)								#clears TextViews
-			BApplication.be_app.WindowAt(0).PostMessage(msg)
 			return
 
 		elif msg.what == 76:
@@ -1454,8 +1454,6 @@ class PoWindow(BWindow):
 					self.poview[2]=True
 			for b in self.editorslist:
 				b.list.reload(self.poview,b.pofile,self.encoding)
-			msg = BMessage(460551)								#clears TextViews
-			BApplication.be_app.WindowAt(0).PostMessage(msg)
 			return
 		
 		elif msg.what == 77:
@@ -1494,8 +1492,6 @@ class PoWindow(BWindow):
 					self.poview[3]=True
 			for b in self.editorslist:
 				b.list.reload(self.poview,b.pofile,self.encoding)
-			msg = BMessage(460551)								#clears TextViews
-			BApplication.be_app.WindowAt(0).PostMessage(msg)
 			return
 
 		elif msg.what == 130550: # change listview selection
@@ -1567,6 +1563,9 @@ class PoWindow(BWindow):
 							next=False
 					spice=spice+1
 				self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+			thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+			if thisBlistitem.tosave:
+				print("testo da salvare",thisBlistitem.txttosave)
 			return
 
 		elif msg.what == 305:
@@ -1578,8 +1577,21 @@ class PoWindow(BWindow):
 			
 		elif msg.what == 17893:
 			bckppath = msg.FindString('bckppath')
-			self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
-			print "salvo backup"
+			savetype = msg.FindInt8('savetype')
+			if savetype == 0:
+				self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
+				print "salvataggio temporaneo semplice"
+			else:
+				tvindex=msg.FindInt32('tvindex')
+				textsave=msg.FindString('translation')
+				print "Salvataggio completo"
+				entry = self.editorslist[self.postabview.Selection()].pofile.find(self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tvindex).Text())
+				if entry:
+					entry.msgstr = textsave.decode(self.encoding)
+					if 'fuzzy' in entry.flags:
+						entry.flags.remove('fuzzy')
+				self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
+				self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tvindex).state=1
 			return
 			
 		elif msg.what == 445380:
@@ -1671,6 +1683,7 @@ class PoWindow(BWindow):
 						else:
 							entry.flags.append('fuzzy')
 						bckpmsg=BMessage(17893)
+						bckpmsg.AddInt8('savetype',0)
 						bckpmsg.AddString('bckppath',self.editorslist[self.postabview.Selection()].backupfile)
 						BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save to backup file
 						break
@@ -1678,17 +1691,20 @@ class PoWindow(BWindow):
 							
 		elif msg.what == 460550:
 			# selection from listview
+			bounds = self.Bounds()
+			l, t, r, b = bounds
+			binds = self.background.Bounds()
+			luwidth=self.lubox.Bounds()[2]-self.lubox.Bounds()[0]
+			c,p,d,s = binds
+			plygrnd1 = (5,b-268,r - luwidth-5, s-120)
+			plygrnd2 = (5, b-142,r -luwidth-5, s-2)
+			altece = self.srctabview.TabHeight()
+			tabrc = (3.0, 3.0, plygrnd1[2] - plygrnd1[0], plygrnd1[3] - plygrnd1[1]-altece)
+			tabrc2 = (3, 3, plygrnd2[2] - plygrnd2[0], plygrnd2[3] - plygrnd2[1]-altece)
+			END_DOWN_MSG = struct.unpack('!l', '_KYD')[0]
+			END_UP_MSG = struct.unpack('!l', '_KYU')[0]
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
-				bounds = self.Bounds()
-				l, t, r, b = bounds
-				binds = self.background.Bounds()
-				luwidth=self.lubox.Bounds()[2]-self.lubox.Bounds()[0]
-				c,p,d,s = binds
-				plygrnd1 = (5,b-268,r - luwidth-5, s-120)
-				plygrnd2 = (5, b-142,r -luwidth-5, s-2)
-				altece = self.srctabview.TabHeight()
-				tabrc = (3.0, 3.0, plygrnd1[2] - plygrnd1[0], plygrnd1[3] - plygrnd1[1]-altece)
-				tabrc2 = (3, 3, plygrnd2[2] - plygrnd2[0], plygrnd2[3] - plygrnd2[1]-altece)
+				
 				txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText()
 				#entry = self.editorslist[self.postabview.Selection()].pofile.find(txttosearch)
 				
@@ -1704,31 +1720,8 @@ class PoWindow(BWindow):
 					
 				for entry in self.editorslist[self.postabview.Selection()].pofile:
 					if entry.msgid.encode(self.encoding) == txttosearch:
-#						alfa = (len(self.listemsgid)-1)
 						if entry and not entry.msgid_plural:
 							self.Nichilize()
-#							if alfa == 1:    #IF THERE'S A PLURAL, REMOVE IT
-#									self.srctabview.RemoveTab(1)
-#									self.listemsgid.pop(1)
-#									self.srctablabels.pop(1)
-#									self.srctabview.Hide()
-#									self.srctabview.Show()
-#							ww=len(self.listemsgstr)-1
-#							while ww>0:					#removes plural translation tabs
-#								self.transtabview.RemoveTab(ww)
-#								self.listemsgstr.pop(ww)
-#								self.transtablabels.pop(ww)
-#								self.transtabview.Hide()
-#								self.transtabview.Show()
-#								ww=ww-1
-##### Removing tab 0 on translation tabview and renaming it as msgstr
-#							self.transtabview.RemoveTab(0)
-#							self.listemsgstr.pop(0)
-#							self.transtablabels.pop(0)
-#							self.transtabview.Hide()
-#							self.transtabview.Show()
-							##################################tabrc=(0,0,self.listemsgid[0].Bounds()[2],tabrc[3]-5)###########################    10     ########################################## 3,3,...
-							print "trnsltabbox alla selezione",tabrc2
 							self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
 							self.transtablabels.append(BTab())
 							self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
@@ -1744,34 +1737,10 @@ class PoWindow(BWindow):
 #######################################################################
 						if entry and entry.msgid_plural:
 							beta=len(sorted(entry.msgstr_plural.keys()))
-							#############################################tabrc=(0,0,self.listemsgid[0].Bounds()[2],tabrc[3]-10) 																				#3,3...
 							self.Nichilize()
-#							if alfa ==1: 	#IF THERE'S A PLURAL, REMOVE IT
-#									self.srctabview.RemoveTab(1)
-#									self.listemsgid.pop(1)
-#									self.srctablabels.pop(1)
-#									self.srctabview.Hide()
-#									self.srctabview.Show()
-#							ww=len(self.listemsgstr)-1
-#							while ww>0: 				#removes plural translation tabs
-#								self.transtabview.RemoveTab(ww)
-#								self.listemsgstr.pop(ww)
-#								self.transtablabels.pop(ww)
-#								self.transtabview.Hide()
-#								self.transtabview.Show()
-#								ww=ww-1
-#
-#							self.transtabview.RemoveTab(0)
-#							self.listemsgstr.pop(0)
-#							self.transtablabels.pop(0)
-#							self.transtabview.Hide()
-#							self.transtabview.Show()
-
 							self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr[0]',altece,self))
 							self.transtablabels.append(BTab())
 							self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
-							self.transtabview.Hide()
-							self.transtabview.Show()
 							self.listemsgid.append(srctabbox((3,3,self.listemsgid[0].Bounds()[2]+3,self.listemsgid[0].Bounds()[3]+3),'msgid_plural',altece))
 							self.srctablabels.append(BTab())
 							self.srctabview.AddTab(self.listemsgid[1], self.srctablabels[1])
@@ -1790,9 +1759,7 @@ class PoWindow(BWindow):
 									self.transtabview.Select(x)
 									self.transtabview.Select(0)
 								else:
-									#asd=self.listemsgstr[0].trnsl.Bounds()
-									#tabrect=(0,0,asd[2]+6,asd[3]+6)																						#3,3....
-									self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr['+str(ww)+']',altece,self)) #tabrect
+									self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr['+str(ww)+']',altece,self))
 									self.listemsgstr[ww].trnsl.SetPOReadText(entry.msgstr_plural[ww].encode(self.encoding))
 									self.transtabview.AddTab(self.listemsgstr[ww],self.transtablabels[ww])
 								ww=ww+1
@@ -1802,60 +1769,83 @@ class PoWindow(BWindow):
 				############################ TODO: GO TO THE END OF THE TEXT #############################
 				#num=self.editorslist[self.postabview.Selection()].translation.CountLines()
 				#self.editorslist[self.postabview.Selection()].translation.GoToLine(num)
-				#txtlen=self.editorslist[self.postabview.Selection()].translation.TextLenght()
+				
+				#txtlen=self.listemsgstr[self.transtabview.Selection()].trnsl.TextLength()
+				#print self.listemsgstr[self.transtabview.Selection()].trnsl.OffsetAt(txtlen)
+				#self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToOffset(txtlen-1)
+				
+#				endkpress=BMessage(END_DOWN_MSG)
+#				now=uptime._uptime_beos()
+#				now=now*1000000
+#				endkpress.AddInt64('when',long(now))
+#				endkpress.AddInt32('key',60)#53)
+#				endkpress.AddInt32('modifiers',32)
+#				endkpress.AddInt8('states',0)
+#				endkpress.AddInt8('byte',97)#4)
+#				endkpress.AddString('bytes',"a")#")
+#				endkpress.AddInt32('raw_char',97)#4)
+#				BApplication.be_app.PostMessage(endkpress)
+#				
+#				endkpress=BMessage(END_UP_MSG)
+#				now=uptime._uptime_beos()
+#				now=now*1000000
+#				endkpress.AddInt64('when',long(now))
+#				endkpress.AddInt32('key',60)#53)
+#				endkpress.AddInt32('modifiers',32)
+#				endkpress.AddInt8('states',0)
+#				endkpress.AddInt8('byte',97)#4)
+#				endkpress.AddString('bytes',"a")#")
+#				endkpress.AddInt32('raw_char',97)#4)
+#				BApplication.be_app.WindowAt(0).PostMessage(endkpress)
+				
 #				pointer=self.editorslist[self.postabview.Selection()].translation.PointAt(len(self.editorslist[self.postabview.Selection()].translation.Text()))
 #				print pointer[0]
 #				self.editorslist[self.postabview.Selection()].translation.MovePenTo(pointer[0][0],pointer[0][1])
 #				print self.editorslist[self.postabview.Selection()].translation.PenLocation()
 				
 			else:
-			################################################## fix this ###########################################################################################################################################################
-				alfa = (len(self.listemsgid)-1)
-				if entry and not entry.msgid_plural:
-					self.Nichilize()
-#					if alfa == 1:    #IF THERE'S A PLURAL, REMOVE IT
-#							self.srctabview.RemoveTab(1)
-#							self.listemsgid.pop(1)
-#							self.srctablabels.pop(1)
-#							self.srctabview.Hide()
-#							self.srctabview.Show()
-#					ww=len(self.listemsgstr)-1
-#					while ww>0:					#removes plural translation tabs
-#						self.transtabview.RemoveTab(ww)
-#						self.listemsgstr.pop(ww)
-#						self.transtablabels.pop(ww)
-#						self.transtabview.Hide()
-#						self.transtabview.Show()
-#						ww=ww-1
-##### Removing tab 0 on translation tabview and renaming it as msgstr
-#					self.transtabview.RemoveTab(0)
-#					self.listemsgstr.pop(0)
-#					self.transtablabels.pop(0)
-#					self.transtabview.Hide()
-#					self.transtabview.Show()
-					
-					tabrc=(3,3,self.listemsgid[0].Bounds()[2],tabrc[3]-10)
-					self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
-					self.transtablabels.append(BTab())
-					self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
-					self.transtabview.Hide()
-					self.transtabview.Show()
-				
+				self.Nichilize()				
+				self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
+				self.transtablabels.append(BTab())
+				self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
+				################### BUG? ###################
+				self.transtabview.SetFocusTab(1,True)						#################  <----- needed to fix 
+				self.transtabview.Select(1)
+				self.transtabview.Select(0)
+				#############################################
+#				
 				self.listemsgid[0].src.SetText("")
-				self.listemsgstr[0].trnsl.SetPOReadText("")
-#				self.editorslist[self.postabview.Selection()].translation.tosave=False
 			return
 				
-		elif msg.what == 460551:
+#		elif msg.what == 460551:
 		################################################## fix this ###########################################################################################################################################################
 			#### clears source textview text and translation specific textview parameters
-			for v in self.editorslist:
-				v.source.SetText("")
-				v.translation.SetText("")
-				v.translation.oldtext=""
-				v.translation.oldtextloaded=False
-				v.translation.tosave=False
-			return
+#			bounds = self.Bounds()
+#			l, t, r, b = bounds
+#			binds = self.background.Bounds()
+#			luwidth=self.lubox.Bounds()[2]-self.lubox.Bounds()[0]
+#			c,p,d,s = binds
+#			plygrnd1 = (5,b-268,r - luwidth-5, s-120)
+#			plygrnd2 = (5, b-142,r -luwidth-5, s-2)
+#			altece = self.srctabview.TabHeight()
+#			tabrc = (3.0, 3.0, plygrnd1[2] - plygrnd1[0], plygrnd1[3] - plygrnd1[1]-altece)
+#			tabrc2 = (3, 3, plygrnd2[2] - plygrnd2[0], plygrnd2[3] - plygrnd2[1]-altece)
+#			self.Nichilize()
+#			self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
+#			self.transtablabels.append(BTab())
+#			self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
+#			self.transtabview.Hide()
+#			self.transtabview.Show()
+#			for v in self.listemsgid:
+#				v.src.SetText("")
+#			for v in self.listemsgstr:
+#				v.trnsl.Hide()
+#				v.trnsl.SetText("")
+#				v.trnsl.oldtext=""
+#				v.trnsl.oldtextloaded=False
+#				v.trnsl.tosave=False
+#				v.trnsl.Show()
+#			return
 
 		elif msg.what ==  777:
 			#Removing B_AVOID_FOCUS flag
@@ -1871,7 +1861,6 @@ class PoWindow(BWindow):
 			
 			##### add a tab in the editor's tabview
 			head, tail = os.path.split(pathtofile)
-			##update self.poview
 			self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile,self.poview,self.encoding))
 			self.tabslabels.append(BTab())
 			x=len(self.editorslist)-1
