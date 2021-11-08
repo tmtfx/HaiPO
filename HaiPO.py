@@ -24,11 +24,22 @@
 #
 #******************************************************
 
-import os,sys,ConfigParser,struct,re,threading,uptime
+import os,sys,ConfigParser,struct,re,threading
+
+
+jes = False
+
+try:
+	import uptime
+except:
+	print "Your python environment has no uptime module"
+	jes = True
+
 try:
 	import polib
 except:
 	print "Your python environment has no polib module"
+	jes=True
 
 Config=ConfigParser.ConfigParser()
 def ConfigSectionMap(section):
@@ -76,7 +87,7 @@ else:
 #	Config.set('Pippo','pe-mail', "f.t.public@gmail.com")
 #	Config.set('Pippo','te-mail', "fur@li.org")
 
-jes = False
+
 
 try:
 	import BApplication
@@ -906,6 +917,7 @@ class EventTextView(BTextView):
 						value=self.superself.shortcut#self.superself.modifier #CTRL pressed
 						self.superself.sem.release()
 						if value:
+							kmesg=BMessage(130550)
 							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
 							thisBlistitem.tosave=True
 							thisBlistitem.txttosave=thisBlistitem.text.decode(self.superself.encoding)
@@ -916,6 +928,8 @@ class EventTextView(BTextView):
 							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
 							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
 							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
+							kmesg.AddInt8('movekind',0)
+							BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 							return
 					#print self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()
 					print "carattere normale inserito"
@@ -1644,6 +1658,7 @@ class PoWindow(BWindow):
 						entry.flags.remove('fuzzy')
 				self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
 				self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tvindex).state=1
+				################# TODO: set blistitem not to "salvo al cambiamento"
 			return
 			
 		elif msg.what == 445380:
@@ -1868,36 +1883,7 @@ class PoWindow(BWindow):
 #				
 				self.listemsgid[0].src.SetText("")
 			return
-				
-#		elif msg.what == 460551:
-		################################################## fix this ###########################################################################################################################################################
-			#### clears source textview text and translation specific textview parameters
-#			bounds = self.Bounds()
-#			l, t, r, b = bounds
-#			binds = self.background.Bounds()
-#			luwidth=self.lubox.Bounds()[2]-self.lubox.Bounds()[0]
-#			c,p,d,s = binds
-#			plygrnd1 = (5,b-268,r - luwidth-5, s-120)
-#			plygrnd2 = (5, b-142,r -luwidth-5, s-2)
-#			altece = self.srctabview.TabHeight()
-#			tabrc = (3.0, 3.0, plygrnd1[2] - plygrnd1[0], plygrnd1[3] - plygrnd1[1]-altece)
-#			tabrc2 = (3, 3, plygrnd2[2] - plygrnd2[0], plygrnd2[3] - plygrnd2[1]-altece)
-#			self.Nichilize()
-#			self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
-#			self.transtablabels.append(BTab())
-#			self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
-#			self.transtabview.Hide()
-#			self.transtabview.Show()
-#			for v in self.listemsgid:
-#				v.src.SetText("")
-#			for v in self.listemsgstr:
-#				v.trnsl.Hide()
-#				v.trnsl.SetText("")
-#				v.trnsl.oldtext=""
-#				v.trnsl.oldtextloaded=False
-#				v.trnsl.tosave=False
-#				v.trnsl.Show()
-#			return
+
 
 		elif msg.what ==  777:
 			#Removing B_AVOID_FOCUS flag
