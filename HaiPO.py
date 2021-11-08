@@ -901,6 +901,22 @@ class EventTextView(BTextView):
 				return
 			else:
 				if self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()>-1:
+					if ochar == 115:
+						self.superself.sem.acquire()
+						value=self.superself.shortcut#self.superself.modifier #CTRL pressed
+						self.superself.sem.release()
+						if value:
+							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+							thisBlistitem.tosave=True
+							thisBlistitem.txttosave=thisBlistitem.text.decode(self.superself.encoding)
+							self.SetText(thisBlistitem.text)
+							bckpmsg=BMessage(17893)
+							bckpmsg.AddInt8('savetype',1)
+							bckpmsg.AddString('translation',self.Text())
+							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
+							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
+							return
 					#print self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()
 					print "carattere normale inserito"
 					thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
@@ -1065,6 +1081,7 @@ class PoWindow(BWindow):
 		self.modifier=False
 		self.poview=[True,True,True,False]
 		self.sem = threading.Semaphore()
+		self.shortcut=False
 		try:
 				Config.read(confile)
 				self.poview[0]=Config.getboolean('Settings', 'Fuzzy')
@@ -1112,16 +1129,16 @@ class PoWindow(BWindow):
 				print "ops! no Settings section for modifier key"
 				cfgfile = open(confile,'w')
 				Config.add_section('Settings')
-				Config.set('Settings','modifierkey',4132)
+				Config.set('Settings','modifierkey',4100)
 				Config.write(cfgfile)
 				cfgfile.close()
-				self.modifiervalue=4132 #1058 ALT;4132 CTRL
+				self.modifiervalue=4100 #1058 ALT;4100 CTRL
 		except (ConfigParser.NoOptionError):
 				cfgfile = open(confile,'w')
-				Config.set('Settings','modifierkey',4132)
+				Config.set('Settings','modifierkey',4100)
 				Config.write(cfgfile)
 				cfgfile.close()
-				self.modifiervalue=4132 #1058 ALT;4132 CTRL
+				self.modifiervalue=4100 #1058 ALT;4100 CTRL
 		
 		for menu, items in self.Menus:
 			if menu == "View":
@@ -1276,24 +1293,33 @@ class PoWindow(BWindow):
 
 
 	def MessageReceived(self, msg):
-#		msg.PrintToStream()
+		#msg.PrintToStream()
 
 #		print "This is a system message?", msg.IsSystem()
 		if msg.what == B_MODIFIERS_CHANGED: #quando modificatore ctrl cambia stato
 #			print "modifiers changed"
 			value=msg.FindInt32("modifiers")
 			self.sem.acquire()
-			if value==self.modifiervalue or value==self.modifiervalue+8:
+			if value==self.modifiervalue or value==self.modifiervalue+8 or value ==self.modifiervalue+32 or value ==self.modifiervalue+40:
+				print "ctrl premuto self.modifier diventa true"
 				self.modifier=True
+				self.shortcut = False
+			elif value == self.modifiervalue+257 or value==self.modifiervalue+265 or value==self.modifiervalue+289 or value == self.modifiervalue+297:
+				print "ctrl maiusc premuto self.shortcut diventa true"
+				self.shortcut = True
+				self.modifier = False
 			else:
+				print "self.modifier e self.shortcut diventano false"
 				self.modifier=False
+				self.shortcut=False
 			self.sem.release()
 			return
 #		elif msg.what == B_UNMAPPED_KEY_DOWN:
 #			msg.PrintToStream()
 		elif msg.what == B_KEY_DOWN:	#on tab key pressed, focus on translation or translation of first item list of translations
-			#msg.PrintToStream()
-			if msg.FindInt32('key')==38:
+			msg.PrintToStream()
+			key=msg.FindInt32('key')
+			if key==38: #tab key
 				run=True
 				try:
 					lung=len(self.listemsgstr)-1
@@ -1309,6 +1335,14 @@ class PoWindow(BWindow):
 							self.editorslist[self.postabview.Selection()].list.lv.Select(0)
 				except:
 					pass
+			elif key == 61: # s key  - - -  sembra non accadere mai
+				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
+					self.sem.acquire()
+					if self.shortcut:
+						print "copio da sorgente e indico che è da salvare con postmessage(BMessage(3))"
+					else:
+						pass
+					self.sem.release()
 #			elif msg.FindInt32('key')==53:
 #				st = msg.FindString('bytes')
 #				result=[]
@@ -1329,6 +1363,12 @@ class PoWindow(BWindow):
 		elif msg.what == 295485:
 			self.ofp.Show()
 			return
+			
+		elif msg.what == 3:
+			#copy from source
+				
+			return
+		
 		elif msg.what == 4:
 			#ABOUT
 			self.About = AboutWindow()
@@ -1501,11 +1541,16 @@ class PoWindow(BWindow):
 				if (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1) and (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()<self.editorslist[self.postabview.Selection()].list.lv.CountItems()):
 					self.editorslist[self.postabview.Selection()].list.lv.Select(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()+1)
 					self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+				elif self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()==-1:
+					self.editorslist[self.postabview.Selection()].list.lv.Select(0)
 			elif movetype == 1:
 				#select one up
 				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>0 :
 					self.editorslist[self.postabview.Selection()].list.lv.Select(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()-1)
-					self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+				#	self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+				elif self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()==-1:
+					self.editorslist[self.postabview.Selection()].list.lv.Select(self.editorslist[self.postabview.Selection()].list.lv.CountItems()-1)
+				self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
 			elif movetype == 2:
 				#select one page up
 				thisitem=self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()
@@ -1545,27 +1590,33 @@ class PoWindow(BWindow):
 				#select next untranslated (or needing work) string
 				next=True
 				if (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1):
-					spice = self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()
+					spice = self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()+1
+					if spice == self.editorslist[self.postabview.Selection()].list.lv.CountItems():
+						spice = 0
 				else:
 					self.editorslist[self.postabview.Selection()].list.lv.Select(0)
-					spice=-1
+					spice=0
+				
 				while next:
-					if (spice+1)==self.editorslist[self.postabview.Selection()].list.lv.CountItems():
-						spice=0
-						state=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(0).state
+					if (spice)==self.editorslist[self.postabview.Selection()].list.lv.CountItems()-1:
+						state=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(spice).state
 						if state == 0 or state == 2:
-							self.editorslist[self.postabview.Selection()].list.lv.Select(0)
-							next=False
+							self.editorslist[self.postabview.Selection()].list.lv.Select(spice)
+						next=False
+
 					else:
-						state=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(spice+1).state
+						state=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(spice).state
 						if state == 0 or state == 2:
-							self.editorslist[self.postabview.Selection()].list.lv.Select(spice+1)
+							self.editorslist[self.postabview.Selection()].list.lv.Select(spice)
 							next=False
 					spice=spice+1
 				self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
 			thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
-			if thisBlistitem.tosave:
-				print("testo da salvare",thisBlistitem.txttosave)
+			try:
+				if thisBlistitem.tosave: #it happens when something has not saved the blistitem #currently on ctrl+shift+s -> copy from source
+					print("testo da salvare (implementare funzione se si verifica)",thisBlistitem.txttosave)
+			except:
+				print "no tosave"
 			return
 
 		elif msg.what == 305:
@@ -1585,9 +1636,10 @@ class PoWindow(BWindow):
 				tvindex=msg.FindInt32('tvindex')
 				textsave=msg.FindString('translation')
 				print "Salvataggio completo"
-				entry = self.editorslist[self.postabview.Selection()].pofile.find(self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tvindex).Text())
+				entry = self.editorslist[self.postabview.Selection()].pofile.find(self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tvindex).Text().decode(self.encoding))
 				if entry:
-					entry.msgstr = textsave.decode(self.encoding)
+					print "sono passato?"
+					entry.msgstr = textsave.decode(self.encoding)#.encode("ascii")
 					if 'fuzzy' in entry.flags:
 						entry.flags.remove('fuzzy')
 				self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
