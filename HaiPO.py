@@ -29,11 +29,11 @@ import os,sys,ConfigParser,struct,re,threading
 
 jes = False
 
-try:
-	import uptime
-except:
-	print "Your python environment has no uptime module"
-	jes = True
+#try:
+#	import uptime
+#except:
+#	print "Your python environment has no uptime module"
+#	jes = True
 
 try:
 	import polib
@@ -74,18 +74,6 @@ if os.path.isfile(confile):
 		firstrun = True
 else:
 	firstrun = True
-#	cfgfile = open(confile,'w')
-#	Config.add_section('Users')
-#	Config.set('User','names', "") #Pippo,Pierino,
-#	Config.set('User','default', "") #Pippo
-#	cfgfile.close()
-
-
-#	Config.set('Pippo','name', "Pippo Franco")
-#	Config.set('Pippo','lang', "fur")
-#	Config.set('Pippo','team', "Friulian")
-#	Config.set('Pippo','pe-mail', "f.t.public@gmail.com")
-#	Config.set('Pippo','te-mail', "fur@li.org")
 
 
 
@@ -648,11 +636,11 @@ class MyListView(BListView):
 
 
 class ScrollView:
-	HiWhat = 32 #Doppioclick --> set as fuzzy?
+	HiWhat = 32 #Doppioclick --> set as fuzzy? or open comment window? or source references? suggestions?
 	Selmsgstr = 460550
 
-	def __init__(self, rect, name):#, OPTION, type):
-		self.lv = MyListView(rect, name, B_SINGLE_SELECTION_LIST,B_FOLLOW_ALL_SIDES,B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_FRAME_EVENTS)#,OPTION)BListView
+	def __init__(self, rect, name):
+		self.lv = MyListView(rect, name, B_SINGLE_SELECTION_LIST,B_FOLLOW_ALL_SIDES,B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_FRAME_EVENTS)
 		msg=BMessage(self.Selmsgstr)
 		self.lv.SetSelectionMessage(msg)
 		msg = BMessage(self.HiWhat)
@@ -723,7 +711,7 @@ class MsgStrItem(BListItem):
 	txttosave=""
 
 	def __init__(self, text,state,encoding,plural):
-		self.text = text.encode(encoding)  #it's in english should this be always utf-8
+		self.text = text.encode(encoding)  #it's in english should this always be utf-8?
 		self.state=state
 		self.hasplural=plural
 		BListItem.__init__(self)
@@ -892,7 +880,7 @@ class EventTextView(BTextView):
 					
 			elif ochar == 2 or ochar == 98:				# ctrl+B or ctrl+b key to mark/umark as fuzzy
 				self.superself.sem.acquire()
-				value=self.superself.modifier#self.superself.modifier #CTRL pressed
+				value=self.superself.modifier #CTRL pressed
 				self.superself.sem.release()
 				if value:
 					BApplication.be_app.WindowAt(0).PostMessage(BMessage(71))
@@ -912,9 +900,9 @@ class EventTextView(BTextView):
 				return
 			else:
 				if self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()>-1:
-					if ochar == 115:
+					if ochar == 115:					#CTRL+SHIF+S						############################################# TODO integrare plurale #########################################################
 						self.superself.sem.acquire()
-						value=self.superself.shortcut#self.superself.modifier #CTRL pressed
+						value=self.superself.shortcut #CTRL SHIFT pressed
 						self.superself.sem.release()
 						if value:
 							kmesg=BMessage(130550)
@@ -1074,6 +1062,7 @@ class postabview(BTabView):
 		gg=0
 		while gg<numtabs:
 			if (point[0]>=self.TabFrame(gg)[0]) and (point[0]<=self.TabFrame(gg)[2]) and (point[1]>=self.TabFrame(gg)[1]) and (point[1]<=self.TabFrame(gg)[3]):
+				############################ TODO: CAMBIARE SOURCE TEXT VIEW AND TRANSLATION TEXT VIEW E MAGARI SALVARE IL BACKUP DEL FILE PRECEDENTE ##############################
 				print "stai cambiando file occhio!"
 			gg=gg+1
 		return BTabView.MouseDown(self,point)
@@ -1380,7 +1369,21 @@ class PoWindow(BWindow):
 			
 		elif msg.what == 3:
 			#copy from source
-				
+			############################### TODO integrare plurale ###############################
+			kmesg=BMessage(130550)
+			thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+			thisBlistitem.tosave=True
+			thisBlistitem.txttosave=thisBlistitem.text.decode(self.encoding)
+			thistranslEdit=self.listemsgstr[self.transtabview.Selection()].trnsl
+			thistranslEdit.SetText(thisBlistitem.text)
+			bckpmsg=BMessage(17893)
+			bckpmsg.AddInt8('savetype',1)
+			bckpmsg.AddString('translation',thistranslEdit.Text())
+			bckpmsg.AddInt32('tvindex',self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+			bckpmsg.AddString('bckppath',self.editorslist[self.postabview.Selection()].backupfile)
+			BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
+			kmesg.AddInt8('movekind',0)
+			BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 			return
 		
 		elif msg.what == 4:
@@ -1394,6 +1397,26 @@ class PoWindow(BWindow):
 			self.usersettings = ImpostazionsUtent()
 			self.usersettings.Show()
 			self.SetFlags(B_AVOID_FOCUS)
+			return
+		
+		elif msg.what == 70:
+			# Done and next
+			####################################### TODO  integrare plurale #######################################
+			thistranslEdit=self.listemsgstr[self.transtabview.Selection()].trnsl
+			if thistranslEdit.tosave:
+				print "procedo a salvare tramite menù"
+				thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+				thisBlistitem.tosave=True
+				thisBlistitem.txttosave=thistranslEdit.Text()
+				bckpmsg=BMessage(17893)
+				bckpmsg.AddInt8('savetype',1)
+				bckpmsg.AddString('translation', thistranslEdit.Text())
+				bckpmsg.AddInt32('tvindex',self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+				bckpmsg.AddString('bckppath',self.editorslist[self.postabview.Selection()].backupfile)
+				BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
+			kmesg=BMessage(130550)
+			kmesg.AddInt8('movekind',4)
+			BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 			return
 		
 		elif msg.what == 74:
@@ -1602,6 +1625,7 @@ class PoWindow(BWindow):
 					
 			elif  movetype == 4:
 				#select next untranslated (or needing work) string
+				################################################## TODO se quella era l'unica stringa della lista da modificare non fare spostamenti #################################################
 				next=True
 				if (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1):
 					spice = self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()+1
@@ -1610,7 +1634,16 @@ class PoWindow(BWindow):
 				else:
 					self.editorslist[self.postabview.Selection()].list.lv.Select(0)
 					spice=0
-				
+				conte=0
+				tt=0
+				while tt != self.editorslist[self.postabview.Selection()].list.lv.CountItems():
+					blistit=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tt)
+					if blistit.state==0 or blistit.state==2:
+						conte = conte+1
+					tt+=1
+#				print conte
+				if conte==0:
+					return
 				while next:
 					if (spice)==self.editorslist[self.postabview.Selection()].list.lv.CountItems()-1:
 						state=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(spice).state
@@ -1627,8 +1660,8 @@ class PoWindow(BWindow):
 				self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
 			thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
 			try:
-				if thisBlistitem.tosave: #it happens when something has not saved the blistitem #currently on ctrl+shift+s -> copy from source
-					print("testo da salvare (implementare funzione se si verifica)",thisBlistitem.txttosave)
+				if thisBlistitem.tosave: #it happens when something has not saved the blistitem
+					print("testo da salvare (this shouldn\'t happen)",thisBlistitem.txttosave)
 			except:
 				print "no tosave"
 			return
@@ -1641,6 +1674,7 @@ class PoWindow(BWindow):
 			return
 			
 		elif msg.what == 17893:
+			# save to backup and update the blistitem
 			bckppath = msg.FindString('bckppath')
 			savetype = msg.FindInt8('savetype')
 			if savetype == 0:
@@ -1652,13 +1686,13 @@ class PoWindow(BWindow):
 				print "Salvataggio completo"
 				entry = self.editorslist[self.postabview.Selection()].pofile.find(self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tvindex).Text().decode(self.encoding))
 				if entry:
-					print "sono passato?"
 					entry.msgstr = textsave.decode(self.encoding)#.encode("ascii")
 					if 'fuzzy' in entry.flags:
 						entry.flags.remove('fuzzy')
 				self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
 				self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tvindex).state=1
-				################# TODO: set blistitem not to "salvo al cambiamento"
+				self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tvindex).tosave=False
+				self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tvindex).txttosave=""
 			return
 			
 		elif msg.what == 445380:
@@ -1773,10 +1807,9 @@ class PoWindow(BWindow):
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
 				
 				txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText()
-				#entry = self.editorslist[self.postabview.Selection()].pofile.find(txttosearch)
 				
 				
-				####### check for multiple occurencies ########
+				####### TODO : check and fix for multiple occurencies ########
 				count=0
 				for entry in self.editorslist[self.postabview.Selection()].pofile:
 					if entry.msgid.encode(self.encoding) == txttosearch:
