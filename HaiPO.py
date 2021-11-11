@@ -174,7 +174,88 @@ class PeopleBView(BBox):
 		self.AddChild(self.pemail)
 		self.AddChild(self.temail)
 		self.AddChild(self.default)
+		
+class POmetadata(BWindow):
+	kWindowFrame = (150, 150, 585, 480)
+	kWindowName = "POSettings"
+	
+	def __init__(self):
+		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, B_FLOATING_WINDOW, B_NOT_RESIZABLE)
+		bounds=self.Bounds()
+		#l,t,r,b = bounds
+		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		self.AddChild(self.underframe)
+		self.listBTextControl=[]
+		self.listStringView=[]
+		self.listTextView=[]
+		
+#		self.pofile
+#		self.orderedmetadata
+		
+#		self.metadata = []
+#		self.metadatacount = 0
+		
+	def MessageReceived(self, msg):
+		if msg.what == 99111: # elaborate pofile
+			conta=self.underframe.CountChildren()
+#			print conta
+			while conta > 0:
+				self.underframe.ChildAt(conta).RemoveSelf()
+				print "rimosso"
+				conta=conta-1
+				
+			#for entry in self.pofile.metadata_as_entry():
+			#	print entry.msgid,entry.msgstr
+			self.metadata = self.pofile.ordered_metadata()
+#			list=self.pofile.metadata_as_entry().msgstr.split('\n')
+#			for row in list:
+#				print row
+#				for items in self.metadata:
+#					if row.find(items)>-1:
+#						print items
 			
+			rect = [10,10,425,30]
+			step = 34
+			
+			indexstring=0
+			for item in self.metadata:
+				self.listBTextControl.append(BTextControl((rect[0],rect[1]+step*indexstring,rect[2],rect[3]+step*indexstring),'txtctrl'+str(indexstring),item[0],item[1],BMessage(51973)))
+				#self.listStringView.append(BStringView((rect[0],rect[1]+step*indexstring,rect[2],rect[3]+step*indexstring),item[0],item[0]))
+				#self.listTextView.append(
+				indexstring+=1
+#				print item[0]
+#			print self.listStringView[len(self.listStringView)-1].Frame()
+#			print "Window height",self.kWindowFrame[3]
+#			print "last string height", rect[3]+step*(indexstring)	
+			if (self.kWindowFrame[3]-self.kWindowFrame[1])< rect[3]+step*(indexstring):
+				self.ResizeTo(self.Bounds()[2],float(rect[3]+step*(indexstring)-20))
+				
+			for element in self.listBTextControl:
+				self.underframe.AddChild(element)
+
+			#entry = self.pofile.metadata_as_entry()
+			#print entry.msgstr
+#		self.po.metadata = {
+ #           'Project-Id-Version': "%s %s" % (release.description, release.version),
+  #          'Report-Msgid-Bugs-To': '',
+   #         'POT-Creation-Date': now,
+    #        'PO-Revision-Date': now,
+     #       'Last-Translator': '',
+      #      'Language-Team': '',
+       #     'MIME-Version': '1.0',
+        #    'Content-Type': 'text/plain; charset=UTF-8',
+         #   'Content-Transfer-Encoding': '',
+          #  'Plural-Forms': '',
+        #} 
+        
+
+#			poobj.metadata["Content-Type"] = "text/plain; charset=UTF-8"
+			#
+#			pass
+#		if msg.what == 115116: # item string
+#			pass
+		
+		
 class ImpostazionsUtent(BWindow):
 	kWindowFrame = (150, 150, 585, 480)
 	kWindowName = "User Settings"
@@ -966,6 +1047,8 @@ class POEditorBBox(BBox):
 		self.name = name
 		self.encoding=encoding
 		filen, file_ext = os.path.splitext(percors)
+		self.orderedmetadata=self.pofile.ordered_metadata()
+
 #		if file_ext=='.po':
 #			self.typefile=0
 #		elif file_ext=='.mo':
@@ -1070,10 +1153,10 @@ class postabview(BTabView):
 class PoWindow(BWindow):
 	Menus = (
 		('File', ((295485, 'Open'), (2, 'Save'), (1, 'Close'), (5, 'Save as...'),(None, None),(B_QUIT_REQUESTED, 'Quit'))),
-		('Translation', ((3, 'Copy from source'), (4,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy'), (72, 'Previous'),(73,'Next'),(None, None), (6, 'Find'), (7, 'Replace'))),
+		('Translation', ((3, 'Copy from source'), (4,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy'), (72, 'Previous w/o saving'),(73,'Next w/o saving'),(None, None), (6, 'Find'), (7, 'Replace'))),
 		('View', ((74,'Fuzzy'), (75, 'Untranslated'),(76,'Translated'),(77, 'Obsolete'))),
 		('Settings', ((41, 'User settings'), (42, 'Po properties')	)),
-		('About', ((3, 'Help'),(None, None),(4, 'About')))
+		('About', ((8, 'Help'),(None, None),(9, 'About')))
 		)
 	def __init__(self, frame):
 		selectionmenu=0
@@ -1386,7 +1469,7 @@ class PoWindow(BWindow):
 			BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 			return
 		
-		elif msg.what == 4:
+		elif msg.what == 9:
 			#ABOUT
 			self.About = AboutWindow()
 			self.About.Show()
@@ -1398,7 +1481,22 @@ class PoWindow(BWindow):
 			self.usersettings.Show()
 			self.SetFlags(B_AVOID_FOCUS)
 			return
-		
+			
+		elif msg.what == 42:
+			# PO metadata
+			self.POMetadata = POmetadata()
+			self.POMetadata.Show()
+
+			self.POMetadata.pofile = self.editorslist[self.postabview.Selection()].pofile
+			self.POMetadata.orderedmetadata = self.editorslist[self.postabview.Selection()].orderedmetadata
+			i = 1
+			w = BApplication.be_app.CountWindows()
+			while w > i:
+				if BApplication.be_app.WindowAt(i).Title()=="POSettings":
+					thiswindow=i
+				i=i+1
+			BApplication.be_app.WindowAt(thiswindow).PostMessage(99111)
+
 		elif msg.what == 70:
 			# Done and next
 			####################################### TODO  integrare plurale #######################################
@@ -1418,6 +1516,28 @@ class PoWindow(BWindow):
 			kmesg.AddInt8('movekind',4)
 			BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 			return
+
+		elif msg.what == 72:
+			# previous without saving
+			thistranslEdit=self.listemsgstr[self.transtabview.Selection()].trnsl
+			if thistranslEdit.tosave:
+				thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+				thisBlistitem.tosave=False
+				thisBlistitem.txttosave=""
+			kmesg=BMessage(130550)
+			kmesg.AddInt8('movekind',1)
+			BApplication.be_app.WindowAt(0).PostMessage(kmesg)
+			
+		elif msg.what == 73:
+			# next without saving
+			thistranslEdit=self.listemsgstr[self.transtabview.Selection()].trnsl
+			if thistranslEdit.tosave:
+				thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+				thisBlistitem.tosave=False
+				thisBlistitem.txttosave=""
+			kmesg=BMessage(130550)
+			kmesg.AddInt8('movekind',0)
+			BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 		
 		elif msg.what == 74:
 			if self.poview[0]:
@@ -1625,7 +1745,6 @@ class PoWindow(BWindow):
 					
 			elif  movetype == 4:
 				#select next untranslated (or needing work) string
-				################################################## TODO se quella era l'unica stringa della lista da modificare non fare spostamenti #################################################
 				next=True
 				if (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1):
 					spice = self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()+1
