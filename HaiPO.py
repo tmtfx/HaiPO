@@ -21,6 +21,7 @@
 #******************************************************
 #
 # Notes: implementare X-generator
+# TODO check posettings vs user settings
 #
 #******************************************************
 
@@ -186,8 +187,9 @@ class POmetadata(BWindow):
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(self.underframe)
 		self.listBTextControl=[]
-		self.listStringView=[]
-		self.listTextView=[]
+		self.indexroot=BApplication.be_app.WindowAt(0).postabview.Selection()
+#		self.listStringView=[]
+#		self.listTextView=[]
 		
 #		self.pofile
 #		self.orderedmetadata
@@ -219,7 +221,10 @@ class POmetadata(BWindow):
 			
 			indexstring=0
 			for item in self.metadata:
-				self.listBTextControl.append(BTextControl((rect[0],rect[1]+step*indexstring,rect[2],rect[3]+step*indexstring),'txtctrl'+str(indexstring),item[0],item[1],BMessage(51973)))
+				modmsg=BMessage(51973)
+				modmsg.AddString('itemstring',item[0])
+				modmsg.AddInt8('itemindex',indexstring)
+				self.listBTextControl.append(BTextControl((rect[0],rect[1]+step*indexstring,rect[2],rect[3]+step*indexstring),'txtctrl'+str(indexstring),item[0],item[1],modmsg))
 				#self.listStringView.append(BStringView((rect[0],rect[1]+step*indexstring,rect[2],rect[3]+step*indexstring),item[0],item[0]))
 				#self.listTextView.append(
 				indexstring+=1
@@ -232,6 +237,19 @@ class POmetadata(BWindow):
 				
 			for element in self.listBTextControl:
 				self.underframe.AddChild(element)
+
+		if msg.what == 51973:
+			# save metadata to self.pofile
+			ind=msg.FindString('itemstring')
+			indi=msg.FindInt8('itemindex')
+			self.pofile.metadata[ind]=self.listBTextControl[indi].Text().decode(BApplication.be_app.WindowAt(0).encoding)   ################### possible error? check encoding
+			# save self.pofile to backup file
+			smesg=BMessage(17893)
+			smesg.AddInt8('savetype',2)
+			smesg.AddInt8('indexroot',self.indexroot)
+			smesg.AddString('bckppath',BApplication.be_app.WindowAt(0).editorslist[self.indexroot].backupfile)
+			BApplication.be_app.WindowAt(0).PostMessage(smesg)
+
 
 			#entry = self.pofile.metadata_as_entry()
 			#print entry.msgstr
@@ -790,6 +808,7 @@ class MsgStrItem(BListItem):
 	frame=[0,0,0,0]
 	tosave=False
 	txttosave=""
+	txttosavepl=[]
 
 	def __init__(self, text,state,encoding,plural):
 		self.text = text.encode(encoding)  #it's in english should this always be utf-8?
@@ -853,10 +872,36 @@ class EventTextView(BTextView):
 		self.oldtextloaded=False
 		self.tosave=False
 		BTextView.__init__(self,frame,name,textRect,resizingMode,flags)
+		
+	def Save(self):
+		thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+		thisBlistitem.tosave=True
+		tabs=len(self.superself.listemsgstr)-1
+		bckpmsg=BMessage(17893)
+		bckpmsg.AddInt8('savetype',1)
+		bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+		bckpmsg.AddInt8('plurals',tabs)
+		if tabs == 0:
+			thisBlistitem.txttosave=self.Text()
+			bckpmsg.AddString('translation',thisBlistitem.txttosave)
+			print "salvo solo singolare"
+		else:
+			print "provo a salvare tutto"
+			thisBlistitem.txttosavepl=[]
+			thisBlistitem.txttosave=self.superself.listemsgstr[0].trnsl.Text()
+			bckpmsg.AddString('translation',thisBlistitem.txttosave)
+			cox=1
+			while cox < tabs+1:
+				thisBlistitem.txttosavepl.append(self.superself.listemsgstr[cox].trnsl.Text())
+				bckpmsg.AddString('translationpl'+str(cox-1),self.superself.listemsgstr[cox].trnsl.Text())
+				cox+=1
+		bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
+		BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
 
 	def KeyDown(self,char,bytes):
 		
 		####################### TODO   controllo ortografia ##############################
+		####################### TODO integrare plurale ###################################
 		try:
 			ochar=ord(char)
 #			print ochar
@@ -864,22 +909,48 @@ class EventTextView(BTextView):
 				self.superself.sem.acquire()
 				value=self.superself.modifier#self.superself.modifier #CTRL pressed
 				self.superself.sem.release()
-				
+				hasplural=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()).hasplural
 				kmesg=BMessage(130550)
 				if ochar == B_DOWN_ARROW:
 					if value:
 						# one element down
-
-						if self.tosave:
-							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-							thisBlistitem.tosave=True
-							thisBlistitem.txttosave=self.Text()
-							bckpmsg=BMessage(17893)
-							bckpmsg.AddInt8('savetype',1)
-							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-							bckpmsg.AddString('translation',self.Text())
-							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
-							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
+						if hasplural:
+							lung=len(self.superself.listemsgstr)
+							pick=0
+							gonogo=False
+							while pick<lung:
+								thistranslEdit=self.superself.listemsgstr[pick].trnsl
+								if thistranslEdit.tosave:
+									gonogo=True
+								pick+=1
+						else:
+							gonogo=self.tosave
+						if gonogo:
+							self.Save()
+#							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+#							thisBlistitem.tosave=True
+#							tabs=len(self.superself.listemsgstr)-1
+#							bckpmsg=BMessage(17893)
+#							bckpmsg.AddInt8('savetype',1)
+#							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+#							bckpmsg.AddInt8('plurals',tabs)
+#							if tabs == 0:
+#								thisBlistitem.txttosave=self.Text()
+#								bckpmsg.AddString('translation',thisBlistitem.txttosave)
+#								print "salvo solo singolare"
+#							else:
+#								print "provo a salvare tutto"
+#								thisBlistitem.txttosavepl=[]
+#								thisBlistitem.txttosave=self.superself.listemsgstr[0].trnsl.Text()
+#								bckpmsg.AddString('translation',thisBlistitem.txttosave)
+#								cox=1
+#								while cox < tabs+1:
+#									thisBlistitem.txttosavepl.append(self.superself.listemsgstr[cox].trnsl.Text())
+#									bckpmsg.AddString('translationpl'+str(cox-1),self.superself.listemsgstr[cox].trnsl.Text())
+#									cox+=1
+#								print thisBlistitem.txttosave, thisBlistitem.txttosavepl							
+#							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
+#							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
 
 						kmesg.AddInt8('movekind',0)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
@@ -887,17 +958,28 @@ class EventTextView(BTextView):
 				elif ochar == B_UP_ARROW:
 					if value:
 						# one element up
-
-						if self.tosave:
-							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-							thisBlistitem.tosave=True
-							thisBlistitem.txttosave=self.Text()
-							bckpmsg=BMessage(17893)
-							bckpmsg.AddInt8('savetype',1)
-							bckpmsg.AddString('translation',self.Text())
-							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
-							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
+						if hasplural:
+							lung=len(self.superself.listemsgstr)
+							pick=0
+							gonogo=False
+							while pick<lung:
+								thistranslEdit=self.superself.listemsgstr[pick].trnsl
+								if thistranslEdit.tosave:
+									gonogo=True
+								pick+=1
+						else:
+							gonogo=self.tosave
+						if gonogo:
+							self.Save()
+#							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+#							thisBlistitem.tosave=True
+#							thisBlistitem.txttosave=self.Text()
+#							bckpmsg=BMessage(17893)
+#							bckpmsg.AddInt8('savetype',1)
+#							bckpmsg.AddString('translation',self.Text())
+#							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+#							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
+#							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
 
 						kmesg.AddInt8('movekind',1)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
@@ -905,17 +987,28 @@ class EventTextView(BTextView):
 				elif ochar == B_PAGE_UP:
 					if value:
 						# one page up
-
-						if self.tosave:
-							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-							thisBlistitem.tosave=True
-							thisBlistitem.txttosave=self.Text()
-							bckpmsg=BMessage(17893)
-							bckpmsg.AddInt8('savetype',1)
-							bckpmsg.AddString('translation',self.Text())
-							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
-							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
+						if hasplural:
+							lung=len(self.superself.listemsgstr)
+							pick=0
+							gonogo=False
+							while pick<lung:
+								thistranslEdit=self.superself.listemsgstr[pick].trnsl
+								if thistranslEdit.tosave:
+									gonogo=True
+								pick+=1
+						else:
+							gonogo=self.tosave
+						if gonogo:
+							self.Save()						
+#							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+#							thisBlistitem.tosave=True
+#							thisBlistitem.txttosave=self.Text()
+#							bckpmsg=BMessage(17893)
+#							bckpmsg.AddInt8('savetype',1)
+#							bckpmsg.AddString('translation',self.Text())
+#							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+#							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
+#							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
 
 						kmesg.AddInt8('movekind',2)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
@@ -923,17 +1016,28 @@ class EventTextView(BTextView):
 				elif ochar == B_PAGE_DOWN:
 					if value:
 						# one page down
-						print "seleziono una pagina in giù"
-						if self.tosave:
-							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-							thisBlistitem.tosave=True
-							thisBlistitem.txttosave=self.Text()
-							bckpmsg=BMessage(17893)
-							bckpmsg.AddInt8('savetype',1)
-							bckpmsg.AddString('translation',self.Text())
-							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
-							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
+						if hasplural:
+							lung=len(self.superself.listemsgstr)
+							pick=0
+							gonogo=False
+							while pick<lung:
+								thistranslEdit=self.superself.listemsgstr[pick].trnsl
+								if thistranslEdit.tosave:
+									gonogo=True
+								pick+=1
+						else:
+							gonogo=self.tosave
+						if gonogo:
+							self.Save()
+#							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+#							thisBlistitem.tosave=True
+#							thisBlistitem.txttosave=self.Text()
+#							bckpmsg=BMessage(17893)
+#							bckpmsg.AddInt8('savetype',1)
+#							bckpmsg.AddString('translation',self.Text())
+#							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+#							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
+#							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
 
 						kmesg.AddInt8('movekind',3)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
@@ -941,17 +1045,28 @@ class EventTextView(BTextView):
 				elif ochar == B_TAB:
 					if not value:
 						# next string needing work
-
-						if self.tosave:
-							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-							thisBlistitem.tosave=True
-							thisBlistitem.txttosave=self.Text()
-							bckpmsg=BMessage(17893)
-							bckpmsg.AddInt8('savetype',1)
-							bckpmsg.AddString('translation',self.Text())
-							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
-							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
+						if hasplural:
+							lung=len(self.superself.listemsgstr)
+							pick=0
+							gonogo=False
+							while pick<lung:
+								thistranslEdit=self.superself.listemsgstr[pick].trnsl
+								if thistranslEdit.tosave:
+									gonogo=True
+								pick+=1
+						else:
+							gonogo=self.tosave
+						if gonogo:
+							self.Save()
+#							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+#							thisBlistitem.tosave=True
+#							thisBlistitem.txttosave=self.Text()
+#							bckpmsg=BMessage(17893)
+#							bckpmsg.AddInt8('savetype',1)
+#							bckpmsg.AddString('translation',self.Text())
+#							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+#							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
+#							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
 							
 						kmesg.AddInt8('movekind',4)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
@@ -967,9 +1082,9 @@ class EventTextView(BTextView):
 					BApplication.be_app.WindowAt(0).PostMessage(BMessage(71))
 					return
 				else:
+					#insert b char
 					if self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()>-1:
 						self.tosave=True
-						print "ho salvato"
 						return BTextView.KeyDown(self,char,bytes)
 				return		
 			elif ochar == B_ESCAPE: ######################## Restore to the saved string #####################
@@ -981,22 +1096,45 @@ class EventTextView(BTextView):
 				return
 			else:
 				if self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()>-1:
-					if ochar == 115:					#CTRL+SHIF+S						############################################# TODO integrare plurale #########################################################
+					if ochar == 115:					#CTRL+SHIF+S
 						self.superself.sem.acquire()
 						value=self.superself.shortcut #CTRL SHIFT pressed
 						self.superself.sem.release()
 						if value:
-							kmesg=BMessage(130550)
 							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
 							thisBlistitem.tosave=True
-							thisBlistitem.txttosave=thisBlistitem.text.decode(self.superself.encoding)
-							self.SetText(thisBlistitem.text)
+							tabs=len(self.superself.listemsgstr)-1
 							bckpmsg=BMessage(17893)
 							bckpmsg.AddInt8('savetype',1)
-							bckpmsg.AddString('translation',self.Text())
 							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+							bckpmsg.AddInt8('plurals',tabs)
+							if tabs == 0:
+								thisBlistitem.txttosave=thisBlistitem.text.decode(self.superself.encoding)
+								bckpmsg.AddString('translation',thisBlistitem.txttosave)
+								print "salvo solo singolare"
+							else:
+								print "provo a salvare tutto"
+								thisBlistitem.txttosavepl=[]
+								thisBlistitem.txttosave=self.superself.listemsgid[0].src.Text()
+								bckpmsg.AddString('translation',thisBlistitem.txttosave)
+								cox=1
+								while cox < tabs+1:
+									thisBlistitem.txttosavepl.append(self.superself.listemsgid[1].src.Text())
+									bckpmsg.AddString('translationpl'+str(cox-1),self.superself.listemsgid[1].src.Text())
+									cox+=1
 							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
 							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
+#							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+#							thisBlistitem.tosave=True
+#							thisBlistitem.txttosave=thisBlistitem.text.decode(self.superself.encoding)
+#							self.SetText(thisBlistitem.text)
+#							bckpmsg=BMessage(17893)
+#							bckpmsg.AddInt8('savetype',1)
+#							bckpmsg.AddString('translation',self.Text())
+#							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+#							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
+#							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
+							kmesg=BMessage(130550)
 							kmesg.AddInt8('movekind',0)
 							BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 							return
@@ -1004,7 +1142,16 @@ class EventTextView(BTextView):
 					print "carattere normale inserito"
 					thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
 					thisBlistitem.tosave=True
-					thisBlistitem.txttosave=self.Text()
+					tabs=len(self.superself.listemsgstr)-1
+					if tabs == 0:
+						thisBlistitem.txttosave=self.Text()
+					if tabs == 0:
+						thisBlistitem.txttosavepl=[]
+						thisBlistitem.txttosave=self.superself.listemsgid[0].src.Text()
+						cox=1
+						while cox < tabs+1:
+							thisBlistitem.txttosavepl.append(self.superself.listemsgid[1].src.Text())
+							cox+=1
 					self.tosave=True  #### This says you should save the string before proceeding
 					return BTextView.KeyDown(self,char,bytes)
 		except:
@@ -1146,6 +1293,32 @@ class postabview(BTabView):
 		while gg<numtabs:
 			if (point[0]>=self.TabFrame(gg)[0]) and (point[0]<=self.TabFrame(gg)[2]) and (point[1]>=self.TabFrame(gg)[1]) and (point[1]<=self.TabFrame(gg)[3]):
 				############################ TODO: CAMBIARE SOURCE TEXT VIEW AND TRANSLATION TEXT VIEW E MAGARI SALVARE IL BACKUP DEL FILE PRECEDENTE ##############################
+				shouldstop=False
+	#			hasplural=False
+				if self.superself.editorslist[self.Selection()].list.lv.CurrentSelection()>-1:
+					hasplural=self.superself.editorslist[self.Selection()].list.lv.ItemAt(self.superself.editorslist[self.Selection()].list.lv.CurrentSelection()).hasplural
+					if hasplural:
+						lung=len(self.superself.listemsgstr)
+						pick=0
+						while pick<lung:
+							thistranslEdit=self.superself.listemsgstr[pick].trnsl
+							if thistranslEdit.tosave:
+								shouldstop=True
+							pick+=1
+					else:
+						if self.superself.listemsgstr[self.superself.transtabview.Selection()].trnsl.tosave:
+							shouldstop=True
+				if shouldstop:
+					say = BAlert('save', 'Save changes before switching to another po file?', 'Yes','No', 'Cancel', B_WIDTH_FROM_LABEL, 3)
+					out=say.Go()
+					if out == 0:
+						#save and deselect
+						pass
+					elif out == 1:
+						#empty trnsl trnsl.tosave trnsl.txttosave... and src.SetText('')
+						pass
+					else:# out == 2:
+						return
 				print "stai cambiando file occhio!"
 			gg=gg+1
 		return BTabView.MouseDown(self,point)
@@ -1452,19 +1625,49 @@ class PoWindow(BWindow):
 			
 		elif msg.what == 3:
 			#copy from source
-			############################### TODO integrare plurale ###############################
-			kmesg=BMessage(130550)
+			
 			thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
 			thisBlistitem.tosave=True
-			thisBlistitem.txttosave=thisBlistitem.text.decode(self.encoding)
-			thistranslEdit=self.listemsgstr[self.transtabview.Selection()].trnsl
-			thistranslEdit.SetText(thisBlistitem.text)
+			tabs=len(self.listemsgstr)-1
 			bckpmsg=BMessage(17893)
 			bckpmsg.AddInt8('savetype',1)
-			bckpmsg.AddString('translation',thistranslEdit.Text())
 			bckpmsg.AddInt32('tvindex',self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+			bckpmsg.AddInt8('plurals',tabs)
+			if tabs == 0:   #->      if not thisBlistitem.hasplural:                         <-------------------------- questo no?
+				thisBlistitem.txttosave=thisBlistitem.text.decode(self.encoding)
+				bckpmsg.AddString('translation',thisBlistitem.txttosave)
+				print "salvo solo singolare"
+			else:
+				print "provo a salvare tutto"
+				thisBlistitem.txttosavepl=[]
+				thisBlistitem.txttosave=self.listemsgid[0].src.Text()
+				bckpmsg.AddString('translation',thisBlistitem.txttosave)
+				cox=1
+				while cox < tabs+1:
+					thisBlistitem.txttosavepl.append(self.listemsgid[1].src.Text())
+					bckpmsg.AddString('translationpl'+str(cox-1),self.listemsgid[1].src.Text())
+					cox+=1
 			bckpmsg.AddString('bckppath',self.editorslist[self.postabview.Selection()].backupfile)
 			BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
+			
+			
+			
+
+#			thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+#			thisBlistitem.tosave=True
+#			bckpmsg=BMessage(17893)
+#			if not thisBlistitem.hasplural:
+#				thisBlistitem.txttosave=thisBlistitem.text.decode(self.encoding)
+#				thistranslEdit=self.listemsgstr[self.transtabview.Selection()].trnsl
+#				thistranslEdit.SetText(thisBlistitem.text)
+#				bckpmsg.AddInt8('savetype',1)
+#				bckpmsg.AddString('translation',thistranslEdit.Text())
+#				bckpmsg.AddInt32('tvindex',self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+#				bckpmsg.AddString('bckppath',self.editorslist[self.postabview.Selection()].backupfile)
+#				BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
+#			else:
+#				pass	
+			kmesg=BMessage(130550)
 			kmesg.AddInt8('movekind',0)
 			BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 			return
@@ -1499,19 +1702,49 @@ class PoWindow(BWindow):
 
 		elif msg.what == 70:
 			# Done and next
-			####################################### TODO  integrare plurale #######################################
+			lung=len(self.listemsgstr)
+			pick=0
+			gonogo=False
+			while pick<lung:
+				thistranslEdit=self.listemsgstr[pick].trnsl
+				if thistranslEdit.tosave:
+					gonogo=True
+				pick+=1
 			thistranslEdit=self.listemsgstr[self.transtabview.Selection()].trnsl
-			if thistranslEdit.tosave:
+			if gonogo:
 				print "procedo a salvare tramite menù"
 				thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
 				thisBlistitem.tosave=True
-				thisBlistitem.txttosave=thistranslEdit.Text()
+				tabs=len(self.listemsgstr)-1
 				bckpmsg=BMessage(17893)
 				bckpmsg.AddInt8('savetype',1)
-				bckpmsg.AddString('translation', thistranslEdit.Text())
 				bckpmsg.AddInt32('tvindex',self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+				bckpmsg.AddInt8('plurals',tabs)
+				if tabs == 0:   #->      if not thisBlistitem.hasplural:                         <-------------------------- questo no?
+					thisBlistitem.txttosave=thistranslEdit.Text()#.decode(self.encoding)
+					bckpmsg.AddString('translation',thisBlistitem.txttosave)
+					print "salvo solo singolare"
+				else:
+					print "provo a salvare tutto"
+					thisBlistitem.txttosavepl=[]
+					thisBlistitem.txttosave=self.listemsgstr[0].trnsl.Text()
+					bckpmsg.AddString('translation',thisBlistitem.txttosave)
+					cox=1
+					while cox < tabs+1:
+						thisBlistitem.txttosavepl.append(self.listemsgstr[1].trnsl.Text())
+						bckpmsg.AddString('translationpl'+str(cox-1),self.listemsgstr[cox].trnsl.Text())
+						cox+=1
 				bckpmsg.AddString('bckppath',self.editorslist[self.postabview.Selection()].backupfile)
-				BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
+				BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
+#				thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+#				thisBlistitem.tosave=True
+#				thisBlistitem.txttosave=thistranslEdit.Text()
+#				bckpmsg=BMessage(17893)
+#				bckpmsg.AddInt8('savetype',1)
+#				bckpmsg.AddString('translation', thistranslEdit.Text())
+#				bckpmsg.AddInt32('tvindex',self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+#				bckpmsg.AddString('bckppath',self.editorslist[self.postabview.Selection()].backupfile)
+#				BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
 			kmesg=BMessage(130550)
 			kmesg.AddInt8('movekind',4)
 			BApplication.be_app.WindowAt(0).PostMessage(kmesg)
@@ -1796,22 +2029,53 @@ class PoWindow(BWindow):
 			# save to backup and update the blistitem
 			bckppath = msg.FindString('bckppath')
 			savetype = msg.FindInt8('savetype')
-			if savetype == 0:
+			if savetype == 0: #simple save used for fuzzy state
 				self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
 				print "salvataggio temporaneo semplice"
-			else:
+				return
+			elif savetype == 1:
 				tvindex=msg.FindInt32('tvindex')
 				textsave=msg.FindString('translation')
-				print "Salvataggio completo"
-				entry = self.editorslist[self.postabview.Selection()].pofile.find(self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tvindex).Text().decode(self.encoding))
-				if entry:
-					entry.msgstr = textsave.decode(self.encoding)#.encode("ascii")
-					if 'fuzzy' in entry.flags:
-						entry.flags.remove('fuzzy')
+				tabbi=msg.FindInt8('plurals')
+				
+				scheda=self.editorslist[self.postabview.Selection()]
+				entry = scheda.pofile.find(scheda.list.lv.ItemAt(tvindex).Text().decode(self.encoding))
+				if entry and entry.msgid_plural:
+				
+				#if tabbi>0:
+						y=0
+						textsavepl=[]
+					#if entry and entry.msgid_plural:
+						entry.msgstr_plural[0] = textsave.decode(self.encoding)
+						while y < tabbi:
+							varname='translationpl'+str(y)
+							intended=msg.FindString(varname)
+							textsavepl.append(intended) #useless???
+							y+=1
+							entry.msgstr_plural[y]=intended.decode(self.encoding)
+						print "salvato singolare", textsave
+						print "salvato plurale: ",textsavepl
+					#.encode("ascii")
+						if 'fuzzy' in entry.flags:
+							entry.flags.remove('fuzzy')
+
+				elif entry and not entry.msgid_plural:
+						entry.msgstr = textsave.decode(self.encoding)#.encode("ascii")
+						if 'fuzzy' in entry.flags:
+							entry.flags.remove('fuzzy')
 				self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
 				self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tvindex).state=1
 				self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tvindex).tosave=False
 				self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tvindex).txttosave=""
+				self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tvindex).txttosavepl=[]
+				return
+			elif savetype == 2:
+				#save of metadata
+				indexroot=msg.FindInt8('indexroot')
+				self.editorslist[indexroot].pofile.save(bckppath)
+				return
+			#elif savetype == 2:
+				
 			return
 			
 		elif msg.what == 445380:
@@ -1953,6 +2217,8 @@ class PoWindow(BWindow):
 							self.transtabview.SetFocusTab(1,True)						#################  <----- needed to fix 
 							self.transtabview.Select(1)									#################  <----- a bug, tab0 will not appear
 							self.transtabview.Select(0)									#################  <----- so forcing a tabview update
+							self.srctabview.Select(1)
+							self.srctabview.Select(0)
 #######################################################################
 						if entry and entry.msgid_plural:
 							beta=len(sorted(entry.msgstr_plural.keys()))
@@ -2049,7 +2315,7 @@ class PoWindow(BWindow):
 			##### check if .name.temp.po file exists and is more recent than name.po
 			##### check for po compliance with user lang
 			
-			##### add a tab in the editor's tabview
+			# add a tab in the editor's tabview
 			head, tail = os.path.split(pathtofile)
 			self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile,self.poview,self.encoding))
 			self.tabslabels.append(BTab())
