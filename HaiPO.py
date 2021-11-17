@@ -25,8 +25,10 @@
 #
 #******************************************************
 
-import os,sys,ConfigParser,struct,re,threading
+import os,sys,ConfigParser,struct,re,threading,datetime
 
+version='HaiPO 0.1 alpha'
+(appname,ver,state)=version.split(' ')
 
 jes = False
 
@@ -155,7 +157,7 @@ class PeopleBView(BBox):
 	def __init__(self,frame,name,lang,team,pemail,temail,default):
 		self.frame=frame
 		self.name=name
-		BBox.__init__(self,self.frame,name,B_FOLLOW_LEFT | B_FOLLOW_TOP,B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)#self.name,B_FOLLOW_ALL_SIDES,B_WILL_DRAW)
+		BBox.__init__(self,self.frame,name,B_FOLLOW_LEFT | B_FOLLOW_TOP,B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
 		bounds=self.Bounds()
 		l,t,r,b = bounds
 		h=round(self.GetFontHeight()[0])
@@ -164,7 +166,7 @@ class PeopleBView(BBox):
 		self.team = BTextControl((20, 48 + 2*h, r - 50, 3*h + 66), 'team', 'Team name:', team, BMessage(8))
 		self.pemail = BTextControl((20, 64 + 3*h, r - 50, 4*h + 82), 'pemail', 'Personal e-mail:', pemail, BMessage(9))
 		self.temail = BTextControl((20, 80 + 4*h, r - 50, 5*h + 98), 'temail', 'Team e-mail:', temail, BMessage(10))
-		self.default = BCheckBox((20, 5*h + 101, r - 50, 6*h + 119),'chkdef','Default user',BMessage(150380))
+		self.default = BCheckBox((20, 5*h + 101, r - 50, 6*h + 119),'chkdef','Active user',BMessage(150380))
 		if default:
 			self.default.SetValue(1)
 		else:
@@ -183,24 +185,14 @@ class POmetadata(BWindow):
 	def __init__(self):
 		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, B_FLOATING_WINDOW, B_NOT_RESIZABLE)
 		bounds=self.Bounds()
-		#l,t,r,b = bounds
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(self.underframe)
 		self.listBTextControl=[]
 		self.indexroot=BApplication.be_app.WindowAt(0).postabview.Selection()
-#		self.listStringView=[]
-#		self.listTextView=[]
-		
-#		self.pofile
-#		self.orderedmetadata
-		
-#		self.metadata = []
-#		self.metadatacount = 0
 		
 	def MessageReceived(self, msg):
 		if msg.what == 99111: # elaborate pofile
 			conta=self.underframe.CountChildren()
-#			print conta
 			while conta > 0:
 				self.underframe.ChildAt(conta).RemoveSelf()
 				print "rimosso"
@@ -209,12 +201,6 @@ class POmetadata(BWindow):
 			#for entry in self.pofile.metadata_as_entry():
 			#	print entry.msgid,entry.msgstr
 			self.metadata = self.pofile.ordered_metadata()
-#			list=self.pofile.metadata_as_entry().msgstr.split('\n')
-#			for row in list:
-#				print row
-#				for items in self.metadata:
-#					if row.find(items)>-1:
-#						print items
 			
 			rect = [10,10,425,30]
 			step = 34
@@ -225,13 +211,8 @@ class POmetadata(BWindow):
 				modmsg.AddString('itemstring',item[0])
 				modmsg.AddInt8('itemindex',indexstring)
 				self.listBTextControl.append(BTextControl((rect[0],rect[1]+step*indexstring,rect[2],rect[3]+step*indexstring),'txtctrl'+str(indexstring),item[0],item[1],modmsg))
-				#self.listStringView.append(BStringView((rect[0],rect[1]+step*indexstring,rect[2],rect[3]+step*indexstring),item[0],item[0]))
-				#self.listTextView.append(
 				indexstring+=1
-#				print item[0]
-#			print self.listStringView[len(self.listStringView)-1].Frame()
-#			print "Window height",self.kWindowFrame[3]
-#			print "last string height", rect[3]+step*(indexstring)	
+
 			if (self.kWindowFrame[3]-self.kWindowFrame[1])< rect[3]+step*(indexstring):
 				self.ResizeTo(self.Bounds()[2],float(rect[3]+step*(indexstring)-20))
 				
@@ -242,6 +223,7 @@ class POmetadata(BWindow):
 			# save metadata to self.pofile
 			ind=msg.FindString('itemstring')
 			indi=msg.FindInt8('itemindex')
+			print self.pofile.metadata[ind]
 			self.pofile.metadata[ind]=self.listBTextControl[indi].Text().decode(BApplication.be_app.WindowAt(0).encoding)   ################### possible error? check encoding
 			# save self.pofile to backup file
 			smesg=BMessage(17893)
@@ -268,10 +250,6 @@ class POmetadata(BWindow):
         
 
 #			poobj.metadata["Content-Type"] = "text/plain; charset=UTF-8"
-			#
-#			pass
-#		if msg.what == 115116: # item string
-#			pass
 		
 		
 class ImpostazionsUtent(BWindow):
@@ -286,7 +264,7 @@ class ImpostazionsUtent(BWindow):
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(self.underframe)
 		h=round(self.underframe.GetFontHeight()[0])
-		self.userstabview = BTabView((5.0, 5.0, r-5, t+6*h+190), 'tabview')#,B_WIDTH_FROM_LABEL,B_FOLLOW_ALL,B_NAVIGABLE)
+		self.userstabview = BTabView((5.0, 5.0, r-5, t+6*h+190), 'tabview')
 		altece = self.userstabview.TabHeight()
 		tfr = (10.0, 10.0, r-25, t+6*h+170 - altece)
 		trc = (0.0, 0.0, tfr[2] - tfr[0], tfr[3] - tfr[1])
@@ -516,8 +494,6 @@ class MaacUtent(BWindow):
 			return
 		elif msg.what == 295050:
 			l,t,r,b = self.Bounds()
-			#self.ResizeTo(300.0,300.0)
-			#self.introtxt.Hide()
 			self.introtxt2.Hide()
 			self.ProceedButton.Hide()
 			self.CloseButton.Hide()
@@ -559,7 +535,6 @@ class MaacUtent(BWindow):
 				if BApplication.be_app.WindowAt(i).Title()==self.kWindowName:
 					thiswindow=i
 				i=i+1
-			
 			BApplication.be_app.WindowAt(thiswindow).PostMessage(1)
 			BApplication.be_app.WindowAt(thiswindow).PostMessage(2)
 			BApplication.be_app.WindowAt(thiswindow).PostMessage(3)
@@ -581,13 +556,11 @@ class MaacUtent(BWindow):
 						return
 					else:
 						cfgfile = open(confile,'w')
-						
 				else:
 					names=""
 					cfgfile = open(confile,'w')
 					Config.add_section('Users')
 
-				
 				Config.set('Users','names', (names+sectname+";"))
 				Config.set('Users','default', sectname)
 				Config.add_section(sectname)
@@ -611,7 +584,6 @@ class MaacUtent(BWindow):
 		elif msg.what == 1:
 			non=self.name.Text()
 			if non=="":
-				
 				self.namecheck.UpdateState(False)
 			else:
 				#check for (no " ") and no ";"
@@ -688,7 +660,7 @@ class PView(BView):
 
 class AboutWindow(BWindow):
 	kWindowFrame = (150, 150, 650, 620)
-	kButtonFrame = (395, 425, 490, 460)
+	kButtonFrame = (395, 433, 490, 468)
 	kWindowName = "About"
 	kButtonName = "Close"
 	BUTTON_MSG = struct.unpack('!l', 'PRES')[0]
@@ -698,13 +670,13 @@ class AboutWindow(BWindow):
 		bbox=BBox((0,0,500,470), 'underbox', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(bbox)
 		self.CloseButton = BButton(self.kButtonFrame, self.kButtonName, self.kButtonName, BMessage(self.BUTTON_MSG))		
-		cise=(10,4,490,420)
-		cjamput=(0,0,480,420)
+		cise=(10,4,490,428)
+		cjamput=(0,0,480,428)
 		self.messagjio= BTextView(cise, 'TxTView', cjamput, B_FOLLOW_ALL, B_WILL_DRAW)
 		self.messagjio.SetStylable(1)
 		self.messagjio.MakeSelectable(0)
 		self.messagjio.MakeEditable(0)
-		stuff = '\n\t\t\t\t\t\t\t\tHaiPO\n\n\t\t\t\t\t\t\t\t\t\t\tA simple PO editor\n\t\t\t\t\t\t\t\t\t\t\tfor Haiku, version 0.1\n\t\t\t\t\t\t\t\t\t\t\tcodename "Pobeda"\n\n\t\t\t\t\t\t\t\t\t\t\tby Fabio Tomat aka TmTFx\n\t\t\t\t\t\t\t\t\t\t\te-mail:\n\t\t\t\t\t\t\t\t\t\t\tf.t.public@gmail.com\n\n\n\n\nGNU GENERAL PUBLIC LICENSE:\nThis program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program.  If not, see \n<http://www.gnu.org/licenses/>'
+		stuff = '\n\t\t\t\t\t\t\t\t'+appname+'\n\t\t\t\t\t\t\t\t\t\t\tA simple PO editor\n\t\t\t\t\t\t\t\t\t\t\tfor Haiku, version '+ver+' '+state+'\n\t\t\t\t\t\t\t\t\t\t\tcodename "Pobeda"\n\n\t\t\t\t\t\t\t\t\t\t\tby Fabio Tomat aka TmTFx\n\t\t\t\t\t\t\t\t\t\t\te-mail:\n\t\t\t\t\t\t\t\t\t\t\tf.t.public@gmail.com\n\nGNU GENERAL PUBLIC LICENSE:\nThis program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program.  If not, see \n<http://www.gnu.org/licenses/>'
 		n = stuff.find('HaiPO')
 		m = stuff.find('This')
 		self.messagjio.SetText(stuff, [(0, be_plain_font, (0, 0, 0, 0)), (n, be_bold_font, (0, 150, 0, 0)), (n + 5, be_plain_font, (0, 0, 0, 0)),(m,be_plain_font,(100,150,0,0))])
@@ -754,7 +726,7 @@ class ScrollView:
 			if arrayview[0]:
 				for entry in pofile.fuzzy_entries():
 					if entry and entry.msgid_plural:
-#						print (entry.msgid + " has plural")
+#						plural
 						item = MsgStrItem(entry.msgid,2,encoding,True)
 					else:
 						item = MsgStrItem(entry.msgid,2,encoding,False)
@@ -762,7 +734,7 @@ class ScrollView:
 			if arrayview[1]:
 				for entry in pofile.untranslated_entries():
 					if entry and entry.msgid_plural:
-#						print (entry.msgid + " has plural")
+#						plural
 						item = MsgStrItem(entry.msgid,0,encoding,True)
 					else:
 						item = MsgStrItem(entry.msgid,0,encoding,False)
@@ -770,7 +742,7 @@ class ScrollView:
 			if arrayview[2]:
 				for entry in pofile.translated_entries():
 					if entry and entry.msgid_plural:
-#						print (entry.msgid + " has plural")
+#						plural
 						item = MsgStrItem(entry.msgid,1,encoding,True)
 					else:
 						item = MsgStrItem(entry.msgid,1,encoding,False)
@@ -778,7 +750,7 @@ class ScrollView:
 			if arrayview[3]:
 				for entry in pofile.obsolete_entries():
 					if entry and entry.msgid_plural:
-#						print (entry.msgid + " has plural")
+#						plural
 						item = MsgStrItem(entry.msgid,3,encoding,True)
 					else:
 						item = MsgStrItem(entry.msgid,3,encoding,False)
@@ -900,19 +872,18 @@ class EventTextView(BTextView):
 		bckpmsg.AddString('bckppath',cursel.backupfile)
 		BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
 
-########TODO: on drop text to textview set tosave
+########  TODO: on drop text to textview set tosave #########################################
 
 
 	def KeyDown(self,char,bytes):
 		
 		####################### TODO   controllo ortografia ##############################
-		####################### TODO integrare plurale ###################################
 		try:
 			ochar=ord(char)
 #			print ochar
 			if ochar in (B_DOWN_ARROW,B_UP_ARROW,B_TAB,B_PAGE_UP,B_PAGE_DOWN):
 				self.superself.sem.acquire()
-				value=self.superself.modifier#self.superself.modifier #CTRL pressed
+				value=self.superself.modifier #CTRL pressed
 				self.superself.sem.release()
 				hasplural=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()).hasplural
 				kmesg=BMessage(130550)
@@ -931,32 +902,8 @@ class EventTextView(BTextView):
 						else:
 							gonogo=self.tosave
 						if gonogo:
+							# save
 							self.Save()
-#							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-#							thisBlistitem.tosave=True
-#							tabs=len(self.superself.listemsgstr)-1
-#							bckpmsg=BMessage(17893)
-#							bckpmsg.AddInt8('savetype',1)
-#							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-#							bckpmsg.AddInt8('plurals',tabs)
-#							if tabs == 0:
-#								thisBlistitem.txttosave=self.Text()
-#								bckpmsg.AddString('translation',thisBlistitem.txttosave)
-#								print "salvo solo singolare"
-#							else:
-#								print "provo a salvare tutto"
-#								thisBlistitem.txttosavepl=[]
-#								thisBlistitem.txttosave=self.superself.listemsgstr[0].trnsl.Text()
-#								bckpmsg.AddString('translation',thisBlistitem.txttosave)
-#								cox=1
-#								while cox < tabs+1:
-#									thisBlistitem.txttosavepl.append(self.superself.listemsgstr[cox].trnsl.Text())
-#									bckpmsg.AddString('translationpl'+str(cox-1),self.superself.listemsgstr[cox].trnsl.Text())
-#									cox+=1
-#								print thisBlistitem.txttosave, thisBlistitem.txttosavepl							
-#							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
-#							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
-
 						kmesg.AddInt8('movekind',0)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 					return
@@ -975,17 +922,8 @@ class EventTextView(BTextView):
 						else:
 							gonogo=self.tosave
 						if gonogo:
+							# save
 							self.Save()
-#							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-#							thisBlistitem.tosave=True
-#							thisBlistitem.txttosave=self.Text()
-#							bckpmsg=BMessage(17893)
-#							bckpmsg.AddInt8('savetype',1)
-#							bckpmsg.AddString('translation',self.Text())
-#							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-#							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
-#							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
-
 						kmesg.AddInt8('movekind',1)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 					return
@@ -1004,17 +942,8 @@ class EventTextView(BTextView):
 						else:
 							gonogo=self.tosave
 						if gonogo:
+							# save
 							self.Save()						
-#							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-#							thisBlistitem.tosave=True
-#							thisBlistitem.txttosave=self.Text()
-#							bckpmsg=BMessage(17893)
-#							bckpmsg.AddInt8('savetype',1)
-#							bckpmsg.AddString('translation',self.Text())
-#							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-#							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
-#							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
-
 						kmesg.AddInt8('movekind',2)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 					return
@@ -1033,17 +962,8 @@ class EventTextView(BTextView):
 						else:
 							gonogo=self.tosave
 						if gonogo:
+							# save
 							self.Save()
-#							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-#							thisBlistitem.tosave=True
-#							thisBlistitem.txttosave=self.Text()
-#							bckpmsg=BMessage(17893)
-#							bckpmsg.AddInt8('savetype',1)
-#							bckpmsg.AddString('translation',self.Text())
-#							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-#							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
-#							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
-
 						kmesg.AddInt8('movekind',3)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 					return
@@ -1062,17 +982,8 @@ class EventTextView(BTextView):
 						else:
 							gonogo=self.tosave
 						if gonogo:
+							# save
 							self.Save()
-#							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-#							thisBlistitem.tosave=True
-#							thisBlistitem.txttosave=self.Text()
-#							bckpmsg=BMessage(17893)
-#							bckpmsg.AddInt8('savetype',1)
-#							bckpmsg.AddString('translation',self.Text())
-#							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-#							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
-#							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
-							
 						kmesg.AddInt8('movekind',4)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 					return
@@ -1092,7 +1003,7 @@ class EventTextView(BTextView):
 						self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				return		
-			elif ochar == B_ESCAPE: ######################## Restore to the saved string #####################
+			elif ochar == B_ESCAPE: # Restore to the saved string
 				self.SetText(self.oldtext)
 				self.tosave=False
 				thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
@@ -1131,21 +1042,11 @@ class EventTextView(BTextView):
 									cox+=1
 							bckpmsg.AddString('bckppath',cursel.backupfile)
 							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
-#							thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-#							thisBlistitem.tosave=True
-#							thisBlistitem.txttosave=thisBlistitem.text.decode(self.superself.encoding)
-#							self.SetText(thisBlistitem.text)
-#							bckpmsg=BMessage(17893)
-#							bckpmsg.AddInt8('savetype',1)
-#							bckpmsg.AddString('translation',self.Text())
-#							bckpmsg.AddInt32('tvindex',self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
-#							bckpmsg.AddString('bckppath',self.superself.editorslist[self.superself.postabview.Selection()].backupfile)
-#							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
 							kmesg=BMessage(130550)
 							kmesg.AddInt8('movekind',0)
 							BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 							return
-					#print self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()
+
 					print "carattere normale inserito"
 					BTextView.KeyDown(self,char,bytes)
 					if self.oldtext != self.Text():
@@ -1301,7 +1202,6 @@ class postabview(BTabView):
 		gg=0
 		while gg<numtabs:
 			if (point[0]>=self.TabFrame(gg)[0]) and (point[0]<=self.TabFrame(gg)[2]) and (point[1]>=self.TabFrame(gg)[1]) and (point[1]<=self.TabFrame(gg)[3]):
-				############################ TODO: CAMBIARE SOURCE TEXT VIEW AND TRANSLATION TEXT VIEW E MAGARI SALVARE IL BACKUP DEL FILE PRECEDENTE ##############################
 				shouldstop=False
 				if self.superself.editorslist[self.Selection()].list.lv.CurrentSelection()>-1:
 					hasplural=self.superself.editorslist[self.Selection()].list.lv.ItemAt(self.superself.editorslist[self.Selection()].list.lv.CurrentSelection()).hasplural
@@ -1317,7 +1217,7 @@ class postabview(BTabView):
 						if self.superself.listemsgstr[self.superself.transtabview.Selection()].trnsl.tosave:
 							shouldstop=True
 				if shouldstop:
-					say = BAlert('save', 'Temporary save changes before switching to another po file?', 'Yes','No', 'Cancel', None , 3)#B_WIDTH_FROM_LABEL
+					say = BAlert('save', 'Temporary save changes before switching to another po file?', 'Yes','No', 'Cancel', None , 3)
 					out=say.Go()
 					if out == 0:  ## Yes
 						#save and deselect
@@ -1392,6 +1292,7 @@ class PoWindow(BWindow):
 		self.poview=[True,True,True,False]
 		self.sem = threading.Semaphore()
 		self.shortcut=False
+		global confile
 		try:
 				Config.read(confile)
 				self.poview[0]=Config.getboolean('Settings', 'Fuzzy')
@@ -1498,12 +1399,12 @@ class PoWindow(BWindow):
 #		else:
 #			print "node initialized"
 		self.ofp=BFilePanel()
-		self.lubox=BBox((d*3/4,2,d,s), 'leftunderbox', B_FOLLOW_TOP_BOTTOM|B_FOLLOW_RIGHT, B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS|B_NAVIGABLE,B_FANCY_BORDER)# B_NO_BORDER)B_FOLLOW_ALL_SIDES // B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM|B_FOLLOW_TOP//B_FOLLOW_TOP|B_FOLLOW_RIGHT
+		self.lubox=BBox((d*3/4,2,d,s), 'leftunderbox', B_FOLLOW_TOP_BOTTOM|B_FOLLOW_RIGHT, B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS|B_NAVIGABLE,B_FANCY_BORDER)
 		self.background.AddChild(self.lubox)
-		self.postabview = postabview(self,(5.0, 5.0, d*3/4-5, b-barheight-245), 'postabview',B_WIDTH_FROM_LABEL)#,B_WIDTH_FROM_LABEL,B_FOLLOW_ALL,B_NAVIGABLE) s-5 o b-260 circa
+		self.postabview = postabview(self,(5.0, 5.0, d*3/4-5, b-barheight-245), 'postabview',B_WIDTH_FROM_LABEL)
 
 		altece = self.postabview.TabHeight()
-		tfr = (5.0, 5.0, d*3/4-5, s-5)#(10.0, 10.0, d-25, s - 5 - altece)
+		tfr = (5.0, 5.0, d*3/4-5, s-5)
 		self.trc = (0.0, 0.0, tfr[2] - tfr[0], tfr[3] - tfr[1])
 
 		self.tabslabels=[]
@@ -1574,16 +1475,14 @@ class PoWindow(BWindow):
 						pass
 					else:
 						b.ResizeTo(k,l)
-						#print(self.editorslist[i].list.sv.Bounds())
 						b.list.lv.ResizeTo(k-27,l-10)
 						b.list.sv.ResizeTo(k-23,l-6)
 					
 						b.scrollb.MoveTo(k-21,5)
 						b.scrollb.ResizeTo(cv-zx,l-10)
-			#return BWindow.FrameResized(self,x,y)
 			
 	def Nichilize(self):
-					if (len(self.listemsgid)-1) == 1:    #IF THERE'S A PLURAL, REMOVE IT
+					if (len(self.listemsgid)-1) == 1:    #IF THERE'S A PLURAL MSGID, REMOVE IT
 							self.srctabview.RemoveTab(1)
 							self.listemsgid.pop(1)
 							self.srctablabels.pop(1)
@@ -1599,7 +1498,6 @@ class PoWindow(BWindow):
 					self.transtablabels.pop(0)
 
 ####### TOODO: send a B_END(value 4) keypress when itemselected on listview
-#######		   clean/change the source textview and translation text view when changing the postabview selection
 
 
 	def MessageReceived(self, msg):
@@ -1653,21 +1551,6 @@ class PoWindow(BWindow):
 					else:
 						pass
 					self.sem.release()
-#			elif msg.FindInt32('key')==53:
-#				st = msg.FindString('bytes')
-#				result=[]
-#				for ch in st:
-#					bits = bin(ord(ch))[2:]
-#					bits = '00000000'[len(bits):] + bits
-#					result.extend([int(b) for b in bits])
-#				print result
-#				newst=""
-#				result=[]
-#				for ch in st:
-#					bits = bin(ord(ch))[2:]
-#					bits = '00000000'[len(bits):] + bits
-#					result.extend([int(b) for b in bits])
-#				print result
 			return
 
 		elif msg.what == 295485:
@@ -1701,24 +1584,7 @@ class PoWindow(BWindow):
 					cox+=1
 			bckpmsg.AddString('bckppath',cursel.backupfile)
 			BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
-			
-			
-			
 
-#			thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
-#			thisBlistitem.tosave=True
-#			bckpmsg=BMessage(17893)
-#			if not thisBlistitem.hasplural:
-#				thisBlistitem.txttosave=thisBlistitem.text.decode(self.encoding)
-#				thistranslEdit=self.listemsgstr[self.transtabview.Selection()].trnsl
-#				thistranslEdit.SetText(thisBlistitem.text)
-#				bckpmsg.AddInt8('savetype',1)
-#				bckpmsg.AddString('translation',thistranslEdit.Text())
-#				bckpmsg.AddInt32('tvindex',self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
-#				bckpmsg.AddString('bckppath',self.editorslist[self.postabview.Selection()].backupfile)
-#				BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
-#			else:
-#				pass	
 			kmesg=BMessage(130550)
 			kmesg.AddInt8('movekind',0)
 			BApplication.be_app.WindowAt(0).PostMessage(kmesg)
@@ -1790,15 +1656,6 @@ class PoWindow(BWindow):
 						cox+=1
 				bckpmsg.AddString('bckppath',cursel.backupfile)
 				BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
-#				thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
-#				thisBlistitem.tosave=True
-#				thisBlistitem.txttosave=thistranslEdit.Text()
-#				bckpmsg=BMessage(17893)
-#				bckpmsg.AddInt8('savetype',1)
-#				bckpmsg.AddString('translation', thistranslEdit.Text())
-#				bckpmsg.AddInt32('tvindex',self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
-#				bckpmsg.AddString('bckppath',self.editorslist[self.postabview.Selection()].backupfile)
-#				BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
 			kmesg=BMessage(130550)
 			kmesg.AddInt8('movekind',4)
 			BApplication.be_app.WindowAt(0).PostMessage(kmesg)
@@ -1991,7 +1848,6 @@ class PoWindow(BWindow):
 				#select one up
 				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>0 :
 					self.editorslist[self.postabview.Selection()].list.lv.Select(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()-1)
-				#	self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
 				elif self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()==-1:
 					self.editorslist[self.postabview.Selection()].list.lv.Select(self.editorslist[self.postabview.Selection()].list.lv.CountItems()-1)
 				self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
@@ -2047,7 +1903,6 @@ class PoWindow(BWindow):
 					if blistit.state==0 or blistit.state==2:
 						conte = conte+1
 					tt+=1
-#				print conte
 				if conte==0:
 					return
 				while next:
@@ -2066,7 +1921,7 @@ class PoWindow(BWindow):
 				self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
 			thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
 			try:
-				if thisBlistitem.tosave: #it happens when something has not saved the blistitem
+				if thisBlistitem.tosave: #it happens when something SOMEHOW has not been saved
 					print("testo da salvare (this shouldn\'t happen)",thisBlistitem.txttosave)
 			except:
 				print "no tosave"
@@ -2080,12 +1935,20 @@ class PoWindow(BWindow):
 			return
 			
 		elif msg.what == 17893:
+			Config.read(confile)
+			defname=ConfigSectionMap("Users")['default']
+			now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
 			# save to backup and update the blistitem
 			bckppath = msg.FindString('bckppath')
 			savetype = msg.FindInt8('savetype')
-			if savetype == 0: #simple save used for fuzzy state
+			if savetype == 0: #simple save used for fuzzy state and metadata change
+				self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']=defname
+				self.editorslist[self.postabview.Selection()].pofile.metadata['PO-Revision-Date']=now
+				self.editorslist[self.postabview.Selection()].pofile.metadata['X-Editor']=version
+				#self.metadata = self.editorslist[self.postabview.Selection()].pofile.ordered_metadata()
+				#print self.metadata
 				self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
-				print "salvataggio temporaneo semplice"
+				#print "salvataggio temporaneo semplice"
 				return
 			elif savetype == 1:
 				tvindex=msg.FindInt32('tvindex')
@@ -2095,11 +1958,8 @@ class PoWindow(BWindow):
 				scheda=self.editorslist[intscheda]
 				entry = scheda.pofile.find(scheda.list.lv.ItemAt(tvindex).Text().decode(self.encoding))
 				if entry and entry.msgid_plural:
-				
-				#if tabbi>0:
 						y=0
 						textsavepl=[]
-					#if entry and entry.msgid_plural:
 						entry.msgstr_plural[0] = textsave.decode(self.encoding)
 						while y < tabbi:
 							varname='translationpl'+str(y)
@@ -2109,27 +1969,36 @@ class PoWindow(BWindow):
 							entry.msgstr_plural[y]=intended.decode(self.encoding)
 						print "salvato singolare", textsave
 						print "salvato plurale: ",textsavepl
-					#.encode("ascii")
 						if 'fuzzy' in entry.flags:
 							entry.flags.remove('fuzzy')
 
 				elif entry and not entry.msgid_plural:
-						entry.msgstr = textsave.decode(self.encoding)#.encode("ascii")
+						entry.msgstr = textsave.decode(self.encoding)
 						if 'fuzzy' in entry.flags:
 							entry.flags.remove('fuzzy')
-				self.editorslist[intscheda].pofile.save(bckppath)
-				self.editorslist[intscheda].list.lv.ItemAt(tvindex).state=1
-				self.editorslist[intscheda].list.lv.ItemAt(tvindex).tosave=False
+							
+				#'Last-Translator'
+				scheda.pofile.metadata['Last-Translator']=defname
+				scheda.pofile.metadata['PO-Revision-Date']=now
+				scheda.pofile.metadata['X-Editor']=version
+				#self.metadata = scheda.pofile.ordered_metadata()
+				#print self.metadata
+				scheda.pofile.save(bckppath)
+				scheda.list.lv.ItemAt(tvindex).state=1
+				scheda.list.lv.ItemAt(tvindex).tosave=False
 				self.editorslist[intscheda].list.lv.ItemAt(tvindex).txttosave=""
 				self.editorslist[intscheda].list.lv.ItemAt(tvindex).txttosavepl=[]
 				return
 			elif savetype == 2:
 				#save of metadata
 				indexroot=msg.FindInt8('indexroot')
+				#self.editorslist[indexroot].pofile.metadata['Last-Translator']=defname # metadata saved from po settings
+				self.editorslist[indexroot].pofile.metadata['PO-Revision-Date']=now
+				self.editorslist[indexroot].pofile.metadata['X-Editor']=version
+				#self.metadata = self.editorslist[indexroot].pofile.ordered_metadata()
+				#print self.metadata
 				self.editorslist[indexroot].pofile.save(bckppath)
-				return
-			#elif savetype == 2:
-				
+				return			
 			return
 			
 		elif msg.what == 445380:
