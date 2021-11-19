@@ -25,7 +25,7 @@
 #
 #******************************************************
 
-import os,sys,ConfigParser,struct,re,threading,datetime
+import os,sys,ConfigParser,struct,re,thread,datetime,time,threading
 
 version='HaiPO 0.1 alpha'
 (appname,ver,state)=version.split(' ')
@@ -114,9 +114,9 @@ try:
 	from BEntry import BEntry
 	from BScrollBar import BScrollBar
 	from InterfaceKit import B_PAGE_UP,B_PAGE_DOWN,B_TAB,B_ESCAPE,B_DOWN_ARROW,B_UP_ARROW,B_V_SCROLL_BAR_WIDTH,B_FULL_UPDATE_ON_RESIZE,B_VERTICAL,B_FOLLOW_ALL,B_FOLLOW_TOP,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_WIDTH_FROM_LABEL,B_TRIANGLE_THUMB,B_BLOCK_THUMB,B_FLOATING_WINDOW,B_TITLED_WINDOW,B_WILL_DRAW,B_NAVIGABLE,B_FRAME_EVENTS,B_ALIGN_CENTER,B_FOLLOW_ALL_SIDES,B_MODAL_WINDOW,B_FOLLOW_TOP_BOTTOM,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT_RIGHT,B_SINGLE_SELECTION_LIST,B_NOT_RESIZABLE,B_NOT_ZOOMABLE,B_PLAIN_BORDER,B_FANCY_BORDER,B_NO_BORDER,B_ITEMS_IN_COLUMN,B_AVOID_FOCUS
-	from AppKit import B_QUIT_REQUESTED,B_KEY_UP,B_KEY_DOWN,B_MODIFIERS_CHANGED,B_UNMAPPED_KEY_DOWN,B_REFS_RECEIVED,B_SAVE_REQUESTED,B_CANCEL,B_WINDOW_RESIZED
+	from AppKit import B_QUIT_REQUESTED,B_KEY_UP,B_KEY_DOWN,B_MODIFIERS_CHANGED,B_UNMAPPED_KEY_DOWN,B_REFS_RECEIVED,B_SAVE_REQUESTED,B_CANCEL,B_WINDOW_RESIZED,B_CUT,B_PASTE
 	from StorageKit import B_SAVE_PANEL,B_OPEN_PANEL,B_FILE_NODE,B_READ_ONLY
-	from SupportKit import B_ERROR,B_ENTRY_NOT_FOUND,B_OK
+	from SupportKit import B_ERROR,B_ENTRY_NOT_FOUND,B_OK,B_ANY_TYPE
 except:
 	print "Your python environment has no Bethon modules"
 	jes = True
@@ -699,11 +699,37 @@ class MyListView(BListView):
 		BListView.__init__(self, frame, name, type, resizingMode, flags)
 		self.preselected=-1
 
-	def SelectionChanged(self):
-		if self.preselected>-1:
-			if self.ItemAt(self.preselected).tosave:
-				print "salvo al cambiamento"
-		self.preselected=self.CurrentSelection()
+	#def SelectionChanged(self):
+		#if self.preselected>-1:
+			#if self.ItemAt(self.preselected).tosave:
+			#if self.ItemAt(self.preselected).dragcheck:
+				
+		#self.preselected=self.CurrentSelection()
+	
+	def MouseDown(self,point):
+		if self.CurrentSelection() >-1:
+			if self.ItemAt(self.CurrentSelection()).hasplural:
+				lmsgstr=BApplication.be_app.WindowAt(0).listemsgstr
+				lung=len(lmsgstr)
+				bonobo=False
+				pick=0
+				while pick<lung:
+					thistranslEdit=lmsgstr[pick].trnsl
+					if thistranslEdit.tosave:
+						bonobo=True
+						#thistranslEdit.Save()  
+						#print "salvo doppio?"
+						# well it save 2 times the same things if both plurals has been modified... or not?
+					pick+=1
+				if bonobo:
+					thistranslEdit.Save() #it's not importat which EventTextView launches the Save() procedure, it will save both anyway
+			else:
+				itemtext=BApplication.be_app.WindowAt(0).listemsgstr[0].trnsl
+				if itemtext.tosave:
+					if itemtext.Text()!= itemtext.oldtext:
+						print "salvo prima di cambiare"
+						itemtext.Save()
+		return BListView.MouseDown(self,point)
 
 
 class ScrollView:
@@ -781,6 +807,7 @@ class MsgStrItem(BListItem):
 	tosave=False
 	txttosave=""
 	txttosavepl=[]
+	dragcheck=False
 
 	def __init__(self, text,state,encoding,plural):
 		self.text = text.encode(encoding)  #it's in english should this always be utf-8?
@@ -835,7 +862,11 @@ class MsgStrItem(BListItem):
 		
 	def Text(self):
 		return self.text
-
+class temporizedcheck:
+	def run(self,oldtext):
+			self.event.wait(1)
+			print "this is the old text",oldtext
+			print "mando messaggio 112118"
 
 class EventTextView(BTextView):
 	def __init__(self,superself,frame,name,textRect,resizingMode,flags):
@@ -844,6 +875,10 @@ class EventTextView(BTextView):
 		self.oldtextloaded=False
 		self.tosave=False
 		BTextView.__init__(self,frame,name,textRect,resizingMode,flags)
+		self.mousemsg=struct.unpack('!l', '_MMV')[0]
+		self.dragmsg=struct.unpack('!l', 'MIME')[0]
+		self.dragndrop = False
+		self.event= threading.Event()
 		
 	def Save(self):
 		cursel=self.superself.editorslist[self.superself.postabview.Selection()]
@@ -872,8 +907,48 @@ class EventTextView(BTextView):
 		bckpmsg.AddString('bckppath',cursel.backupfile)
 		BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
 
-########  TODO: on drop text to textview set tosave #########################################
+	def checklater(self,name,oldtext,cursel,indexBlistitem):
+			mes=BMessage(112118)
+			mes.AddInt8('cursel',cursel)
+			mes.AddInt32('indexBlistitem',indexBlistitem)
+			mes.AddString('oldtext',oldtext)
+			self.event.wait(0.1)
+			BApplication.be_app.WindowAt(0).PostMessage(mes)
 
+	def MouseUp(self,point):
+		self.superself.drop.acquire()
+		if self.dragndrop:
+			cursel=self.superself.postabview.Selection()
+			selection=self.superself.editorslist[cursel]
+			indexBlistitem=selection.list.lv.CurrentSelection()
+			name=time.time()
+			BTextView.MouseUp(self,point)
+			thread.start_new_thread( self.checklater, (str(name), self.Text(),cursel,indexBlistitem,) )
+			self.dragndrop = False
+			self.superself.drop.release()
+			return
+		print "mouse up normale"
+		self.superself.drop.release()
+		return BTextView.MouseUp(self,point)
+
+	def MessageReceived(self, msg):
+			
+		if msg.what in [B_CUT,B_PASTE]:
+			cursel=self.superself.editorslist[self.superself.postabview.Selection()]
+			thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
+			thisBlistitem.tosave=True
+			self.tosave=True
+			
+		if msg.what == self.mousemsg:
+			try:
+				mexico=msg.FindMessage('be:drag_message')
+				self.superself.drop.acquire()
+				self.dragndrop=True
+				self.superself.drop.release()
+				self.superself.listemsgstr[self.superself.transtabview.Selection()].trnsl.MakeFocus()
+			except:
+				pass
+		return BTextView.MessageReceived(self,msg)
 
 	def KeyDown(self,char,bytes):
 		
@@ -968,6 +1043,7 @@ class EventTextView(BTextView):
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 					return
 				elif ochar == B_TAB:
+					print "ma come"
 					if not value:
 						# next string needing work
 						if hasplural:
@@ -1202,76 +1278,105 @@ class postabview(BTabView):
 		gg=0
 		while gg<numtabs:
 			if (point[0]>=self.TabFrame(gg)[0]) and (point[0]<=self.TabFrame(gg)[2]) and (point[1]>=self.TabFrame(gg)[1]) and (point[1]<=self.TabFrame(gg)[3]):
-				shouldstop=False
-				if self.superself.editorslist[self.Selection()].list.lv.CurrentSelection()>-1:
-					hasplural=self.superself.editorslist[self.Selection()].list.lv.ItemAt(self.superself.editorslist[self.Selection()].list.lv.CurrentSelection()).hasplural
-					if hasplural:
-						lung=len(self.superself.listemsgstr)
-						pick=0
-						while pick<lung:
-							thistranslEdit=self.superself.listemsgstr[pick].trnsl
-							if thistranslEdit.tosave:
-								shouldstop=True
-							pick+=1
-					else:
-						if self.superself.listemsgstr[self.superself.transtabview.Selection()].trnsl.tosave:
-							shouldstop=True
-				if shouldstop:
-					say = BAlert('save', 'Temporary save changes before switching to another po file?', 'Yes','No', 'Cancel', None , 3)
-					out=say.Go()
-					if out == 0:  ## Yes
-						#save and deselect
-						cursel=self.superself.editorslist[self.Selection()]
-						thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
-						thisBlistitem.tosave=True
-						tabs=len(self.superself.listemsgstr)-1
-						bckpmsg=BMessage(17893)
-						bckpmsg.AddInt8('savetype',1)
-						bckpmsg.AddInt32('tvindex',cursel.list.lv.CurrentSelection())
-						bckpmsg.AddInt8('plurals',tabs)
-						bckpmsg.AddInt32('tabview',self.Selection())
-						if tabs == 0:
-							thisBlistitem.txttosave=self.superself.listemsgstr[self.superself.transtabview.Selection()].trnsl.Text()
-							bckpmsg.AddString('translation',thisBlistitem.txttosave)
-							print "salvo solo singolare"
+				if self.Selection()!=gg: #non sto cambiando file
+					shouldstop=False
+					if self.superself.editorslist[self.Selection()].list.lv.CurrentSelection()>-1:
+						hasplural=self.superself.editorslist[self.Selection()].list.lv.ItemAt(self.superself.editorslist[self.Selection()].list.lv.CurrentSelection()).hasplural
+						if hasplural:
+							lung=len(self.superself.listemsgstr)
+							pick=0
+							while pick<lung:
+								thistranslEdit=self.superself.listemsgstr[pick].trnsl
+								if thistranslEdit.tosave:
+									shouldstop=True
+								pick+=1
 						else:
-							print "provo a salvare tutto"
-							thisBlistitem.txttosavepl=[]
-							thisBlistitem.txttosave=self.superself.listemsgstr[0].trnsl.Text()
-							bckpmsg.AddString('translation',thisBlistitem.txttosave)
-							cox=1
-							while cox < tabs+1:
-								thisBlistitem.txttosavepl.append(self.superself.listemsgstr[cox].trnsl.Text())
-								bckpmsg.AddString('translationpl'+str(cox-1),self.superself.listemsgstr[cox].trnsl.Text())
-								cox+=1
-						bckpmsg.AddString('bckppath',cursel.backupfile)
-						BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
-						cursel.list.lv.DeselectAll()
-					elif out == 1: # No
-						#empty trnsl and src, than deselect 
-						far=len(self.superself.listemsgstr)
-						imp=0
-						while imp<far:
-							self.superself.listemsgstr[imp].trnsl.tosave=False
-							self.superself.listemsgstr[imp].trnsl.txttosave=""
-							self.superself.listemsgstr[imp].trnsl.txttosavepl=[]
-							self.superself.listemsgstr[imp].trnsl.SetText("")
-							imp+=1
-						fir=len(self.superself.listemsgid)
-						imp=0
-						while imp<fir:
-							self.superself.listemsgid[imp].src.SetText("")
-							imp+=1
-						self.superself.editorslist[self.Selection()].list.lv.DeselectAll()
-					else:# or out == 2: means Cancel
-						return
-				#print "stai cambiando file occhio!"
+							if self.superself.listemsgstr[self.superself.transtabview.Selection()].trnsl.tosave:
+								shouldstop=True
+					if shouldstop:
+						say = BAlert('save', 'You are on tab '+str(self.Selection())+' And you are switching to tab '+str(gg)+' Temporary save changes before switching to another po file?', 'Yes','No', 'Cancel', None , 3)
+						out=say.Go()
+						if out == 0:  ## Yes
+							#save and deselect
+							cursel=self.superself.editorslist[self.Selection()]
+							thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
+							thisBlistitem.tosave=True
+							tabs=len(self.superself.listemsgstr)-1
+							bckpmsg=BMessage(17893)
+							bckpmsg.AddInt8('savetype',1)
+							bckpmsg.AddInt32('tvindex',cursel.list.lv.CurrentSelection())
+							bckpmsg.AddInt8('plurals',tabs)
+							bckpmsg.AddInt32('tabview',self.Selection())
+							if tabs == 0:
+								thisBlistitem.txttosave=self.superself.listemsgstr[self.superself.transtabview.Selection()].trnsl.Text()
+								bckpmsg.AddString('translation',thisBlistitem.txttosave)
+								print "salvo solo singolare"
+							else:
+								print "provo a salvare tutto"
+								thisBlistitem.txttosavepl=[]
+								thisBlistitem.txttosave=self.superself.listemsgstr[0].trnsl.Text()
+								bckpmsg.AddString('translation',thisBlistitem.txttosave)
+								cox=1
+								while cox < tabs+1:
+									thisBlistitem.txttosavepl.append(self.superself.listemsgstr[cox].trnsl.Text())
+									bckpmsg.AddString('translationpl'+str(cox-1),self.superself.listemsgstr[cox].trnsl.Text())
+									cox+=1
+							bckpmsg.AddString('bckppath',cursel.backupfile)
+							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
+							cursel.list.lv.DeselectAll()
+						elif out == 1: # No
+							#empty trnsl and src, than deselect 
+							far=len(self.superself.listemsgstr)
+							imp=0
+							while imp<far:
+								self.superself.listemsgstr[imp].trnsl.tosave=False
+								self.superself.listemsgstr[imp].trnsl.txttosave=""
+								self.superself.listemsgstr[imp].trnsl.txttosavepl=[]
+								self.superself.listemsgstr[imp].trnsl.SetText("")
+								imp+=1
+							fir=len(self.superself.listemsgid)
+							imp=0
+							while imp<fir:
+								self.superself.listemsgid[imp].src.SetText("")
+								imp+=1
+							self.superself.editorslist[self.Selection()].list.lv.DeselectAll()
+						else:# or out == 2: means Cancel
+							return
+					if self.superself.editorslist[gg].list.lv.CurrentSelection()>-1:
+						oldselection=self.superself.editorslist[gg].list.lv.CurrentSelection()
+						self.superself.editorslist[gg].list.lv.DeselectAll()
+						self.superself.editorslist[gg].list.lv.Select(oldselection)
+						self.superself.editorslist[gg].list.lv.ScrollToSelection()
+					else:
+						self.superself.Nichilize()
+						bounds = self.superself.Bounds()
+						l, t, r, b = bounds
+						binds = self.superself.background.Bounds()
+						luwidth=self.superself.lubox.Bounds()[2]-self.superself.lubox.Bounds()[0]
+						c,p,d,s = binds
+						plygrnd2 = (5, b-142,r -luwidth-5, s-2)
+						altece = self.superself.srctabview.TabHeight()
+						tabrc2 = (3, 3, plygrnd2[2] - plygrnd2[0], plygrnd2[3] - plygrnd2[1]-altece)
+						self.superself.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self.superself))
+						self.superself.transtablabels.append(BTab())
+						self.superself.transtabview.AddTab(self.superself.listemsgstr[0],self.superself.transtablabels[0])
+						################### BUG? ###################
+						self.superself.transtabview.SetFocusTab(1,True)						#################  <----- needed to fix 
+						self.superself.transtabview.Select(1)
+						self.superself.transtabview.Select(0)
+						idlen=len(self.superself.listemsgid)
+						x=0
+						while x!=idlen:
+							self.superself.listemsgid[x].src.SetText("")
+							x+=1
+						#################### BUG ?##################
+						self.superself.srctabview.Select(1)
+						self.superself.srctabview.Select(0)
 			gg=gg+1
 		return BTabView.MouseDown(self,point)
-		
-		
-		
-######## TODO: salvare anche su eventi tipo drag'n'drop, cancellazione testo, modifica testo senza usare tastiera ecc	
+
+######## TODO: handle comments  ###############################################################################################################
+
 		
 
 class PoWindow(BWindow):
@@ -1290,6 +1395,7 @@ class PoWindow(BWindow):
 		x, barheight = self.bar.GetPreferredSize()
 		self.modifier=False
 		self.poview=[True,True,True,False]
+		self.drop = threading.Semaphore()
 		self.sem = threading.Semaphore()
 		self.shortcut=False
 		global confile
@@ -1525,24 +1631,18 @@ class PoWindow(BWindow):
 #		elif msg.what == B_UNMAPPED_KEY_DOWN:
 #			msg.PrintToStream()
 		elif msg.what == B_KEY_DOWN:	#on tab key pressed, focus on translation or translation of first item list of translations
-			msg.PrintToStream()
+			#msg.PrintToStream()
 			key=msg.FindInt32('key')
 			if key==38: #tab key
-				run=True
-				try:
-					lung=len(self.listemsgstr)-1
-					pp=0
-					while lung>=pp:
-						if self.listemsgstr[pp].trnsl.IsFocus():
-							run=False
-						pp=pp+1
-					if run:
-						if self.postabview.Selection()>-1:
-							self.listemsgstr[self.transtabview.Selection()].trnsl.MakeFocus()
-						else:
-							self.editorslist[self.postabview.Selection()].list.lv.Select(0)
-				except:
-					pass
+				lung = len(self.editorslist)
+				if lung > 0:
+					if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
+						print "focalizzo transtextview"
+						self.listemsgstr[self.transtabview.Selection()].trnsl.MakeFocus()
+					else:
+						self.editorslist[self.postabview.Selection()].list.lv.Select(0)
+						self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+
 			elif key == 61: # s key  - - -  sembra non accadere mai
 				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
 					self.sem.acquire()
@@ -1888,37 +1988,58 @@ class PoWindow(BWindow):
 					
 			elif  movetype == 4:
 				#select next untranslated (or needing work) string
-				next=True
+				#next=True
 				if (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1):
+					print "premo Tab o no?"
 					spice = self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()+1
 					if spice == self.editorslist[self.postabview.Selection()].list.lv.CountItems():
 						spice = 0
 				else:
 					self.editorslist[self.postabview.Selection()].list.lv.Select(0)
+					self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
 					spice=0
-				conte=0
+				#conte=0
 				tt=0
-				while tt != self.editorslist[self.postabview.Selection()].list.lv.CountItems():
+				####
+				tt=spice
+				counting=0
+				lookingfor = True
+				max = self.editorslist[self.postabview.Selection()].list.lv.CountItems()
+				while lookingfor:
 					blistit=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tt)
 					if blistit.state==0 or blistit.state==2:
-						conte = conte+1
+						lookingfor = False
+						self.editorslist[self.postabview.Selection()].list.lv.Select(tt)
+						self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
 					tt+=1
-				if conte==0:
-					return
-				while next:
-					if (spice)==self.editorslist[self.postabview.Selection()].list.lv.CountItems()-1:
-						state=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(spice).state
-						if state == 0 or state == 2:
-							self.editorslist[self.postabview.Selection()].list.lv.Select(spice)
-						next=False
-
-					else:
-						state=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(spice).state
-						if state == 0 or state == 2:
-							self.editorslist[self.postabview.Selection()].list.lv.Select(spice)
-							next=False
-					spice=spice+1
-				self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+					counting +=1
+					if counting == max:
+						lookingfor = False
+					if tt==max:
+						tt=0
+				###
+#first implementation
+#				while tt != self.editorslist[self.postabview.Selection()].list.lv.CountItems():
+#					blistit=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tt)
+#					if blistit.state==0 or blistit.state==2:
+#						conte = conte+1
+#					tt+=1
+#				if conte==0:
+#					return
+#				while next:
+#					if (spice)==self.editorslist[self.postabview.Selection()].list.lv.CountItems()-1:
+#						state=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(spice).state
+#						if state == 0 or state == 2:
+#							self.editorslist[self.postabview.Selection()].list.lv.Select(spice)
+#						next=False
+#
+#					else:
+#						state=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(spice).state
+#						if state == 0 or state == 2:
+#							self.editorslist[self.postabview.Selection()].list.lv.Select(spice)
+#							next=False
+#					spice=spice+1
+#				self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
 			thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
 			try:
 				if thisBlistitem.tosave: #it happens when something SOMEHOW has not been saved
@@ -1934,6 +2055,20 @@ class PoWindow(BWindow):
 			self.SetFlags(B_AVOID_FOCUS)
 			return
 			
+		elif msg.what == 112118:
+			#launch a temporized check
+			oldtext=msg.FindString('oldtext')
+			cursel=msg.FindInt8('cursel')
+			indexBlistitem=msg.FindInt32('indexBlistitem')
+			tabs=len(self.listemsgstr)-1
+			if cursel == self.postabview.Selection():
+				print "stesso postabview"
+				tmp=self.editorslist[cursel]
+				if indexBlistitem == tmp.list.lv.CurrentSelection():
+					if self.listemsgstr[self.transtabview.Selection()].trnsl.oldtext != self.listemsgstr[self.transtabview.Selection()].trnsl.Text():  ### o è meglio controllare nel caso di plurale tutti gli eventtextview?
+						self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
+
+			
 		elif msg.what == 17893:
 			Config.read(confile)
 			defname=ConfigSectionMap("Users")['default']
@@ -1948,7 +2083,6 @@ class PoWindow(BWindow):
 				#self.metadata = self.editorslist[self.postabview.Selection()].pofile.ordered_metadata()
 				#print self.metadata
 				self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
-				#print "salvataggio temporaneo semplice"
 				return
 			elif savetype == 1:
 				tvindex=msg.FindInt32('tvindex')
@@ -2131,8 +2265,8 @@ class PoWindow(BWindow):
 							self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
 							self.transtablabels.append(BTab())
 							self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
-							self.transtabview.Hide()
-							self.transtabview.Show()
+							#self.transtabview.Hide()
+							#self.transtabview.Show()
 #######################################################################
 							self.listemsgid[0].src.SetText(entry.msgid.encode(self.encoding))
 							self.listemsgstr[0].trnsl.SetPOReadText(entry.msgstr.encode(self.encoding))
