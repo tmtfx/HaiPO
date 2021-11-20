@@ -1044,7 +1044,6 @@ class EventTextView(BTextView):
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 					return
 				elif ochar == B_TAB:
-					print "ma come"
 					if not value:
 						# next string needing work
 						if hasplural:
@@ -1664,7 +1663,66 @@ class PoWindow(BWindow):
 			self.ofp.Show()
 			return
 			
+		elif msg.what == 1:
+			# Close opened file
+			whichrem=self.postabview.Selection()
+			if whichrem>0:
+				actualselection=self.editorslist[whichrem-1].list.lv.CurrentSelection()
+				if actualselection>-1:
+					self.editorslist[whichrem-1].list.lv.DeselectAll()
+					self.editorslist[whichrem-1].list.lv.Select(actualselection)
+				else:
+					self.Nichilize()
+					bounds = self.Bounds()
+					l, t, r, b = bounds
+					binds = self.background.Bounds()
+					luwidth=self.lubox.Bounds()[2]-self.lubox.Bounds()[0]
+					c,p,d,s = binds
+					plygrnd2 = (5, b-142,r -luwidth-5, s-2)
+					altece = self.srctabview.TabHeight()
+					tabrc2 = (3, 3, plygrnd2[2] - plygrnd2[0], plygrnd2[3] - plygrnd2[1]-altece)
+					self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
+					self.transtablabels.append(BTab())
+					self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
+					################### BUG? ###################
+					self.transtabview.SetFocusTab(1,True)						#################  <----- needed to fix 
+					self.transtabview.Select(1)
+					self.transtabview.Select(0)
+					self.listemsgid[0].src.SetText("")
+					self.srctabview.Select(1)
+					self.srctabview.Select(0)
+			else:
+				actualselection=self.editorslist[whichrem+1].list.lv.CurrentSelection()
+				if actualselection>-1:
+					self.editorslist[whichrem-1].list.lv.DeselectAll()
+					self.editorslist[whichrem-1].list.lv.Select(actualselection)
+				else:
+					self.Nichilize()
+					bounds = self.Bounds()
+					l, t, r, b = bounds
+					binds = self.background.Bounds()
+					luwidth=self.lubox.Bounds()[2]-self.lubox.Bounds()[0]
+					c,p,d,s = binds
+					plygrnd2 = (5, b-142,r -luwidth-5, s-2)
+					altece = self.srctabview.TabHeight()
+					tabrc2 = (3, 3, plygrnd2[2] - plygrnd2[0], plygrnd2[3] - plygrnd2[1]-altece)
+					self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
+					self.transtablabels.append(BTab())
+					self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
+					################### BUG? ###################
+					self.transtabview.SetFocusTab(1,True)						#################  <----- needed to fix 
+					self.transtabview.Select(1)
+					self.transtabview.Select(0)
+					self.listemsgid[0].src.SetText("")
+					self.srctabview.Select(1)
+					self.srctabview.Select(0)
+			self.postabview.RemoveTab(whichrem)
+			self.tabslabels.pop(whichrem)
+			self.editorslist.pop(whichrem)
+			
+			
 		elif msg.what == 2:
+			# Save current file
 			try:
 				Config.read(confile)
 				defname=ConfigSectionMap("Users")['default']
@@ -1676,7 +1734,7 @@ class PoWindow(BWindow):
 			self.editorslist[self.postabview.Selection()].pofile.metadata['PO-Revision-Date']=now
 			self.editorslist[self.postabview.Selection()].pofile.metadata['X-Editor']=version
 			self.editorslist[self.postabview.Selection()].pofile.save(savepath)
-			print "save"
+			
 			
 		elif msg.what == 3:
 			#copy from source
@@ -1713,13 +1771,13 @@ class PoWindow(BWindow):
 		
 		elif msg.what == 5:
 			# Save as
-			print (sys.executable	)
+			#print (sys.executable	)
 			self.editorslist[self.postabview.Selection()].fp.Show()
 			i = 1
 			w = BApplication.be_app.CountWindows()
 			while w > i:
 				title=BApplication.be_app.WindowAt(i).Title()
-				result=title.lower().find("python2.7")
+				result=title.lower().find("python2.7")    ###################### TODO: find a better solution #########################
 				if result>-1:
 					thiswindow=i
 					BApplication.be_app.WindowAt(i).PostMessage(B_KEY_DOWN)#<---- Fix bug save button not enabled
