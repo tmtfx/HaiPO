@@ -109,7 +109,8 @@ try:
 	from BMimeType import BMimeType
 	from BCheckBox import BCheckBox
 	from BView import BView
-#	import BFilePanel, BEntry
+#	import BFilePanel, 
+	import BEntry
 	from BFilePanel import BFilePanel
 	from BEntry import BEntry
 	from BScrollBar import BScrollBar
@@ -1180,7 +1181,13 @@ class POEditorBBox(BBox):
 		self.name = name
 		self.encoding=encoding
 		self.filen, self.file_ext = os.path.splitext(percors)
+		self.backupfile= self.filen+".temp"+self.file_ext
 		self.orderedmetadata=self.pofile.ordered_metadata()
+		self.fp=BFilePanel(B_SAVE_PANEL)
+		pathorig,nameorig=os.path.split(percors)
+		#print pathorig,nameorig
+		self.fp.SetPanelDirectory(pathorig)
+		self.fp.SetSaveText(nameorig)
 
 #		if file_ext=='.po':
 #			self.typefile=0
@@ -1190,7 +1197,7 @@ class POEditorBBox(BBox):
 #			self.typefile=2
 #		elif file_ext=='.pot':
 #			
-		self.backupfile= self.filen+".temp"+self.file_ext
+		
 		ind=0
 		datab=[]
 		for entry in self.pofile:
@@ -1494,9 +1501,9 @@ class PoWindow(BWindow):
 		
 		c,p,d,s = binds
 		###### SAVE PANEL
-		self.fp=BFilePanel(B_SAVE_PANEL)
-		self.fp.SetPanelDirectory("/boot/home/Desktop")
-		self.fp.SetSaveText("lavôr.po")
+#		self.fp=BFilePanel(B_SAVE_PANEL)
+#		self.fp.SetPanelDirectory("/boot/home/Desktop")
+#		self.fp.SetSaveText("lavôr.po")
 		###### OPEN PANEL
 		#entryfilter= BEntry.BEntry(".po",True)
 #		node=BNode(".po")
@@ -1703,6 +1710,21 @@ class PoWindow(BWindow):
 			kmesg.AddInt8('movekind',0)
 			BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 			return
+		
+		elif msg.what == 5:
+			# Save as
+			print (sys.executable	)
+			self.editorslist[self.postabview.Selection()].fp.Show()
+			i = 1
+			w = BApplication.be_app.CountWindows()
+			while w > i:
+				title=BApplication.be_app.WindowAt(i).Title()
+				result=title.lower().find("python2.7")
+				if result>-1:
+					thiswindow=i
+					BApplication.be_app.WindowAt(i).PostMessage(B_KEY_DOWN)#<---- Fix bug save button not enabled
+				i=i+1
+			
 		
 		elif msg.what == 9:
 			#ABOUT
@@ -2246,7 +2268,23 @@ class PoWindow(BWindow):
 						BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save to backup file
 						break
 				self.editorslist[self.postabview.Selection()].list.reload(self.poview,self.editorslist[self.postabview.Selection()].pofile,self.encoding)
-							
+		
+		if msg.what == 54173:
+			#Save qr
+			txt=self.editorslist[self.postabview.Selection()].fp.GetPanelDirectory()
+			savepath= BEntry(txt,True).GetPath().Path()#BEntry.
+			e = msg.FindString("name")
+			completepath = savepath +"/"+ e
+			actualtab=self.editorslist[self.postabview.Selection()]
+			actualtab.pofile.save(completepath)
+			actualtab.name=e
+			actualtab.percors=completepath
+			actualtab.pofile= polib.pofile(completepath,encoding=self.encoding)
+			self.tabslabels[self.postabview.Selection()].SetLabel(e);
+			actualtab.filen, actualtab.file_ext = os.path.splitext(completepath)
+			actualtab.backupfile= actualtab.filen+".temp"+actualtab.file_ext
+			return
+			
 		elif msg.what == 460550:
 			# selection from listview
 			bounds = self.Bounds()
@@ -2412,6 +2450,14 @@ class HaiPOApp(BApplication.BApplication):
 				if e is None:
 					break
 				i = i + 1
+				
+	def MessageReceived(self, msg):
+		if msg.what == B_SAVE_REQUESTED:
+			e = msg.FindString("name")
+			messaggio = BMessage(54173)
+			messaggio.AddString("name",e)
+			BApplication.be_app.WindowAt(0).PostMessage(messaggio)
+			return
 
 	def elaborate_path(self,percors):
 					self.txtpath = percors
