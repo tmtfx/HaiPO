@@ -454,6 +454,90 @@ class ImpostazionsUtent(BWindow):
 		self.Quit()
 		return 0
 
+class Findsource(BWindow):
+	kWindowFrame = (250, 150, 655, 240)
+	kWindowName = "Find source"
+	def __init__(self):
+		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, B_FLOATING_WINDOW, B_NOT_RESIZABLE)
+		bounds=self.Bounds()
+		l,t,r,b = bounds
+		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		self.AddChild(self.underframe)
+		h=round(self.underframe.GetFontHeight()[0])
+		kButtonFrame1 = (r/2+15,b-50,r-5,b-5)
+		kButtonName1 = "Search"
+		self.SearchButton = BButton(kButtonFrame1, kButtonName1, kButtonName1, BMessage(5348))
+		self.underframe.AddChild(self.SearchButton)
+		self.casesens = BCheckBox((5,b-40,r/2-15,b-5),'casesens', 'Case sensistive', BMessage(222))
+		self.casesens.SetValue(1)
+		self.underframe.AddChild(self.casesens)
+		#self.looktv=BTextView((5,5,r-5,b-55),name+'_source_BTextView',(10,10,r-10,b-60),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)
+		self.looktv=BTextControl((5,5,r-5,32),'txttosearch','Search:','',BMessage(8046))
+		self.looktv.SetDivider(60.0)
+		self.underframe.AddChild(self.looktv)
+		self.looktv.MakeFocus()
+		
+
+
+	def MessageReceived(self, msg):
+
+#		if msg.what == 222:
+#			print self.casesens.Value()
+				
+		elif msg.what == 5348:
+			lista=BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].list.lv
+			total=lista.CountItems()
+			indaco=lista.CurrentSelection()
+			max = total
+			now = indaco
+			partial = False
+			partiali = False
+			loopa =True
+			while loopa:
+				now+=1
+				if now == total:
+					now = 0
+					total = indaco
+					partial = True
+				if now == indaco:
+					partiali = True
+				if self.casesens.Value():
+					if lista.ItemAt(now).Text().find(self.looktv.Text())>-1:
+						lista.Select(now)
+						BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
+						#evidenziare testo
+						break
+				else:
+					if lista.ItemAt(now).Text().lower().find(self.looktv.Text().lower())>-1:
+						lista.Select(now)
+						BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
+						#evidenziare testo
+						break
+				if partial and partiali:
+					loopa=False
+			
+
+class FindRepTrans(BWindow):
+	kWindowFrame = (250, 150, 755, 390)
+	kWindowName = "Find/Replace translation"
+	def __init__(self):
+		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, B_FLOATING_WINDOW, B_NOT_RESIZABLE)
+		bounds=self.Bounds()
+		l,t,r,b = bounds
+		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		self.AddChild(self.underframe)
+		h=round(self.underframe.GetFontHeight()[0])
+		kButtonFrame1 = (r*2/3+5,b-50,r-5,b-5)
+		kButtonName1 = "Search"
+		self.SearchButton = BButton(kButtonFrame1, kButtonName1, kButtonName1, BMessage(4810))
+		self.underframe.AddChild(self.SearchButton)
+		kButtonFrame2 = (r/3+5,b-50,r*2/3-5,b-5)
+		kButtonName2 = "Replace"
+		self.ReplaceButton = BButton(kButtonFrame2, kButtonName2, kButtonName2, BMessage(7047))
+		self.underframe.AddChild(self.ReplaceButton)
+		#h=round(self.underframe.GetFontHeight()[0])
+		
+		
 class MaacUtent(BWindow):
 	kWindowFrame = (250, 150, 555, 290)
 	kWindowName = "User Wizard"
@@ -1388,7 +1472,7 @@ class postabview(BTabView):
 class PoWindow(BWindow):
 	Menus = (
 		('File', ((295485, 'Open'), (2, 'Save'), (1, 'Close'), (5, 'Save as...'),(None, None),(B_QUIT_REQUESTED, 'Quit'))),
-		('Translation', ((3, 'Copy from source'), (4,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy'), (72, 'Previous w/o saving'),(73,'Next w/o saving'),(None, None), (6, 'Find'), (7, 'Replace'))),
+		('Translation', ((3, 'Copy from source'), (4,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy'), (72, 'Previous w/o saving'),(73,'Next w/o saving'),(None, None), (6, 'Find source'), (7, 'Find/Replace translation'))),
 		('View', ((74,'Fuzzy'), (75, 'Untranslated'),(76,'Translated'),(77, 'Obsolete'))),
 		('Settings', ((41, 'User settings'), (42, 'Po properties')	)),
 		('About', ((8, 'Help'),(None, None),(9, 'About')))
@@ -1783,6 +1867,17 @@ class PoWindow(BWindow):
 					BApplication.be_app.WindowAt(i).PostMessage(B_KEY_DOWN)#<---- Fix bug save button not enabled
 				i=i+1
 			
+		elif msg.what == 6:
+			# Find source
+			print "Find source"
+			self.Findsrc = Findsource()
+			self.Findsrc.Show()
+		
+		elif msg.what == 7:
+			# Find/Replace translation
+			print "Find/Replace translation"
+			self.FindReptrnsl = FindRepTrans()
+			self.FindReptrnsl.Show()
 		
 		elif msg.what == 9:
 			#ABOUT
@@ -2450,6 +2545,9 @@ class PoWindow(BWindow):
 		elif msg.what ==  777:
 			#Removing B_AVOID_FOCUS flag
 			self.SetFlags(0)
+			return
+		elif msg.what == 963741:
+			self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
 			return
 		else:
 			BWindow.MessageReceived(self, msg)
