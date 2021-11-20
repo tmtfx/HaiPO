@@ -1179,7 +1179,7 @@ class POEditorBBox(BBox):
 		self.pofile = pofileloaded
 		self.name = name
 		self.encoding=encoding
-		filen, file_ext = os.path.splitext(percors)
+		self.filen, self.file_ext = os.path.splitext(percors)
 		self.orderedmetadata=self.pofile.ordered_metadata()
 
 #		if file_ext=='.po':
@@ -1190,7 +1190,7 @@ class POEditorBBox(BBox):
 #			self.typefile=2
 #		elif file_ext=='.pot':
 #			
-		self.backupfile= filen+".temp"+file_ext
+		self.backupfile= self.filen+".temp"+self.file_ext
 		ind=0
 		datab=[]
 		for entry in self.pofile:
@@ -1657,6 +1657,20 @@ class PoWindow(BWindow):
 			self.ofp.Show()
 			return
 			
+		elif msg.what == 2:
+			try:
+				Config.read(confile)
+				defname=ConfigSectionMap("Users")['default']
+			except:
+				defname=self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']
+			now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
+			savepath=self.editorslist[self.postabview.Selection()].filen+self.editorslist[self.postabview.Selection()].file_ext
+			self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']=defname
+			self.editorslist[self.postabview.Selection()].pofile.metadata['PO-Revision-Date']=now
+			self.editorslist[self.postabview.Selection()].pofile.metadata['X-Editor']=version
+			self.editorslist[self.postabview.Selection()].pofile.save(savepath)
+			print "save"
+			
 		elif msg.what == 3:
 			#copy from source
 			cursel=self.editorslist[self.postabview.Selection()]
@@ -2070,8 +2084,11 @@ class PoWindow(BWindow):
 
 			
 		elif msg.what == 17893:
-			Config.read(confile)
-			defname=ConfigSectionMap("Users")['default']
+			try:
+				Config.read(confile)
+				defname=ConfigSectionMap("Users")['default']
+			except:
+				defname=self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']
 			now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
 			# save to backup and update the blistitem
 			bckppath = msg.FindString('bckppath')
@@ -2265,8 +2282,6 @@ class PoWindow(BWindow):
 							self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
 							self.transtablabels.append(BTab())
 							self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
-							#self.transtabview.Hide()
-							#self.transtabview.Show()
 #######################################################################
 							self.listemsgid[0].src.SetText(entry.msgid.encode(self.encoding))
 							self.listemsgstr[0].trnsl.SetPOReadText(entry.msgstr.encode(self.encoding))
@@ -2315,30 +2330,6 @@ class PoWindow(BWindow):
 				#txtlen=self.listemsgstr[self.transtabview.Selection()].trnsl.TextLength()
 				#print self.listemsgstr[self.transtabview.Selection()].trnsl.OffsetAt(txtlen)
 				#self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToOffset(txtlen-1)
-				
-#				endkpress=BMessage(END_DOWN_MSG)
-#				now=uptime._uptime_beos()
-#				now=now*1000000
-#				endkpress.AddInt64('when',long(now))
-#				endkpress.AddInt32('key',60)#53)
-#				endkpress.AddInt32('modifiers',32)
-#				endkpress.AddInt8('states',0)
-#				endkpress.AddInt8('byte',97)#4)
-#				endkpress.AddString('bytes',"a")#")
-#				endkpress.AddInt32('raw_char',97)#4)
-#				BApplication.be_app.PostMessage(endkpress)
-#				
-#				endkpress=BMessage(END_UP_MSG)
-#				now=uptime._uptime_beos()
-#				now=now*1000000
-#				endkpress.AddInt64('when',long(now))
-#				endkpress.AddInt32('key',60)#53)
-#				endkpress.AddInt32('modifiers',32)
-#				endkpress.AddInt8('states',0)
-#				endkpress.AddInt8('byte',97)#4)
-#				endkpress.AddString('bytes',"a")#")
-#				endkpress.AddInt32('raw_char',97)#4)
-#				BApplication.be_app.WindowAt(0).PostMessage(endkpress)
 				
 #				pointer=self.editorslist[self.postabview.Selection()].translation.PointAt(len(self.editorslist[self.postabview.Selection()].translation.Text()))
 #				print pointer[0]
