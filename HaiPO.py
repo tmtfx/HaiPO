@@ -2270,16 +2270,16 @@ class PoWindow(BWindow):
 				self.editorslist[self.postabview.Selection()].list.reload(self.poview,self.editorslist[self.postabview.Selection()].pofile,self.encoding)
 		
 		if msg.what == 54173:
-			#Save qr
+			#Save as 
 			txt=self.editorslist[self.postabview.Selection()].fp.GetPanelDirectory()
-			savepath= BEntry(txt,True).GetPath().Path()#BEntry.
+			savepath= BEntry(txt,True).GetPath().Path()
 			e = msg.FindString("name")
 			completepath = savepath +"/"+ e
 			actualtab=self.editorslist[self.postabview.Selection()]
 			actualtab.pofile.save(completepath)
 			actualtab.name=e
 			actualtab.percors=completepath
-			actualtab.pofile= polib.pofile(completepath,encoding=self.encoding)
+			actualtab.pofile= polib.pofile(completepath,encoding=actualtab.encoding)
 			self.tabslabels[self.postabview.Selection()].SetLabel(e);
 			actualtab.filen, actualtab.file_ext = os.path.splitext(completepath)
 			actualtab.backupfile= actualtab.filen+".temp"+actualtab.file_ext
