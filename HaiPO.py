@@ -100,6 +100,7 @@ try:
 	from BTextView import BTextView
 	from BFont import be_plain_font, be_bold_font
 	from BTextControl import BTextControl
+	from BStatusBar import BStatusBar
 	from BAlert import BAlert
 	from BListItem import BListItem
 	from BStatusBar import BStatusBar
@@ -455,7 +456,7 @@ class ImpostazionsUtent(BWindow):
 		return 0
 
 class Findsource(BWindow):
-	kWindowFrame = (250, 150, 655, 240)
+	kWindowFrame = (250, 150, 655, 226)
 	kWindowName = "Find source"
 	def __init__(self):
 		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, B_FLOATING_WINDOW, B_NOT_RESIZABLE)
@@ -464,14 +465,13 @@ class Findsource(BWindow):
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(self.underframe)
 		h=round(self.underframe.GetFontHeight()[0])
-		kButtonFrame1 = (r/2+15,b-50,r-5,b-5)
+		kButtonFrame1 = (r/2+15,b-40,r-5,b-5)
 		kButtonName1 = "Search"
 		self.SearchButton = BButton(kButtonFrame1, kButtonName1, kButtonName1, BMessage(5348))
 		self.underframe.AddChild(self.SearchButton)
-		self.casesens = BCheckBox((5,b-40,r/2-15,b-5),'casesens', 'Case sensistive', BMessage(222))
+		self.casesens = BCheckBox((5,b-30,r/2-15,b-5),'casesens', 'Case sensistive', BMessage(222))
 		self.casesens.SetValue(1)
 		self.underframe.AddChild(self.casesens)
-		#self.looktv=BTextView((5,5,r-5,b-55),name+'_source_BTextView',(10,10,r-10,b-60),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.looktv=BTextControl((5,5,r-5,32),'txttosearch','Search:','',BMessage(8046))
 		self.looktv.SetDivider(60.0)
 		self.underframe.AddChild(self.looktv)
@@ -480,45 +480,46 @@ class Findsource(BWindow):
 
 
 	def MessageReceived(self, msg):
-
-#		if msg.what == 222:
-#			print self.casesens.Value()
-				
-		elif msg.what == 5348:
-			lista=BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].list.lv
-			total=lista.CountItems()
-			indaco=lista.CurrentSelection()
-			max = total
-			now = indaco
-			partial = False
-			partiali = False
-			loopa =True
-			while loopa:
-				now+=1
-				if now == total:
-					now = 0
-					total = indaco
-					partial = True
-				if now == indaco:
-					partiali = True
-				if self.casesens.Value():
-					if lista.ItemAt(now).Text().find(self.looktv.Text())>-1:
-						lista.Select(now)
-						BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
-						#evidenziare testo
-						break
-				else:
-					if lista.ItemAt(now).Text().lower().find(self.looktv.Text().lower())>-1:
-						lista.Select(now)
-						BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
-						#evidenziare testo
-						break
-				if partial and partiali:
-					loopa=False
-			
+	
+		if msg.what == 5348:
+			if self.looktv.Text() != "":
+				lista=BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].list.lv
+				total=lista.CountItems()
+				indaco=lista.CurrentSelection()
+				max = total
+				now = indaco
+				partial = False
+				partiali = False
+				loopa =True
+				while loopa:
+					now+=1
+					if now < total:
+						if self.casesens.Value():
+							if lista.ItemAt(now).Text().find(self.looktv.Text())>-1:
+								lista.Select(now)
+								BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
+								################################## TODO: evidenziare testo #################################
+								break
+					
+						else:
+							if lista.ItemAt(now).Text().lower().find(self.looktv.Text().lower())>-1:
+								lista.Select(now)
+								BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
+								################################## TODO: evidenziare testo #################################
+								break
+					if now == total:
+						now = -1
+						total = indaco+1
+						partial = True
+					if now == indaco:
+						partiali = True
+					if partial and partiali:
+						loopa=False
+						say = BAlert('not_found', 'No matches found on listed entries', 'Ok',None, None, None, 3)
+						say.Go()
 
 class FindRepTrans(BWindow):
-	kWindowFrame = (250, 150, 755, 390)
+	kWindowFrame = (250, 150, 755, 297)
 	kWindowName = "Find/Replace translation"
 	def __init__(self):
 		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, B_FLOATING_WINDOW, B_NOT_RESIZABLE)
@@ -527,16 +528,275 @@ class FindRepTrans(BWindow):
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(self.underframe)
 		h=round(self.underframe.GetFontHeight()[0])
-		kButtonFrame1 = (r*2/3+5,b-50,r-5,b-5)
+		kButtonFrame1 = (r*2/3+5,69,r-5,104)
+		print "buttonframe", kButtonFrame1
 		kButtonName1 = "Search"
-		self.SearchButton = BButton(kButtonFrame1, kButtonName1, kButtonName1, BMessage(4810))
+		self.SearchButton = BButton(kButtonFrame1, kButtonName1, kButtonName1, BMessage(5348))
 		self.underframe.AddChild(self.SearchButton)
-		kButtonFrame2 = (r/3+5,b-50,r*2/3-5,b-5)
+		kButtonFrame2 = (r/3+5,69,r*2/3-5,104)
 		kButtonName2 = "Replace"
 		self.ReplaceButton = BButton(kButtonFrame2, kButtonName2, kButtonName2, BMessage(7047))
 		self.underframe.AddChild(self.ReplaceButton)
-		#h=round(self.underframe.GetFontHeight()[0])
+		self.casesens = BCheckBox((5,79,r/2-15,104),'casesens', 'Case sensistive', BMessage(222))
+		self.casesens.SetValue(1)
+		self.underframe.AddChild(self.casesens)
+		self.looktv=BTextControl((5,5,r-5,32),'txttosearch','Search:','',BMessage(8046))
+		self.looktv.SetDivider(60.0)
+		self.underframe.AddChild(self.looktv)
+		self.looktv.MakeFocus()
+		self.reptv=BTextControl((5,37,r-5,64),'replacetxt','Replace:','',BMessage(8046))
+		self.reptv.SetDivider(60.0)
+		self.underframe.AddChild(self.reptv)
+		self.pb=BStatusBar((5,b-42,r-5,b+5),"searchpb",None,None)#"File position:"
+		self.pb.SetBarHeight(float(14))
+		self.underframe.AddChild(self.pb)
+		lista=BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].list.lv
+		total=lista.CountItems()
+		self.pb.SetMaxValue(float(total))
+		indaco=lista.CurrentSelection()
+		self.pb.Update(float(indaco))
+		self.encoding=BApplication.be_app.WindowAt(0).encoding
+		i = 1
+		w = BApplication.be_app.CountWindows()
+		while w > i:
+			if BApplication.be_app.WindowAt(i).Title()==self.kWindowName:
+				self.thiswindow=i
+			i=i+1
 		
+		
+		
+#	def ResetPB(self):
+#		print "ristabilisco il valore max e il valore di self.pb"
+
+	def MessageReceived(self, msg):
+	
+		if msg.what == 5348:
+		  if self.looktv.Text() != "":
+			self.pof=BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].pofile
+			lista=BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].list.lv
+			indaco=lista.CurrentSelection()
+			self.arrayview=BApplication.be_app.WindowAt(0).poview
+			datab=[]
+			#jocker
+			if self.arrayview[0]:
+				for entry in self.pof.fuzzy_entries():
+					value=[]
+					if entry and entry.msgid_plural:
+						bubu=len(entry.msgstr_plural)
+						y=0
+						while y<bubu:
+							txt=entry.msgstr_plural[y].encode(self.encoding)
+							value.append(txt)
+							y+=1
+					else:
+						txt=entry.msgstr.encode(self.encoding)
+						value.append(txt)
+					datab.append(value)
+			if self.arrayview[1]:
+				for entry in self.pof.untranslated_entries():
+					value=[]
+					if entry and entry.msgid_plural:
+						bubu=len(entry.msgstr_plural)
+						y=0
+						while y<bubu:
+							txt=entry.msgstr_plural[y].encode(self.encoding)
+							value.append(txt)
+							y+=1
+					else:
+						txt=entry.msgstr.encode(self.encoding)
+						value.append(txt)
+					datab.append(value)
+			if self.arrayview[2]:
+				for entry in self.pof.translated_entries():
+					value=[]
+					if entry and entry.msgid_plural:
+						bubu=len(entry.msgstr_plural)
+						y=0
+						while y<bubu:
+							txt=entry.msgstr_plural[y].encode(self.encoding)
+							value.append(txt)
+							y+=1
+					else:
+						txt=entry.msgstr.encode(self.encoding)
+						value.append(txt)
+					datab.append(value)
+			if self.arrayview[3]:
+				for entry in self.pof.obsolete_entries():
+					value=[]
+					if entry and entry.msgid_plural:
+						bubu=len(entry.msgstr_plural)
+						y=0
+						while y<bubu:
+							txt=entry.msgstr_plural[y].encode(self.encoding)
+							value.append(txt)
+							y+=1
+					else:
+						txt=entry.msgstr.encode(self.encoding)
+						value.append(txt)
+					datab.append(value)
+					
+			total=lista.CountItems()
+			indaco=lista.CurrentSelection()
+			applydelta=float(indaco-self.pb.CurrentValue())
+			deltamsg=BMessage(7047)
+			deltamsg.AddFloat('delta',applydelta)
+			BApplication.be_app.WindowAt(self.thiswindow).PostMessage(deltamsg)
+			max = total
+			now = indaco
+			lastvalue=now
+			partial = False
+			partiali = False
+			loopa =True
+			while loopa:
+				now+=1
+				if now < total:
+						delta=float(now-lastvalue)
+						deltamsg=BMessage(7047)
+						deltamsg.AddFloat('delta',delta)
+						BApplication.be_app.WindowAt(self.thiswindow).PostMessage(deltamsg)
+						lastvalue=now
+						values=datab[now]
+						orb = len(values)
+						if self.casesens.Value():
+							if orb>1:
+								for items in values:
+									if items.find(self.looktv.Text())>-1:
+										lista.Select(now)
+										BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741)) ############################ TODO: evidenziare testo #################
+										print "trovato in",items,"rigo:",now
+										break
+							else:
+								if values[0].find(self.looktv.Text())>-1:
+									lista.Select(now)
+									BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741)) ############################ TODO: evidenziare testo #################
+									print "trovato in",values[0],"rigo:",now
+									break
+						else:
+							if orb>1:
+								for items in values:
+									if items.lower().find(self.looktv.Text().lower())>-1:
+										lista.Select(now)
+										BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741)) ############################ TODO: evidenziare testo #################
+										print "trovato in",items,"rigo:",now
+										break
+							else:
+								if values[0].lower().find(self.looktv.Text().lower())>-1:
+									lista.Select(now)
+									BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741)) ############################ TODO: evidenziare testo #################
+									print "trovato in",values[0],"rigo:",now
+									break
+				if now == total:
+						now = -1
+						total = indaco+1
+						partial = True
+				if now == indaco:
+						partiali = True
+				if partial and partiali:
+						loopa=False
+						say = BAlert('not_found', 'No matches found on listed entries', 'Ok',None, None, None, 3)
+						say.Go()
+			
+#			if self.looktv.Text() != "":
+#				self.pof=BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].pofile
+#				self.arrayview=BApplication.be_app.WindowAt(0).poview
+#				lista=BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].list.lv
+#				total=lista.CountItems()
+#				indaco=lista.CurrentSelection()
+#				applydelta=float(indaco-self.pb.CurrentValue())
+#				deltamsg=BMessage(7047)
+#				deltamsg.AddFloat('delta',applydelta)
+#				BApplication.be_app.WindowAt(self.thiswindow).PostMessage(deltamsg)
+#				max = total
+#				now = indaco
+#				lastvalue=now
+#				partial = False
+#				partiali = False
+#				loopa =True
+#				while loopa:
+#					now+=1
+#					if now < total:
+#						#print now
+#						curmsgid=lista.ItemAt(now).Text().decode(self.encoding)#aggiunto decode
+#						delta=float(now-lastvalue)
+#						deltamsg=BMessage(7047)
+#						deltamsg.AddFloat('delta',delta)
+#						BApplication.be_app.WindowAt(self.thiswindow).PostMessage(deltamsg)
+#						lastvalue=now
+#						entry=self.pof.find(curmsgid)
+#						if self.casesens.Value():
+#							if entry and entry.msgid_plural:################################ todo: switch transtabview se sul plurale ##############
+#								if entry.msgstr_plural[0].find(self.looktv.Text().decode(self.encoding))>-1:
+#									lista.Select(now)
+#									BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
+#									break
+#								cont= len(entry.msgstr_plural)-1
+#								y=0
+#								while y!=cont:
+#									y+=1
+#									if entry.msgstr_plural[y].find(self.looktv.Text().decode(self.encoding))>-1:
+#										lista.Select(now)
+#										BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
+#										break
+#							elif entry:
+#								#txt=#.encode(self.encoding)  #jackal
+#								
+#								if entry.msgstr.find(self.looktv.Text().decode(self.encoding))>-1:#.decode(self.encoding))>-1:
+#									#print entry.msgstr,self.looktv.Text().decode(self.encoding)
+#									lista.Select(now)
+#									BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
+#									break
+#							else:
+#								print "something wrong here",now
+#								print curmsgid
+
+
+
+
+
+
+#							#if lista.ItemAt(now).Text().find(self.looktv.Text())>-1:
+#							#	
+#							#	
+#							#	################################## TODO: evidenziare testo #################################
+#							#	break
+					
+#						else:
+#							if entry and entry.msgid_plural:################################# todo: switch transtabview se sul plurale ##############
+#								if entry.msgstr_plural[0].lower().find(self.looktv.Text().lower().decode(self.encoding))>-1:
+#									lista.Select(now)
+#									BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
+#									break
+#								cont= len(entry.msgstr_plural)-1
+#								y=0
+#								while y!=cont:
+#									y+=1
+#									if entry.msgstr_plural[y].lower().find(self.looktv.Text().lower().decode(self.encoding))>-1:
+#										lista.Select(now)
+#										BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
+#										break
+#							elif entry:
+#								if entry.msgstr.lower().find(self.looktv.Text().lower().decode(self.encoding))>-1:
+#									lista.Select(now)
+#									BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
+#									break
+							#if lista.ItemAt(now).Text().lower().find(self.looktv.Text().lower())>-1:
+							#	
+							#	################################## TODO: evidenziare testo #################################
+							#	break
+#					if now == total:
+#						now = -1
+#						total = indaco+1
+#						partial = True
+#					if now == indaco:
+#						partiali = True
+#					if partial and partiali:
+#						loopa=False
+#						say = BAlert('not_found', 'No matches found on listed entries', 'Ok',None, None, None, 3)
+#						say.Go()
+
+		elif msg.what == 7047:
+			addfloat=msg.FindFloat('delta')
+			self.pb.Update(addfloat)
 		
 class MaacUtent(BWindow):
 	kWindowFrame = (250, 150, 555, 290)
@@ -1282,9 +1542,9 @@ class POEditorBBox(BBox):
 #			
 		
 		ind=0
-		datab=[]
+		#datab=[]
 		for entry in self.pofile:
-				datab.append((ind,entry.msgid,entry.msgstr))
+				#datab.append((ind,entry.msgid,entry.msgstr))
 				ind=ind+1
 		
 		contor = frame
@@ -1294,7 +1554,7 @@ class POEditorBBox(BBox):
 		l, t, r, b = contor
 		self.list = ScrollView((5, 5, r -22, b-5), name+'_ScrollView')
 		self.AddChild(self.list.topview())
-		self.scrollb = BScrollBar((r -21,5,r-5,b-5),name+'_ScrollBar',self.list.listview(),0.0,float(len(datab)),B_VERTICAL)
+		self.scrollb = BScrollBar((r -21,5,r-5,b-5),name+'_ScrollBar',self.list.listview(),0.0,float(ind),B_VERTICAL)#len(datab)
 		self.AddChild(self.scrollb)
 		
 		if arrayview[0]:
