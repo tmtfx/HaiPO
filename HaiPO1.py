@@ -2500,8 +2500,11 @@ class PoWindow(BWindow):
 				thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
 				thisBlistitem.tosave=True
 				tabs=len(self.listemsgstr)-1
-				####################### TODO: integrare fix per multiple occurrencies ############
-				bckpmsg=BMessage(17893)
+				if thisBlistitem.occurrency:
+					bckpmsg=BMessage(17892)
+					bckpmsg.AddInt32('OID',thisBlistitem.occurvalue)
+				else:
+					bckpmsg=BMessage(17893)
 				bckpmsg.AddInt8('savetype',1)
 				bckpmsg.AddInt32('tvindex',cursel.list.lv.CurrentSelection())
 				bckpmsg.AddInt8('plurals',tabs)
