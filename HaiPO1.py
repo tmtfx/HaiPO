@@ -2401,6 +2401,7 @@ class PoWindow(BWindow):
 			if thisBlistitem.occurrency:
 				bckpmsg=BMessage(17892)
 				bckpmsg.AddInt32('OID',thisBlistitem.occurvalue)
+				###### TODO: Update Blistitem msgstr o msgstr_plural[x] per aggiornare passaggio su scrollview
 			else:
 				bckpmsg=BMessage(17893)
 			bckpmsg.AddInt8('savetype',1)
@@ -2431,7 +2432,6 @@ class PoWindow(BWindow):
 		
 		elif msg.what == 5:
 			# Save as
-			#print (sys.executable	)
 			self.editorslist[self.postabview.Selection()].fp.Show()
 			i = 1
 			w = BApplication.be_app.CountWindows()
@@ -2500,6 +2500,7 @@ class PoWindow(BWindow):
 				thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
 				thisBlistitem.tosave=True
 				tabs=len(self.listemsgstr)-1
+				####################### TODO: integrare fix per multiple occurrencies ############
 				bckpmsg=BMessage(17893)
 				bckpmsg.AddInt8('savetype',1)
 				bckpmsg.AddInt32('tvindex',cursel.list.lv.CurrentSelection())
