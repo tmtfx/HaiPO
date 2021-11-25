@@ -1158,6 +1158,7 @@ class ScrollView:
 							value=len(self.occumemo)
 							self.occumemo.append((entry.msgid,value))
 							item.SetOccurrencyID(value)
+							print "valore di associazione",value
 						else:
 							item.SetOccurrency(False)						
 					self.lv.AddItem(item)
@@ -2397,7 +2398,11 @@ class PoWindow(BWindow):
 			thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
 			thisBlistitem.tosave=True
 			tabs=len(self.listemsgstr)-1
-			bckpmsg=BMessage(17893)
+			if thisBlistitem.occurrency:
+				bckpmsg=BMessage(17892)
+				bckpmsg.AddInt32('OID',thisBlistitem.occurvalue)
+			else:
+				bckpmsg=BMessage(17893)
 			bckpmsg.AddInt8('savetype',1)
 			bckpmsg.AddInt32('tvindex',cursel.list.lv.CurrentSelection())
 			bckpmsg.AddInt8('plurals',tabs)
@@ -2837,9 +2842,11 @@ class PoWindow(BWindow):
 			now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
 			# save to backup and update the blistitem
 			OID=msg.FindInt32('OID')
+			print "valore OID richiesto da savlataggio",OID
+#			fuzzy=msg.FindBool('Fuzzy')
 			bckppath = msg.FindString('bckppath')
 			savetype = msg.FindInt8('savetype')
-			if savetype == 0: #simple save used for fuzzy state and metadata change
+			if savetype == 0: #simple save used for fuzzy state and metadata change   ##### no need on multiple occurrencies
 				self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']=defname
 				self.editorslist[self.postabview.Selection()].pofile.metadata['PO-Revision-Date']=now
 				self.editorslist[self.postabview.Selection()].pofile.metadata['X-Editor']=version
@@ -2989,7 +2996,7 @@ class PoWindow(BWindow):
 				self.editorslist[intscheda].list.lv.ItemAt(tvindex).txttosave=""
 				self.editorslist[intscheda].list.lv.ItemAt(tvindex).txttosavepl=[]
 				return
-			elif savetype == 2:
+			elif savetype == 2: ############ No need on multiple occurrencies
 				#save of metadata
 				indexroot=msg.FindInt8('indexroot')
 				#self.editorslist[indexroot].pofile.metadata['Last-Translator']=defname # metadata saved from po settings
@@ -3150,18 +3157,129 @@ class PoWindow(BWindow):
 		elif msg.what == 71:
 			# mark unmark as fuzzy
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
-				txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText()
-				for entry in self.editorslist[self.postabview.Selection()].pofile:
-					if entry.msgid.encode(self.encoding) == txttosearch:
-						if 'fuzzy' in entry.flags:
-							entry.flags.remove('fuzzy')
-						else:
-							entry.flags.append('fuzzy')
-						bckpmsg=BMessage(17893)
-						bckpmsg.AddInt8('savetype',0)
-						bckpmsg.AddString('bckppath',self.editorslist[self.postabview.Selection()].backupfile)
-						BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save to backup file
-						break
+				if self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).occurrency:
+					pofi=self.editorslist[self.postabview.Selection()].pofile
+					txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText().decode(self.encoding)
+					OID=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).occurvalue
+					occurem=[]
+					if self.poview[0]:
+						for entry in pofi.fuzzy_entries():
+							if entry and entry.msgid_plural:
+								conto=0
+								for ent in pofi:
+									if ent.msgid == entry.msgid:
+										conto+=1
+								if conto > 1:
+										value=len(occurem)
+										occurem.append((entry.msgid,value))
+										if value == OID:
+											self.workonthisentry=entry
+											print "trovata voce OID"
+							else:
+								conto=0
+								for ent in pofi:
+									if ent.msgid == entry.msgid:
+										conto+=1
+								if conto > 1:
+										value=len(occurem)
+										occurem.append((entry.msgid,value))
+										if value == OID:
+											self.workonthisentry=entry
+											print "trovata voce OID"
+					if self.poview[1]:
+						for entry in pofi.untranslated_entries():
+							if entry and entry.msgid_plural:
+								conto=0
+								for ent in pofi:
+									if ent.msgid == entry.msgid:
+										conto+=1
+								if conto > 1:
+										value=len(occurem)
+										occurem.append((entry.msgid,value))
+										if value == OID:
+											self.workonthisentry=entry
+											print "trovata voce OID"
+							else:
+								conto=0
+								for ent in pofi:
+									if ent.msgid == entry.msgid:
+										conto+=1
+								if conto > 1:
+										value=len(occurem)
+										occurem.append((entry.msgid,value))
+										if value == OID:
+											self.workonthisentry=entry
+											print "trovata voce OID"
+					if self.poview[2]:
+						for entry in pofi.translated_entries():
+							if entry and entry.msgid_plural:
+								conto=0
+								for ent in pofi:
+									if ent.msgid == entry.msgid:
+										conto+=1
+								if conto > 1:
+										value=len(occurem)
+										occurem.append((entry.msgid,value))
+										if value == OID:
+											self.workonthisentry=entry
+											print "trovata voce OID"
+							else:
+								conto=0
+								for ent in pofi:
+									if ent.msgid == entry.msgid:
+										conto+=1
+								if conto > 1:
+										value=len(occurem)
+										occurem.append((entry.msgid,value))
+										if value == OID:
+											self.workonthisentry=entry
+											print entry
+											print "trovata voce OID"
+					if self.poview[3]:
+						for entry in pofi.obsolete_entries():
+							if entry and entry.msgid_plural:
+								conto=0
+								for ent in pofi:
+									if ent.msgid == entry.msgid:
+										conto+=1
+								if conto > 1:
+										value=len(occurem)
+										occurem.append((entry.msgid,value))
+										if value == OID:
+											self.workonthisentry=entry
+											print "trovata voce OID"
+							else:
+								conto=0
+								for ent in pofi:
+									if ent.msgid == entry.msgid:
+										conto+=1
+								if conto > 1:
+										value=len(occurem)
+										occurem.append((entry.msgid,value))
+										if value == OID:
+											self.workonthisentry=entry
+											print "trovata voce OID"
+					if 'fuzzy' in self.workonthisentry.flags:
+						self.workonthisentry.flags.remove('fuzzy')
+					else:
+						self.workonthisentry.flags.append('fuzzy')
+					bckpmsg=BMessage(17893)
+					bckpmsg.AddInt8('savetype',0)
+					bckpmsg.AddString('bckppath',self.editorslist[self.postabview.Selection()].backupfile)
+					BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save to backup file
+				else:
+					txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText()
+					for entry in self.editorslist[self.postabview.Selection()].pofile:
+						if entry.msgid.encode(self.encoding) == txttosearch:
+							if 'fuzzy' in entry.flags:
+								entry.flags.remove('fuzzy')
+							else:
+								entry.flags.append('fuzzy')
+							bckpmsg=BMessage(17893)
+							bckpmsg.AddInt8('savetype',0)
+							bckpmsg.AddString('bckppath',self.editorslist[self.postabview.Selection()].backupfile)
+							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save to backup file
+							break
 				self.editorslist[self.postabview.Selection()].list.reload(self.poview,self.editorslist[self.postabview.Selection()].pofile,self.encoding)
 		
 		if msg.what == 54173:
