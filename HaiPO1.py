@@ -1412,11 +1412,14 @@ class EventTextView(BTextView):
 			thisBlistitem.txttosavepl=[]
 			thisBlistitem.txttosave=self.superself.listemsgstr[0].trnsl.Text() #jocking
 			#print thisBlistitem.msgstrs
-			thisBlistitem.msgstrs[0]=self.superself.listemsgstr[0].trnsl.Text().decode(self.superself.encoding)
+			thisBlistitem.msgstrs=[]
+			thisBlistitem.msgstrs.append(self.superself.listemsgstr[0].trnsl.Text().decode(self.superself.encoding))
+			#thisBlistitem.msgstrs[0]=self.superself.listemsgstr[0].trnsl.Text().decode(self.superself.encoding)
 			bckpmsg.AddString('translation',thisBlistitem.txttosave)
 			cox=1
 			while cox < tabs+1:
-				thisBlistitem.msgstrs[cox]=self.superself.listemsgstr[cox].trnsl.Text().decode(self.superself.encoding)
+				thisBlistitem.msgstrs.append(self.superself.listemsgstr[cox].trnsl.Text().decode(self.superself.encoding))
+				#thisBlistitem.msgstrs[cox]=self.superself.listemsgstr[cox].trnsl.Text().decode(self.superself.encoding)
 				thisBlistitem.txttosavepl.append(self.superself.listemsgstr[cox].trnsl.Text())
 				bckpmsg.AddString('translationpl'+str(cox-1),self.superself.listemsgstr[cox].trnsl.Text())
 				cox+=1
@@ -1733,7 +1736,6 @@ class POEditorBBox(BBox):
 		self.scrollb = BScrollBar((r -21,5,r-5,b-5),name+'_ScrollBar',self.list.listview(),0.0,float(ind),B_VERTICAL)#len(datab)
 		self.AddChild(self.scrollb)
 		self.occumemo=[]
-		
 		if arrayview[0]:
 			for entry in self.pofile.fuzzy_entries():
 				if entry and entry.msgid_plural:
@@ -1745,11 +1747,12 @@ class POEditorBBox(BBox):
 						msgstrs.append(entry.msgstr_plural[xu])
 						xu+=1
 					item = MsgStrItem(msgids,msgstrs,2,encoding,True)
-					
 					conto=0
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
 							conto+=1
+							if conto >1:
+								break
 					if conto > 1:
 						item.SetOccurrency(True)
 						value=len(self.occumemo)
@@ -1757,21 +1760,14 @@ class POEditorBBox(BBox):
 						item.SetOccurrencyID(value)
 					else:
 						item.SetOccurrency(False)
-#					conto=0
-#					if self.list.lv.CountItems()>1:
-#						for element in self.list.lv.Items():
-#							if element.Text() == msgids[0].encode(self.encoding):
-#								conto+=1
-#						if conto>0:
-#							print "metto a item il conto di occorrenze"
-
 				else:
 					item = MsgStrItem(entry.msgid,entry.msgstr,2,encoding,False)
-					
 					conto=0
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
 							conto+=1
+							if conto >1:
+								break
 					if conto > 1:
 						item.SetOccurrency(True)
 						value=len(self.occumemo)
@@ -1779,14 +1775,6 @@ class POEditorBBox(BBox):
 						item.SetOccurrencyID(value)
 					else:
 						item.SetOccurrency(False)
-#					listone=self.list.lv
-#					if listone.CountItems() > 1:
-#						#print self.list.lv
-#						for element in listone.Items():
-#							if element.Text() == msgids.encode(self.encoding):
-#								conto += 1
-#						if conto>0:
-#							print "metto a item il conto di occorrenze"
 				self.list.lv.AddItem(item)
 		if arrayview[1]:
 			for entry in self.pofile.untranslated_entries():
@@ -1804,6 +1792,8 @@ class POEditorBBox(BBox):
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
 							conto+=1
+							if conto >1:
+								break
 					if conto > 1:
 						item.SetOccurrency(True)
 						value=len(self.occumemo)
@@ -1813,11 +1803,12 @@ class POEditorBBox(BBox):
 						item.SetOccurrency(False)
 				else:
 					item = MsgStrItem(entry.msgid,entry.msgstr,0,encoding,False)
-					
 					conto=0
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
 							conto+=1
+							if conto >1:
+								break
 					if conto > 1:
 						item.SetOccurrency(True)
 						value=len(self.occumemo)
@@ -1841,6 +1832,8 @@ class POEditorBBox(BBox):
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
 							conto+=1
+							if conto >1:
+								break
 					if conto > 1:
 						item.SetOccurrency(True)
 						value=len(self.occumemo)
@@ -1854,6 +1847,8 @@ class POEditorBBox(BBox):
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
 							conto+=1
+							if conto >1:
+								break
 					if conto > 1:
 						item.SetOccurrency(True)
 						value=len(self.occumemo)
@@ -1877,6 +1872,8 @@ class POEditorBBox(BBox):
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
 							conto+=1
+							if conto >1:
+								break
 					if conto > 1:
 						item.SetOccurrency(True)
 						value=len(self.occumemo)
@@ -1890,6 +1887,8 @@ class POEditorBBox(BBox):
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
 							conto+=1
+							if conto >1:
+								break
 					if conto > 1:
 						item.SetOccurrency(True)
 						value=len(self.occumemo)
@@ -1898,7 +1897,7 @@ class POEditorBBox(BBox):
 					else:
 						item.SetOccurrency(False)
 				self.list.lv.AddItem(item)
-
+		
 class translationtabview(BTabView):
 	def __init__(self,frame,name,width,risizingMode,flags,superself):
 		self.superself=superself
@@ -2401,7 +2400,6 @@ class PoWindow(BWindow):
 			if thisBlistitem.occurrency:
 				bckpmsg=BMessage(17892)
 				bckpmsg.AddInt32('OID',thisBlistitem.occurvalue)
-				###### TODO: Update Blistitem msgstr o msgstr_plural[x] per aggiornare passaggio su scrollview
 			else:
 				bckpmsg=BMessage(17893)
 			bckpmsg.AddInt8('savetype',1)
@@ -2410,17 +2408,21 @@ class PoWindow(BWindow):
 			bckpmsg.AddInt32('tabview',self.postabview.Selection())
 			if tabs == 0:   #->      if not thisBlistitem.hasplural:                         <-------------------------- questo no?
 				thisBlistitem.txttosave=thisBlistitem.text.decode(self.encoding)
+				thisBlistitem.msgstrs=thisBlistitem.txttosave
 				bckpmsg.AddString('translation',thisBlistitem.txttosave)
 				print "salvo solo singolare"
 			else:
 				print "provo a salvare tutto"
 				thisBlistitem.txttosavepl=[]
-				thisBlistitem.txttosave=self.listemsgid[0].src.Text()
+				thisBlistitem.txttosave=self.listemsgid[0].src.Text().decode(self.encoding)
+				thisBlistitem.msgstrs=[]
+				thisBlistitem.msgstrs.append(thisBlistitem.txttosave)
 				bckpmsg.AddString('translation',thisBlistitem.txttosave)
 				cox=1
 				while cox < tabs+1:
-					thisBlistitem.txttosavepl.append(self.listemsgid[1].src.Text())
-					bckpmsg.AddString('translationpl'+str(cox-1),self.listemsgid[1].src.Text())
+					thisBlistitem.msgstrs.append(self.listemsgid[1].src.Text().decode(self.encoding))
+					thisBlistitem.txttosavepl.append(self.listemsgid[1].src.Text().decode(self.encoding))
+					bckpmsg.AddString('translationpl'+str(cox-1),self.listemsgid[1].src.Text())    #<------- check for decode(self.encoding)
 					cox+=1
 			bckpmsg.AddString('bckppath',cursel.backupfile)
 			BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
@@ -2757,9 +2759,7 @@ class PoWindow(BWindow):
 					
 			elif  movetype == 4:
 				#select next untranslated (or needing work) string
-				#next=True
 				if (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1):
-					print "premo Tab o no?"
 					spice = self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()+1
 					if spice == self.editorslist[self.postabview.Selection()].list.lv.CountItems():
 						spice = 0
@@ -2787,28 +2787,6 @@ class PoWindow(BWindow):
 					if tt==max:
 						tt=0
 				###
-#first implementation
-#				while tt != self.editorslist[self.postabview.Selection()].list.lv.CountItems():
-#					blistit=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tt)
-#					if blistit.state==0 or blistit.state==2:
-#						conte = conte+1
-#					tt+=1
-#				if conte==0:
-#					return
-#				while next:
-#					if (spice)==self.editorslist[self.postabview.Selection()].list.lv.CountItems()-1:
-#						state=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(spice).state
-#						if state == 0 or state == 2:
-#							self.editorslist[self.postabview.Selection()].list.lv.Select(spice)
-#						next=False
-#
-#					else:
-#						state=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(spice).state
-#						if state == 0 or state == 2:
-#							self.editorslist[self.postabview.Selection()].list.lv.Select(spice)
-#							next=False
-#					spice=spice+1
-#				self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
 			thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
 			try:
 				if thisBlistitem.tosave: #it happens when something SOMEHOW has not been saved
@@ -2847,15 +2825,12 @@ class PoWindow(BWindow):
 			# save to backup and update the blistitem
 			OID=msg.FindInt32('OID')
 			print "valore OID richiesto da savlataggio",OID
-#			fuzzy=msg.FindBool('Fuzzy')
 			bckppath = msg.FindString('bckppath')
 			savetype = msg.FindInt8('savetype')
 			if savetype == 0: #simple save used for fuzzy state and metadata change   ##### no need on multiple occurrencies
 				self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']=defname
 				self.editorslist[self.postabview.Selection()].pofile.metadata['PO-Revision-Date']=now
 				self.editorslist[self.postabview.Selection()].pofile.metadata['X-Editor']=version
-				#self.metadata = self.editorslist[self.postabview.Selection()].pofile.ordered_metadata()
-				#print self.metadata
 				self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
 				return
 			elif savetype == 1:
@@ -2965,7 +2940,6 @@ class PoWindow(BWindow):
 				tabbi=msg.FindInt8('plurals')
 				intscheda=msg.FindInt32('tabview')
 				scheda=self.editorslist[intscheda]
-				print self.workonthisentry
 				entry = self.workonthisentry
 				if entry and entry.msgid_plural:
 						y=0
@@ -2978,8 +2952,6 @@ class PoWindow(BWindow):
 							textsavepl.append(intended) #useless???
 							y+=1
 							entry.msgstr_plural[y]=intended.decode(self.encoding)
-						#print "salvato singolare", textsave
-						#print "salvato plurale: ",textsavepl
 						if 'fuzzy' in entry.flags:
 							entry.flags.remove('fuzzy')
 
@@ -2992,8 +2964,6 @@ class PoWindow(BWindow):
 				scheda.pofile.metadata['Last-Translator']=defname
 				scheda.pofile.metadata['PO-Revision-Date']=now
 				scheda.pofile.metadata['X-Editor']=version
-				#self.metadata = scheda.pofile.ordered_metadata()
-				#print self.metadata
 				scheda.pofile.save(bckppath)
 				scheda.list.lv.ItemAt(tvindex).state=1
 				scheda.list.lv.ItemAt(tvindex).tosave=False
@@ -3006,8 +2976,6 @@ class PoWindow(BWindow):
 				#self.editorslist[indexroot].pofile.metadata['Last-Translator']=defname # metadata saved from po settings
 				self.editorslist[indexroot].pofile.metadata['PO-Revision-Date']=now
 				self.editorslist[indexroot].pofile.metadata['X-Editor']=version
-				#self.metadata = self.editorslist[indexroot].pofile.ordered_metadata()
-				#print self.metadata
 				self.editorslist[indexroot].pofile.save(bckppath)
 				return			
 			return
@@ -3025,8 +2993,6 @@ class PoWindow(BWindow):
 				self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']=defname
 				self.editorslist[self.postabview.Selection()].pofile.metadata['PO-Revision-Date']=now
 				self.editorslist[self.postabview.Selection()].pofile.metadata['X-Editor']=version
-				#self.metadata = self.editorslist[self.postabview.Selection()].pofile.ordered_metadata()
-				#print self.metadata
 				self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
 				return
 			elif savetype == 1:
@@ -3046,8 +3012,6 @@ class PoWindow(BWindow):
 							textsavepl.append(intended) #useless???
 							y+=1
 							entry.msgstr_plural[y]=intended.decode(self.encoding)
-						#print "salvato singolare", textsave
-						#print "salvato plurale: ",textsavepl
 						if 'fuzzy' in entry.flags:
 							entry.flags.remove('fuzzy')
 
@@ -3061,7 +3025,6 @@ class PoWindow(BWindow):
 				scheda.pofile.metadata['PO-Revision-Date']=now
 				scheda.pofile.metadata['X-Editor']=version
 				#self.metadata = scheda.pofile.ordered_metadata()
-				#print self.metadata
 				scheda.pofile.save(bckppath)
 				scheda.list.lv.ItemAt(tvindex).state=1
 				scheda.list.lv.ItemAt(tvindex).tosave=False
@@ -3071,11 +3034,9 @@ class PoWindow(BWindow):
 			elif savetype == 2:
 				#save of metadata
 				indexroot=msg.FindInt8('indexroot')
-				#self.editorslist[indexroot].pofile.metadata['Last-Translator']=defname # metadata saved from po settings
+				#self.editorslist[indexroot].pofile.metadata['Last-Translator']=defname # metadata saved from po settings  <---------------------
 				self.editorslist[indexroot].pofile.metadata['PO-Revision-Date']=now
 				self.editorslist[indexroot].pofile.metadata['X-Editor']=version
-				#self.metadata = self.editorslist[indexroot].pofile.ordered_metadata()
-				#print self.metadata
 				self.editorslist[indexroot].pofile.save(bckppath)
 				return			
 			return
@@ -3320,14 +3281,15 @@ class PoWindow(BWindow):
 				
 				txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText()
 				
-				####### TODO : check and fix for multiple occurencies ########
+				#######  check for multiple occurencies just for debug ########
 				count=0
 				for entry in self.editorslist[self.postabview.Selection()].pofile:
 					if entry.msgid.encode(self.encoding) == txttosearch:
 						count = count +1
-				if count > 1:
-					print "multiple entries occurrencies function not implemented"
-					
+						if count > 1:
+							print "multiple occurrencies for this entry msgid"
+							break
+				################################################################
 				item=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
 				if item.hasplural:
 							beta=len(item.msgids)
@@ -3374,53 +3336,9 @@ class PoWindow(BWindow):
 							
 				self.listemsgstr[0].trnsl.MakeFocus()
 
-#				for entry in self.editorslist[self.postabview.Selection()].pofile:
-#					if entry.msgid.encode(self.encoding) == txttosearch:
-#						if entry and not entry.msgid_plural:
-#							self.Nichilize()
-#							self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
-#							self.transtablabels.append(BTab())
-#							self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
-#######################################################################
-#							self.listemsgid[0].src.SetText(entry.msgid.encode(self.encoding))
-#							self.listemsgstr[0].trnsl.SetPOReadText(entry.msgstr.encode(self.encoding))
-################################ bugfix workaround? ####################
-#							self.transtabview.SetFocusTab(1,True)						#################  <----- needed to fix 
-#							self.transtabview.Select(1)									#################  <----- a bug, tab0 will not appear
-#							self.transtabview.Select(0)									#################  <----- so forcing a tabview update
-#							self.srctabview.Select(1)
-#							self.srctabview.Select(0)
-#######################################################################
-#						if entry and entry.msgid_plural:
+
 #							beta=len(sorted(entry.msgstr_plural.keys()))
-#							self.Nichilize()
-#							self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr[0]',altece,self))
-#							self.transtablabels.append(BTab())
-#							self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
-#							self.listemsgid.append(srctabbox((3,3,self.listemsgid[0].Bounds()[2]+3,self.listemsgid[0].Bounds()[3]+3),'msgid_plural',altece))
-#							self.srctablabels.append(BTab())
-#							self.srctabview.AddTab(self.listemsgid[1], self.srctablabels[1])
-#							x=len(self.listemsgid)-1
-#							self.srctabview.SetFocusTab(x,True)
-#							self.srctabview.Select(x)
-#							self.srctabview.Select(0)
-#							self.listemsgid[0].src.SetText(entry.msgid.encode(self.encoding))
-#							self.listemsgid[1].src.SetText(entry.msgid_plural.encode(self.encoding))
-#							ww=0
-#							while ww<beta:
-#								self.transtablabels.append(BTab())
-#								if ww == 0:
-#									self.listemsgstr[0].trnsl.SetPOReadText(entry.msgstr_plural[0].encode(self.encoding))
-#									self.transtabview.SetFocusTab(x,True)
-#									self.transtabview.Select(x)
-#									self.transtabview.Select(0)
-#								else:
-#									self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr['+str(ww)+']',altece,self))
-#									self.listemsgstr[ww].trnsl.SetPOReadText(entry.msgstr_plural[ww].encode(self.encoding))
-#									self.transtabview.AddTab(self.listemsgstr[ww],self.transtablabels[ww])
-#								ww=ww+1
-#							 
-#					self.listemsgstr[0].trnsl.MakeFocus()
+
 				
 				############################ TODO: GO TO THE END OF THE TEXT #############################
 				#num=self.editorslist[self.postabview.Selection()].translation.CountLines()
@@ -3474,7 +3392,10 @@ class PoWindow(BWindow):
 			
 			# add a tab in the editor's tabview
 			head, tail = os.path.split(pathtofile)
+			startTime = time.time()
 			self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile,self.poview,self.encoding))
+			executionTime = (time.time() - startTime)
+			print('Execution time in seconds: ' + str(executionTime))
 			self.tabslabels.append(BTab())
 			x=len(self.editorslist)-1
 			self.postabview.AddTab(self.editorslist[x], self.tabslabels[x])
