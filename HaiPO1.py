@@ -1128,6 +1128,8 @@ class ScrollView:
 				for entry in pofile.fuzzy_entries():
 					if entry and entry.msgid_plural:
 #						plural
+						if entry.comment:
+							comments=entry.comment
 						msgids=[entry.msgid,entry.msgid_plural]
 						lenmsgstr=len(entry.msgstr_plural)
 						msgstrs=[]
@@ -1135,7 +1137,7 @@ class ScrollView:
 						while xu<lenmsgstr:
 							msgstrs.append(entry.msgstr_plural[xu])
 							xu+=1
-						item = MsgStrItem(msgids,msgstrs,2,encoding,True)
+						item = MsgStrItem(msgids,msgstrs,comments,2,encoding,True)
 						conto=0
 						for ent in pofile:
 							if ent.msgid == entry.msgid:
@@ -1148,7 +1150,9 @@ class ScrollView:
 						else:
 							item.SetOccurrency(False)						
 					else:
-						item = MsgStrItem(entry.msgid,entry.msgstr,2,encoding,False)
+						if entry.comment:
+							comments=entry.comment
+						item = MsgStrItem(entry.msgid,entry.msgstr,comments,2,encoding,False)
 						conto=0
 						for ent in pofile:
 							if ent.msgid == entry.msgid:
@@ -1166,6 +1170,8 @@ class ScrollView:
 				for entry in pofile.untranslated_entries():
 					if entry and entry.msgid_plural:
 #						plural
+						if entry.comment:
+							comments=entry.comment
 						msgids=[entry.msgid,entry.msgid_plural]
 						lenmsgstr=len(entry.msgstr_plural)
 						msgstrs=[]
@@ -1173,7 +1179,7 @@ class ScrollView:
 						while xu<lenmsgstr:
 							msgstrs.append(entry.msgstr_plural[xu])
 							xu+=1
-						item = MsgStrItem(msgids,msgstrs,0,encoding,True)
+						item = MsgStrItem(msgids,msgstrs,comments0,encoding,True)
 						conto=0
 						for ent in pofile:
 							if ent.msgid == entry.msgid:
@@ -1186,7 +1192,9 @@ class ScrollView:
 						else:
 							item.SetOccurrency(False)						
 					else:
-						item = MsgStrItem(entry.msgid,entry.msgstr,0,encoding,False)
+						if entry.comment:
+							comments=entry.comment
+						item = MsgStrItem(entry.msgid,entry.msgstr,comments,0,encoding,False)
 						conto=0
 						for ent in pofile:
 							if ent.msgid == entry.msgid:
@@ -1203,6 +1211,8 @@ class ScrollView:
 				for entry in pofile.translated_entries():
 					if entry and entry.msgid_plural:
 #						plural
+						if entry.comment:
+							comments=entry.comment
 						msgids=[entry.msgid,entry.msgid_plural]
 						lenmsgstr=len(entry.msgstr_plural)
 						msgstrs=[]
@@ -1210,7 +1220,7 @@ class ScrollView:
 						while xu<lenmsgstr:
 							msgstrs.append(entry.msgstr_plural[xu])
 							xu+=1
-						item = MsgStrItem(msgids,msgstrs,1,encoding,True)
+						item = MsgStrItem(msgids,msgstrs,comments,1,encoding,True)
 						conto=0
 						for ent in pofile:
 							if ent.msgid == entry.msgid:
@@ -1223,7 +1233,9 @@ class ScrollView:
 						else:
 							item.SetOccurrency(False)						
 					else:
-						item = MsgStrItem(entry.msgid,entry.msgstr,1,encoding,False)
+						if entry.comment:
+							comments=entry.comment
+						item = MsgStrItem(entry.msgid,entry.msgstr,comments,1,encoding,False)
 						conto=0
 						for ent in pofile:
 							if ent.msgid == entry.msgid:
@@ -1240,6 +1252,8 @@ class ScrollView:
 				for entry in pofile.obsolete_entries():
 					if entry and entry.msgid_plural:
 #						plural
+						if entry.comment:
+							comments=entry.comment
 						msgids=[entry.msgid,entry.msgid_plural]
 						lenmsgstr=len(entry.msgstr_plural)
 						msgstrs=[]
@@ -1248,7 +1262,7 @@ class ScrollView:
 							msgstrs.append(entry.msgstr_plural[xu])
 							xu+=1
 
-						item = MsgStrItem(msgids,msgstrs,3,encoding,True)
+						item = MsgStrItem(msgids,msgstrs,comments,3,encoding,True)
 						conto=0
 						for ent in pofile:
 							if ent.msgid == entry.msgid:
@@ -1261,7 +1275,9 @@ class ScrollView:
 						else:
 							item.SetOccurrency(False)
 					else:
-						item = MsgStrItem(entry.msgid,entry.msgstr,3,encoding,False)
+						if entry.comment:
+							comments=entry.comment
+						item = MsgStrItem(entry.msgid,entry.msgstr,comments,3,encoding,False)
 						conto=0
 						for ent in pofile:
 							if ent.msgid == entry.msgid:
@@ -1739,6 +1755,8 @@ class POEditorBBox(BBox):
 		if arrayview[0]:
 			for entry in self.pofile.fuzzy_entries():
 				if entry and entry.msgid_plural:
+					if entry.comment:
+						comments=entry.comment
 					msgids=[entry.msgid,entry.msgid_plural]
 					lenmsgstr=len(entry.msgstr_plural)
 					msgstrs=[]
@@ -1746,7 +1764,7 @@ class POEditorBBox(BBox):
 					while xu<lenmsgstr:
 						msgstrs.append(entry.msgstr_plural[xu])
 						xu+=1
-					item = MsgStrItem(msgids,msgstrs,2,encoding,True)
+					item = MsgStrItem(msgids,msgstrs,comments,2,encoding,True)
 					conto=0
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
@@ -1761,7 +1779,9 @@ class POEditorBBox(BBox):
 					else:
 						item.SetOccurrency(False)
 				else:
-					item = MsgStrItem(entry.msgid,entry.msgstr,2,encoding,False)
+					if entry.comment:
+						comments=entry.comment
+					item = MsgStrItem(entry.msgid,entry.msgstr,comments,2,encoding,False)
 					conto=0
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
@@ -1779,6 +1799,8 @@ class POEditorBBox(BBox):
 		if arrayview[1]:
 			for entry in self.pofile.untranslated_entries():
 				if entry and entry.msgid_plural:
+					if entry.comment:
+						comments=entry.comment
 					msgids=[entry.msgid,entry.msgid_plural]
 					lenmsgstr=len(entry.msgstr_plural)
 					msgstrs=[]
@@ -1786,7 +1808,7 @@ class POEditorBBox(BBox):
 					while xu<lenmsgstr:
 						msgstrs.append(entry.msgstr_plural[xu])
 						xu+=1
-					item = MsgStrItem(msgids,msgstrs,0,encoding,True)
+					item = MsgStrItem(msgids,msgstrs,comments,0,encoding,True)
 					
 					conto=0
 					for ent in self.pofile:
@@ -1802,7 +1824,9 @@ class POEditorBBox(BBox):
 					else:
 						item.SetOccurrency(False)
 				else:
-					item = MsgStrItem(entry.msgid,entry.msgstr,0,encoding,False)
+					if entry.comment:
+						comments=entry.comment
+					item = MsgStrItem(entry.msgid,entry.msgstr,comments,0,encoding,False)
 					conto=0
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
@@ -1820,6 +1844,8 @@ class POEditorBBox(BBox):
 		if arrayview[2]:
 			for entry in self.pofile.translated_entries():
 				if entry and entry.msgid_plural:
+					if entry.comment:
+						comments=entry.comment
 					msgids=[entry.msgid,entry.msgid_plural]
 					lenmsgstr=len(entry.msgstr_plural)
 					msgstrs=[]
@@ -1827,7 +1853,7 @@ class POEditorBBox(BBox):
 					while xu<lenmsgstr:
 						msgstrs.append(entry.msgstr_plural[xu])
 						xu+=1
-					item = MsgStrItem(msgids,msgstrs,1,encoding,True)
+					item = MsgStrItem(msgids,msgstrs,comments,1,encoding,True)
 					conto=0
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
@@ -1842,7 +1868,9 @@ class POEditorBBox(BBox):
 					else:
 						item.SetOccurrency(False)
 				else:
-					item = MsgStrItem(entry.msgid,entry.msgstr,1,encoding,False)
+					if entry.comment:
+						comments=entry.comment
+					item = MsgStrItem(entry.msgid,entry.msgstr,comments,1,encoding,False)
 					conto=0
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
@@ -1860,6 +1888,8 @@ class POEditorBBox(BBox):
 		if arrayview[3]:
 			for entry in self.pofile.obsolete_entries():
 				if entry and entry.msgid_plural:
+					if entry.comment:
+						print entry.comment
 					msgids=[entry.msgid,entry.msgid_plural]
 					lenmsgstr=len(entry.msgstr_plural)
 					msgstrs=[]
@@ -1882,6 +1912,8 @@ class POEditorBBox(BBox):
 					else:
 						item.SetOccurrency(False)
 				else:
+					if entry.comment:
+						print entry.comment
 					item = MsgStrItem(entry.msgid,entry.msgstr,3,encoding,False)
 					conto=0
 					for ent in self.pofile:
@@ -3268,7 +3300,7 @@ class PoWindow(BWindow):
 			actualtab.backupfile= actualtab.filen+".temp"+actualtab.file_ext
 			return
 			
-		elif msg.what == 460550:
+		elif msg.what == 460550:  # selectionjack
 			# selection from listview
 			bounds = self.Bounds()
 			l, t, r, b = bounds
