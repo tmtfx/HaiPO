@@ -27,7 +27,7 @@
 
 import os,sys,ConfigParser,struct,re,thread,datetime,time,threading
 
-version='HaiPO 0.1 alpha'
+version='HaiPO 0.2 alpha'
 (appname,ver,state)=version.split(' ')
 
 jes = False
@@ -2167,6 +2167,11 @@ class PoWindow(BWindow):
 #			print "node initialized"
 		self.ofp=BFilePanel()
 		self.lubox=BBox((d*3/4,2,d,s), 'leftunderbox', B_FOLLOW_TOP_BOTTOM|B_FOLLOW_RIGHT, B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS|B_NAVIGABLE,B_FANCY_BORDER)
+		asd,dfg,ghj,jkl=self.lubox.Bounds()
+		print self.lubox.GetFontHeight()
+		hig=round(self.lubox.GetFontHeight()[0])
+		self.headlabel=BStringView((asd+4,4,ghj-asd-4,hig+4),"Header","Comments:",B_FOLLOW_TOP|B_FOLLOW_LEFT)#(d*3/4+2,4,d-2,20)
+		self.lubox.AddChild(self.headlabel)
 		self.background.AddChild(self.lubox)
 		self.postabview = postabview(self,(5.0, 5.0, d*3/4-5, b-barheight-245), 'postabview',B_WIDTH_FROM_LABEL)
 
