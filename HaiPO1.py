@@ -1053,7 +1053,8 @@ class AboutWindow(BWindow):
 		stuff = '\n\t\t\t\t\t\t\t\t'+appname+'\n\t\t\t\t\t\t\t\t\t\t\tA simple PO editor\n\t\t\t\t\t\t\t\t\t\t\tfor Haiku, version '+ver+' '+state+'\n\t\t\t\t\t\t\t\t\t\t\tcodename "Pobeda"\n\n\t\t\t\t\t\t\t\t\t\t\tby Fabio Tomat aka TmTFx\n\t\t\t\t\t\t\t\t\t\t\te-mail:\n\t\t\t\t\t\t\t\t\t\t\tf.t.public@gmail.com\n\nGNU GENERAL PUBLIC LICENSE:\nThis program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program.  If not, see \n<http://www.gnu.org/licenses/>'
 		n = stuff.find('HaiPO')
 		m = stuff.find('This')
-		self.messagjio.SetText(stuff, [(0, be_plain_font, (0, 0, 0, 0)), (n, be_bold_font, (0, 150, 0, 0)), (n + 5, be_plain_font, (0, 0, 0, 0)),(m,be_plain_font,(100,150,0,0))])
+		command=[(0, be_plain_font, (0, 0, 0, 0)), (n, be_bold_font, (0, 150, 0, 0)), (n + 5, be_plain_font, (0, 0, 0, 0)),(m,be_plain_font,(100,150,0,0))]
+		self.messagjio.SetText(stuff, command)
 		bbox.AddChild(self.messagjio)
 		bbox.AddChild(self.CloseButton)
 		self.CloseButton.MakeFocus(1)
@@ -1144,6 +1145,15 @@ class ScrollView:
 							msgstrs.append(entry.msgstr_plural[xu])
 							xu+=1
 						item = MsgStrItem(msgids,msgstrs,comments,context,2,encoding,True)
+						if entry.previous_msgid:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(encoding)))
+						if entry.previous_msgid_plural:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+						if entry.previous_msgctxt:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(encoding)))
 						conto=0
 						for ent in pofile:
 							if ent.msgid == entry.msgid:
@@ -1165,6 +1175,15 @@ class ScrollView:
 						else:
 							context = ""
 						item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,2,encoding,False)
+						if entry.previous_msgid:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(encoding)))
+						if entry.previous_msgid_plural:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+						if entry.previous_msgctxt:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(encoding)))
 						conto=0
 						for ent in pofile:
 							if ent.msgid == entry.msgid:
@@ -1198,6 +1217,15 @@ class ScrollView:
 							msgstrs.append(entry.msgstr_plural[xu])
 							xu+=1
 						item = MsgStrItem(msgids,msgstrs,comments,context,0,encoding,True)
+						if entry.previous_msgid:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(encoding)))
+						if entry.previous_msgid_plural:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+						if entry.previous_msgctxt:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(encoding)))
 						conto=0
 						for ent in pofile:
 							if ent.msgid == entry.msgid:
@@ -1219,6 +1247,15 @@ class ScrollView:
 						else:
 							context = ""
 						item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,0,encoding,False)
+						if entry.previous_msgid:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(encoding)))
+						if entry.previous_msgid_plural:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+						if entry.previous_msgctxt:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(encoding)))
 						conto=0
 						for ent in pofile:
 							if ent.msgid == entry.msgid:
@@ -1251,6 +1288,15 @@ class ScrollView:
 							msgstrs.append(entry.msgstr_plural[xu])
 							xu+=1
 						item = MsgStrItem(msgids,msgstrs,comments,context,1,encoding,True)
+						if entry.previous_msgid:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(encoding)))
+						if entry.previous_msgid_plural:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+						if entry.previous_msgctxt:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(encoding)))
 						conto=0
 						for ent in pofile:
 							if ent.msgid == entry.msgid:
@@ -1272,6 +1318,15 @@ class ScrollView:
 						else:
 							context = ""
 						item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,1,encoding,False)
+						if entry.previous_msgid:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(encoding)))
+						if entry.previous_msgid_plural:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+						if entry.previous_msgctxt:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(encoding)))
 						conto=0
 						for ent in pofile:
 							if ent.msgid == entry.msgid:
@@ -1303,8 +1358,16 @@ class ScrollView:
 						while xu<lenmsgstr:
 							msgstrs.append(entry.msgstr_plural[xu])
 							xu+=1
-
 						item = MsgStrItem(msgids,msgstrs,comments,context,3,encoding,True)
+						if entry.previous_msgid:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(encoding)))
+						if entry.previous_msgid_plural:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+						if entry.previous_msgctxt:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(encoding)))
 						conto=0
 						for ent in pofile:
 							if ent.msgid == entry.msgid:
@@ -1326,6 +1389,15 @@ class ScrollView:
 						else:
 							context = ""
 						item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,3,encoding,False)
+						if entry.previous_msgid:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(encoding)))
+						if entry.previous_msgid_plural:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+						if entry.previous_msgctxt:
+							item.SetPrevious(True)
+							item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(encoding)))
 						conto=0
 						for ent in pofile:
 							if ent.msgid == entry.msgid:
@@ -1367,8 +1439,7 @@ class MsgStrItem(BListItem):
 	dragcheck=False
 	comments=""
 	context=""
-	previous=False
-	previousmsgs=[]
+
 	
 	def __init__(self, msgids,msgstrs,comments,context,state,encoding,plural):
 		if plural:
@@ -1383,6 +1454,8 @@ class MsgStrItem(BListItem):
 		self.hasplural = plural
 		self.occurrency=False
 		self.occurvalue=0
+		self.previous=False
+		self.previousmsgs=[]
 		BListItem.__init__(self)
 
 	def DrawItem(self, owner, frame,complete):
@@ -1437,6 +1510,12 @@ class MsgStrItem(BListItem):
 	def SetOccurrency(self,bool):
 		#print "set occurrency as", bool
 		self.occurrency=bool
+		
+	def SetPreviousMsgs(self,msgs):
+		self.previousmsgs.append(msgs)
+	
+	def SetPrevious(self,bool):
+		self.previous=bool
 		
 	def Text(self):
 		return self.text
@@ -1821,6 +1900,7 @@ class POEditorBBox(BBox): #jackal
 		self.occumemo=[]
 		if arrayview[0]:
 			for entry in self.pofile.fuzzy_entries():
+				item=None
 				if entry and entry.msgid_plural:
 					if entry.comment:
 						comments=entry.comment
@@ -1839,15 +1919,14 @@ class POEditorBBox(BBox): #jackal
 						xu+=1
 					item = MsgStrItem(msgids,msgstrs,comments,context,2,encoding,True)
 					if entry.previous_msgid:
-						item.previous=True
-						item.previousmsgs.append(("msgid",entry.previous_msgid.encode(self.encoding)))
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
 					if entry.previous_msgid_plural:
-						item.previous=True
-						item.previousmsgs.append(("msgid_plural",entry.previous_msgid_plural))
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
 					if entry.previous_msgctxt:
-						item.previous=True
-						item.previousmsgs.append(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
-
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					conto=0
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
@@ -1873,14 +1952,14 @@ class POEditorBBox(BBox): #jackal
 							context = ""
 					item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,2,encoding,False)
 					if entry.previous_msgid:
-						item.previous=True
-						item.previousmsgs.append(("msgid",entry.previous_msgid.encode(self.encoding)))
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
 					if entry.previous_msgid_plural:
-						item.previous=True
-						item.previousmsgs.append(("msgid_plural",entry.previous_msgid_plural))
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
 					if entry.previous_msgctxt:
-						item.previous=True
-						item.previousmsgs.append(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					conto=0
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
@@ -1914,7 +1993,15 @@ class POEditorBBox(BBox): #jackal
 						msgstrs.append(entry.msgstr_plural[xu])
 						xu+=1
 					item = MsgStrItem(msgids,msgstrs,comments,context,0,encoding,True)
-					
+					if entry.previous_msgid:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
+					if entry.previous_msgid_plural:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+					if entry.previous_msgctxt:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					conto=0
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
@@ -1938,6 +2025,15 @@ class POEditorBBox(BBox): #jackal
 					else:
 							context = ""
 					item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,0,encoding,False)
+					if entry.previous_msgid:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
+					if entry.previous_msgid_plural:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+					if entry.previous_msgctxt:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					conto=0
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
@@ -1971,6 +2067,15 @@ class POEditorBBox(BBox): #jackal
 						msgstrs.append(entry.msgstr_plural[xu])
 						xu+=1
 					item = MsgStrItem(msgids,msgstrs,comments,context,1,encoding,True)
+					if entry.previous_msgid:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
+					if entry.previous_msgid_plural:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+					if entry.previous_msgctxt:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					conto=0
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
@@ -1994,6 +2099,15 @@ class POEditorBBox(BBox): #jackal
 					else:
 							context = ""
 					item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,1,encoding,False)
+					if entry.previous_msgid:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
+					if entry.previous_msgid_plural:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+					if entry.previous_msgctxt:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					conto=0
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
@@ -2027,6 +2141,15 @@ class POEditorBBox(BBox): #jackal
 						msgstrs.append(entry.msgstr_plural[xu])
 						xu+=1
 					item = MsgStrItem(msgids,msgstrs,comments,context,3,encoding,True)
+					if entry.previous_msgid:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
+					if entry.previous_msgid_plural:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+					if entry.previous_msgctxt:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					conto=0
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
@@ -2050,6 +2173,15 @@ class POEditorBBox(BBox): #jackal
 					else:
 							context = ""
 					item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,3,encoding,False)
+					if entry.previous_msgid:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
+					if entry.previous_msgid_plural:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+					if entry.previous_msgctxt:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					conto=0
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
@@ -2337,11 +2469,10 @@ class PoWindow(BWindow):
 		asd,dfg,ghj,jkl=self.lubox.Bounds()
 		#print self.lubox.GetFontHeight()
 		hig=round(self.lubox.GetFontHeight()[0])
-		self.headlabel=BStringView((4,4,ghj-4,hig+4),"Header","Comments:",B_FOLLOW_TOP|B_FOLLOW_LEFT)#(d*3/4+2,4,d-2,20)
+		#(d*3/4+2,4,d-2,20)
 		#4+self.lubox.GetFontHeight()[0]+182
-		self.contextlabel=BStringView((4,hig+190,ghj-4,hig*2+194),"Context","Context:",B_FOLLOW_TOP|B_FOLLOW_LEFT)
-		self.lubox.AddChild(self.headlabel)
-		self.lubox.AddChild(self.contextlabel)
+		
+		
 		self.background.AddChild(self.lubox)
 		self.postabview = postabview(self,(5.0, 5.0, d*3/4-5, b-barheight-245), 'postabview',B_WIDTH_FROM_LABEL)
 
@@ -2999,7 +3130,7 @@ class PoWindow(BWindow):
 			now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
 			# save to backup and update the blistitem
 			OID=msg.FindInt32('OID')
-			print "valore OID richiesto da savlataggio",OID
+			#print "valore OID richiesto da savlataggio",OID
 			bckppath = msg.FindString('bckppath')
 			savetype = msg.FindInt8('savetype')
 			if savetype == 0: #simple save used for fuzzy state and metadata change   ##### no need on multiple occurrencies
@@ -3024,7 +3155,7 @@ class PoWindow(BWindow):
 									occurem.append((entry.msgid,value))
 									if value == OID:
 										self.workonthisentry=entry
-										print "trovata voce OID"
+										#print "trovata voce OID"
 						else:
 							conto=0
 							for ent in self.pofile:
@@ -3035,7 +3166,7 @@ class PoWindow(BWindow):
 									occurem.append((entry.msgid,value))
 									if value == OID:
 										self.workonthisentry=entry
-										print "trovata voce OID"
+										#print "trovata voce OID"
 				if self.poview[1]:
 					for entry in self.pofile.untranslated_entries():
 						if entry and entry.msgid_plural:
@@ -3048,7 +3179,7 @@ class PoWindow(BWindow):
 									occurem.append((entry.msgid,value))
 									if value == OID:
 										self.workonthisentry=entry
-										print "trovata voce OID"
+										#print "trovata voce OID"
 						else:
 							conto=0
 							for ent in self.pofile:
@@ -3059,7 +3190,7 @@ class PoWindow(BWindow):
 									occurem.append((entry.msgid,value))
 									if value == OID:
 										self.workonthisentry=entry
-										print "trovata voce OID"
+										#print "trovata voce OID"
 				if self.poview[2]:
 					for entry in self.pofile.translated_entries():
 						if entry and entry.msgid_plural:
@@ -3072,7 +3203,7 @@ class PoWindow(BWindow):
 									occurem.append((entry.msgid,value))
 									if value == OID:
 										self.workonthisentry=entry
-										print "trovata voce OID"
+										#print "trovata voce OID"
 						else:
 							conto=0
 							for ent in self.pofile:
@@ -3083,7 +3214,7 @@ class PoWindow(BWindow):
 									occurem.append((entry.msgid,value))
 									if value == OID:
 										self.workonthisentry=entry
-										print "trovata voce OID"
+										#print "trovata voce OID"
 				if self.poview[3]:
 					for entry in self.pofile.obsolete_entries():
 						if entry and entry.msgid_plural:
@@ -3096,7 +3227,7 @@ class PoWindow(BWindow):
 									occurem.append((entry.msgid,value))
 									if value == OID:
 										self.workonthisentry=entry
-										print "trovata voce OID"
+										#print "trovata voce OID"
 						else:
 							conto=0
 							for ent in self.pofile:
@@ -3107,7 +3238,7 @@ class PoWindow(BWindow):
 									occurem.append((entry.msgid,value))
 									if value == OID:
 										self.workonthisentry=entry
-										print "trovata voce OID"
+										#print "trovata voce OID"
 				#print occurem
 			
 				tvindex=msg.FindInt32('tvindex')
@@ -3123,7 +3254,7 @@ class PoWindow(BWindow):
 						while y < tabbi:
 							varname='translationpl'+str(y) ######################################### check! stry(y) or  y+1???????? plurale
 							intended=msg.FindString(varname)
-							print varname,intended
+							#print varname,intended
 							textsavepl.append(intended) #useless???
 							y+=1
 							entry.msgstr_plural[y]=intended.decode(self.encoding)
@@ -3314,7 +3445,7 @@ class PoWindow(BWindow):
 										occurem.append((entry.msgid,value))
 										if value == OID:
 											self.workonthisentry=entry
-											print "trovata voce OID"
+											#print "trovata voce OID"
 							else:
 								conto=0
 								for ent in pofi:
@@ -3325,7 +3456,7 @@ class PoWindow(BWindow):
 										occurem.append((entry.msgid,value))
 										if value == OID:
 											self.workonthisentry=entry
-											print "trovata voce OID"
+											#print "trovata voce OID"
 					if self.poview[1]:
 						for entry in pofi.untranslated_entries():
 							if entry and entry.msgid_plural:
@@ -3338,7 +3469,7 @@ class PoWindow(BWindow):
 										occurem.append((entry.msgid,value))
 										if value == OID:
 											self.workonthisentry=entry
-											print "trovata voce OID"
+											#print "trovata voce OID"
 							else:
 								conto=0
 								for ent in pofi:
@@ -3349,7 +3480,7 @@ class PoWindow(BWindow):
 										occurem.append((entry.msgid,value))
 										if value == OID:
 											self.workonthisentry=entry
-											print "trovata voce OID"
+											#print "trovata voce OID"
 					if self.poview[2]:
 						for entry in pofi.translated_entries():
 							if entry and entry.msgid_plural:
@@ -3362,7 +3493,7 @@ class PoWindow(BWindow):
 										occurem.append((entry.msgid,value))
 										if value == OID:
 											self.workonthisentry=entry
-											print "trovata voce OID"
+											#print "trovata voce OID"
 							else:
 								conto=0
 								for ent in pofi:
@@ -3374,7 +3505,7 @@ class PoWindow(BWindow):
 										if value == OID:
 											self.workonthisentry=entry
 											#print entry
-											print "trovata voce OID"
+											#print "trovata voce OID"
 					if self.poview[3]:
 						for entry in pofi.obsolete_entries():
 							if entry and entry.msgid_plural:
@@ -3387,7 +3518,7 @@ class PoWindow(BWindow):
 										occurem.append((entry.msgid,value))
 										if value == OID:
 											self.workonthisentry=entry
-											print "trovata voce OID"
+											#print "trovata voce OID"
 							else:
 								conto=0
 								for ent in pofi:
@@ -3398,7 +3529,7 @@ class PoWindow(BWindow):
 										occurem.append((entry.msgid,value))
 										if value == OID:
 											self.workonthisentry=entry
-											print "trovata voce OID"
+											#print "trovata voce OID"
 					if 'fuzzy' in self.workonthisentry.flags:
 						self.workonthisentry.flags.remove('fuzzy')
 					else:
@@ -3510,15 +3641,19 @@ class PoWindow(BWindow):
 							self.srctabview.Select(0)
 
 				asd,sdf,dfg,fgh=self.lubox.Bounds()
+				hig=round(self.lubox.GetFontHeight()[0])
 				if item.comments!="":
 					try:
 						self.commentview.RemoveSelf()
 						self.scrollcomment.RemoveSelf()
+						self.headlabel.RemoveSelf()
 					except:
 						pass
-					self.commentview=BTextView((8,4+self.lubox.GetFontHeight()[0],dfg-26,200),"commentview",(4,4,dfg-asd-36,fgh/3-8),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)  #####todo:fix for scrollbarwidth #fgh/3-4
+					self.headlabel=BStringView((4,4,dfg-4,hig+4),"Header","Comments:",B_FOLLOW_TOP|B_FOLLOW_LEFT)
+					self.commentview=BTextView((8,4+hig,dfg-26,200),"commentview",(4,4,179,197),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT) #dfg-asd-36,fgh/3-8    ->197
 					self.commentview.MakeEditable(False)
-					self.scrollcomment=BScrollBar((dfg-24,4+self.lubox.GetFontHeight()[0],dfg-8,200),'commentview_ScrollBar',self.commentview,0.0,0.0,B_VERTICAL)  #####todo:fix for scrollbarwidth
+					self.lubox.AddChild(self.headlabel)
+					self.scrollcomment=BScrollBar((dfg-24,4+hig,dfg-8,200),'commentview_ScrollBar',self.commentview,0.0,0.0,B_VERTICAL)
 					self.lubox.AddChild(self.scrollcomment)
 					self.lubox.AddChild(self.commentview)
 					self.commentview.SetText(item.comments)
@@ -3526,17 +3661,21 @@ class PoWindow(BWindow):
 					try:
 						self.commentview.RemoveSelf()
 						self.scrollcomment.RemoveSelf()
+						self.headlabel.RemoveSelf()
 					except:
 						pass
 				if item.context!="":
 					try:
 						self.contextview.RemoveSelf()
 						self.scrollcontext.RemoveSelf()
+						self.contextlabel.RemoveSelf()
 					except:
 						pass
-					self.contextview=BTextView((8,4+self.lubox.GetFontHeight()[0]*2+190,dfg-26,300),"contextview",(4,4,dfg-asd-36,fgh/3-8),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)  #####todo:fix for scrollbarwidth #fgh/3+4+190
+					self.contextlabel=BStringView((4,208,dfg-4,hig+208),"Context","Context:",B_FOLLOW_TOP|B_FOLLOW_LEFT)
+					self.lubox.AddChild(self.contextlabel)
+					self.contextview=BTextView((8,hig+208,dfg-26,300),"contextview",(4,4,179,292),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)#dfg-asd-36,fgh/3-8     ->197
 					self.contextview.MakeEditable(False)
-					self.scrollcontext=BScrollBar((dfg-24,4+self.lubox.GetFontHeight()[0]*2+190,dfg-8,300),'contextview_ScrollBar',self.contextview,0.0,0.0,B_VERTICAL)  #####todo:fix for scrollbarwidth
+					self.scrollcontext=BScrollBar((dfg-24,hig+208,dfg-8,300),'contextview_ScrollBar',self.contextview,0.0,0.0,B_VERTICAL)
 					self.lubox.AddChild(self.scrollcontext)
 					self.lubox.AddChild(self.contextview)
 					self.contextview.SetText(item.context)
@@ -3544,6 +3683,7 @@ class PoWindow(BWindow):
 					try:
 						self.contextview.RemoveSelf()
 						self.scrollcontext.RemoveSelf()
+						self.contextlabel.RemoveSelf()
 					except:
 						pass
 				if item.previous:
@@ -3553,17 +3693,37 @@ class PoWindow(BWindow):
 						self.labelprevious.RemoveSelf()
 					except:
 						pass
-					hig=round(self.lubox.GetFontHeight()[0])
+					
 					self.labelprevious=BStringView((4,308,dfg-4,hig+308),"Previous","Previous:",B_FOLLOW_TOP|B_FOLLOW_LEFT)
 					self.lubox.AddChild(self.labelprevious)
-					self.previousview=BTextView((8,hig+308,dfg-26,500),"previousview",(4,4,dfg-asd-36,fgh/3-8),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)  #####todo:fix for scrollbarwidth 
+					self.previousview=BTextView((8,hig+308,dfg-26,500),"previousview",(4,4,dfg-asd-36,fgh/3-8),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW)
 					self.previousview.MakeEditable(False)
-					self.scrollprevious=BScrollBar((dfg-24,hig+308,dfg-8,500),'previousview_ScrollBar',self.previousview,0.0,0.0,B_VERTICAL)  #####todo:fix for scrollbarwidth
+					self.scrollprevious=BScrollBar((dfg-24,hig+308,dfg-8,500),'previousview_ScrollBar',self.previousview,0.0,0.0,B_VERTICAL)
 					self.lubox.AddChild(self.scrollprevious)
-					self.lubox.AddChild(self.previousview)
+					resultxt=""
+					bolds=[]
+					plain=[]
+					color1=(0,0,0,0)
+					color2=(50,50,50,0)
+					command=[]
+					#print item.previousmsgs
 					for items in item.previousmsgs:
-						resultxt="testo da rappresentare"
-					self.previousview.SetText(resultxt)
+						actualtxt= items[0]+":\n"+items[1]+"\n"
+						resultxt += actualtxt
+						minornum=resultxt.find(actualtxt)
+						mid=actualtxt.find(items[1])
+						plainadd=minornum+mid
+						command.append((minornum,be_bold_font, color1))
+						command.append((plainadd,be_plain_font, color2))
+					#print command
+						#bolds.append(minornum)#resultxt.find(items[0]))
+						#plain.append(plainadd)#resultxt.find(items[1]))
+					#xy=0
+					#while xy<len(bolds):
+					#command=[(0, be_bold_font, (0, 0, 0, 0)), (7, be_plain_font, (50, 50, 50, 0))]
+					self.previousview.SetStylable(1)
+					self.previousview.SetText(resultxt, command)
+					self.lubox.AddChild(self.previousview)
 				else:
 					try:
 						self.previousview.RemoveSelf()
