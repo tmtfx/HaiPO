@@ -1130,6 +1130,8 @@ class ScrollView:
 #						plural
 						if entry.comment:
 							comments=entry.comment
+						else:
+							comments = ""
 						msgids=[entry.msgid,entry.msgid_plural]
 						lenmsgstr=len(entry.msgstr_plural)
 						msgstrs=[]
@@ -1152,6 +1154,8 @@ class ScrollView:
 					else:
 						if entry.comment:
 							comments=entry.comment
+						else:
+							comments = ""
 						item = MsgStrItem(entry.msgid,entry.msgstr,comments,2,encoding,False)
 						conto=0
 						for ent in pofile:
@@ -1172,6 +1176,8 @@ class ScrollView:
 #						plural
 						if entry.comment:
 							comments=entry.comment
+						else:
+							comments = ""
 						msgids=[entry.msgid,entry.msgid_plural]
 						lenmsgstr=len(entry.msgstr_plural)
 						msgstrs=[]
@@ -1194,6 +1200,8 @@ class ScrollView:
 					else:
 						if entry.comment:
 							comments=entry.comment
+						else:
+							comments = ""
 						item = MsgStrItem(entry.msgid,entry.msgstr,comments,0,encoding,False)
 						conto=0
 						for ent in pofile:
@@ -1213,6 +1221,8 @@ class ScrollView:
 #						plural
 						if entry.comment:
 							comments=entry.comment
+						else:
+							comments = ""
 						msgids=[entry.msgid,entry.msgid_plural]
 						lenmsgstr=len(entry.msgstr_plural)
 						msgstrs=[]
@@ -1235,6 +1245,8 @@ class ScrollView:
 					else:
 						if entry.comment:
 							comments=entry.comment
+						else:
+							comments = ""
 						item = MsgStrItem(entry.msgid,entry.msgstr,comments,1,encoding,False)
 						conto=0
 						for ent in pofile:
@@ -1254,6 +1266,8 @@ class ScrollView:
 #						plural
 						if entry.comment:
 							comments=entry.comment
+						else:
+							comments = ""
 						msgids=[entry.msgid,entry.msgid_plural]
 						lenmsgstr=len(entry.msgstr_plural)
 						msgstrs=[]
@@ -1277,6 +1291,8 @@ class ScrollView:
 					else:
 						if entry.comment:
 							comments=entry.comment
+						else:
+							comments = ""
 						item = MsgStrItem(entry.msgid,entry.msgstr,comments,3,encoding,False)
 						conto=0
 						for ent in pofile:
@@ -1318,11 +1334,12 @@ class MsgStrItem(BListItem):
 	txttosavepl=[]  # nel lungo termine eliminare
 	dragcheck=False
 
-	def __init__(self, msgids,msgstrs,state,encoding,plural):
+	def __init__(self, msgids,msgstrs,comments,state,encoding,plural):
 		if plural:
 			self.text = msgids[0].encode(encoding)  #it's in english should this always be utf-8?
 		else:
 			self.text = msgids.encode(encoding)
+		self.comments = comments
 		self.msgids = msgids
 		self.msgstrs = msgstrs
 		self.state = state
@@ -1714,9 +1731,14 @@ class trnsltabbox(BBox):
 		self.scrollbtrans=BScrollBar((bo -21,1,bo-5,ba-5),name+'_ScrollBar',self.trnsl,0.0,0.0,B_VERTICAL)
 		self.AddChild(self.scrollbtrans)
 
-class POEditorBBox(BBox):
+
+
+##################################### TODO : integrare gestione pofile.header ###############################################
+
+class POEditorBBox(BBox): #jackal
 	def __init__(self,frame,name,percors,pofileloaded,arrayview,encoding):
 		self.pofile = pofileloaded
+#		print self.pofile.header
 		self.name = name
 		self.encoding=encoding
 		self.filen, self.file_ext = os.path.splitext(percors)
@@ -1757,6 +1779,8 @@ class POEditorBBox(BBox):
 				if entry and entry.msgid_plural:
 					if entry.comment:
 						comments=entry.comment
+					else:
+						comments = ""
 					msgids=[entry.msgid,entry.msgid_plural]
 					lenmsgstr=len(entry.msgstr_plural)
 					msgstrs=[]
@@ -1781,6 +1805,8 @@ class POEditorBBox(BBox):
 				else:
 					if entry.comment:
 						comments=entry.comment
+					else:
+						comments = ""
 					item = MsgStrItem(entry.msgid,entry.msgstr,comments,2,encoding,False)
 					conto=0
 					for ent in self.pofile:
@@ -1801,6 +1827,8 @@ class POEditorBBox(BBox):
 				if entry and entry.msgid_plural:
 					if entry.comment:
 						comments=entry.comment
+					else:
+						comments = ""
 					msgids=[entry.msgid,entry.msgid_plural]
 					lenmsgstr=len(entry.msgstr_plural)
 					msgstrs=[]
@@ -1826,6 +1854,8 @@ class POEditorBBox(BBox):
 				else:
 					if entry.comment:
 						comments=entry.comment
+					else:
+						comments = ""
 					item = MsgStrItem(entry.msgid,entry.msgstr,comments,0,encoding,False)
 					conto=0
 					for ent in self.pofile:
@@ -1846,6 +1876,8 @@ class POEditorBBox(BBox):
 				if entry and entry.msgid_plural:
 					if entry.comment:
 						comments=entry.comment
+					else:
+						comments = ""
 					msgids=[entry.msgid,entry.msgid_plural]
 					lenmsgstr=len(entry.msgstr_plural)
 					msgstrs=[]
@@ -1870,6 +1902,8 @@ class POEditorBBox(BBox):
 				else:
 					if entry.comment:
 						comments=entry.comment
+					else:
+						comments = ""
 					item = MsgStrItem(entry.msgid,entry.msgstr,comments,1,encoding,False)
 					conto=0
 					for ent in self.pofile:
@@ -1889,7 +1923,9 @@ class POEditorBBox(BBox):
 			for entry in self.pofile.obsolete_entries():
 				if entry and entry.msgid_plural:
 					if entry.comment:
-						print entry.comment
+						comments = entry.comment
+					else:
+						comments = ""
 					msgids=[entry.msgid,entry.msgid_plural]
 					lenmsgstr=len(entry.msgstr_plural)
 					msgstrs=[]
@@ -1897,7 +1933,7 @@ class POEditorBBox(BBox):
 					while xu<lenmsgstr:
 						msgstrs.append(entry.msgstr_plural[xu])
 						xu+=1
-					item = MsgStrItem(msgids,msgstrs,3,encoding,True)
+					item = MsgStrItem(msgids,msgstrs,comments,3,encoding,True)
 					conto=0
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
@@ -1913,8 +1949,10 @@ class POEditorBBox(BBox):
 						item.SetOccurrency(False)
 				else:
 					if entry.comment:
-						print entry.comment
-					item = MsgStrItem(entry.msgid,entry.msgstr,3,encoding,False)
+						comments = entry.comment
+					else:
+						comments = ""
+					item = MsgStrItem(entry.msgid,entry.msgstr,comments,3,encoding,False)
 					conto=0
 					for ent in self.pofile:
 						if ent.msgid == entry.msgid:
@@ -3370,7 +3408,19 @@ class PoWindow(BWindow):
 							self.transtabview.Select(0)									#################  <----- so forcing a tabview update
 							self.srctabview.Select(1)
 							self.srctabview.Select(0)
-							
+				
+				#
+				if item.comments!="":
+					asd,sdf,dfg,fgh=self.lubox.Bounds()
+					self.commentview=BTextView((8,4+self.lubox.GetFontHeight()[0],dfg-8,fgh/2-4),"commentview",(4,4,dfg-asd-20,fgh/2-8),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)
+					self.lubox.AddChild(self.commentview)
+					self.commentview.SetText(item.comments)
+				else:
+					if self.commentview:
+						self.lubox.RemoveChild(self.commentview)
+					#print item.comments
+				
+				
 				self.listemsgstr[0].trnsl.MakeFocus()
 
 
