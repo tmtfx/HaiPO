@@ -1333,7 +1333,7 @@ class MsgStrItem(BListItem):
 	txttosave=""	# nel lungo termine eliminare
 	txttosavepl=[]  # nel lungo termine eliminare
 	dragcheck=False
-
+	comments= ""
 	def __init__(self, msgids,msgstrs,comments,state,encoding,plural):
 		if plural:
 			self.text = msgids[0].encode(encoding)  #it's in english should this always be utf-8?
@@ -1734,6 +1734,14 @@ class trnsltabbox(BBox):
 
 
 ##################################### TODO : integrare gestione pofile.header ###############################################
+#entry.tcomment -> translator comment
+#	 .previous_msgctxt  ->  previous context
+#	 .previous_msgid  -> previous msgid
+#	 .previous_msgid_plural -> previous msgid_plural
+#	 .linenum -> line number of the entry
+#	 .msgctxt -> entry context
+
+
 
 class POEditorBBox(BBox): #jackal
 	def __init__(self,frame,name,percors,pofileloaded,arrayview,encoding):
@@ -1803,6 +1811,7 @@ class POEditorBBox(BBox): #jackal
 					else:
 						item.SetOccurrency(False)
 				else:
+					#print entry.context
 					if entry.comment:
 						comments=entry.comment
 					else:
@@ -3273,7 +3282,7 @@ class PoWindow(BWindow):
 										occurem.append((entry.msgid,value))
 										if value == OID:
 											self.workonthisentry=entry
-											print entry
+											#print entry
 											print "trovata voce OID"
 					if self.poview[3]:
 						for entry in pofi.obsolete_entries():
@@ -3411,13 +3420,27 @@ class PoWindow(BWindow):
 				
 				#
 				if item.comments!="":
+					try:
+						self.commentview.RemoveSelf()
+						self.scrollcomment.RemoveSelf()
+					except:
+						pass
 					asd,sdf,dfg,fgh=self.lubox.Bounds()
-					self.commentview=BTextView((8,4+self.lubox.GetFontHeight()[0],dfg-8,fgh/2-4),"commentview",(4,4,dfg-asd-20,fgh/2-8),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)
+					self.commentview=BTextView((8,4+self.lubox.GetFontHeight()[0],dfg-26,fgh/3-4),"commentview",(4,4,dfg-asd-36,fgh/2-8),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)  #####todo:fix for scrollbarwidth
+					self.commentview.MakeEditable(False)
+					#qwe,wer,ert,rty=self.commentview.Bounds()
+					#x,y=self.commentview.LeftTop()
+					
+					self.scrollcomment=BScrollBar((dfg-24,4+self.lubox.GetFontHeight()[0],dfg-8,fgh/3-4),'commentview_ScrollBar',self.commentview,0.0,0.0,B_VERTICAL)  #####todo:fix for scrollbarwidth
+					self.lubox.AddChild(self.scrollcomment)
 					self.lubox.AddChild(self.commentview)
 					self.commentview.SetText(item.comments)
 				else:
-					if self.commentview:
-						self.lubox.RemoveChild(self.commentview)
+					try:
+						self.commentview.RemoveSelf()
+						self.scrollcomment.RemoveSelf()
+					except:
+						pass
 					#print item.comments
 				
 				
@@ -3501,7 +3524,7 @@ class HaiPOApp(BApplication.BApplication):
 
 
 	def ReadyToRun(self):
-		window((100,80,800,600))
+		window((100,80,960,720))
 		if len(sys.argv) > 1:
 			try:
 				for item in sys.argv:
