@@ -1145,6 +1145,8 @@ class ScrollView:
 							msgstrs.append(entry.msgstr_plural[xu])
 							xu+=1
 						item = MsgStrItem(msgids,msgstrs,comments,context,2,encoding,True)
+						if entry.tcomment:
+							item.SetTranslatorComment(entry.tcomment)
 						if entry.previous_msgid:
 							item.SetPrevious(True)
 							item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(encoding)))
@@ -1175,6 +1177,8 @@ class ScrollView:
 						else:
 							context = ""
 						item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,2,encoding,False)
+						if entry.tcomment:
+							item.SetTranslatorComment(entry.tcomment)
 						if entry.previous_msgid:
 							item.SetPrevious(True)
 							item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(encoding)))
@@ -1217,6 +1221,8 @@ class ScrollView:
 							msgstrs.append(entry.msgstr_plural[xu])
 							xu+=1
 						item = MsgStrItem(msgids,msgstrs,comments,context,0,encoding,True)
+						if entry.tcomment:
+							item.SetTranslatorComment(entry.tcomment)
 						if entry.previous_msgid:
 							item.SetPrevious(True)
 							item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(encoding)))
@@ -1247,6 +1253,8 @@ class ScrollView:
 						else:
 							context = ""
 						item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,0,encoding,False)
+						if entry.tcomment:
+							item.SetTranslatorComment(entry.tcomment)
 						if entry.previous_msgid:
 							item.SetPrevious(True)
 							item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(encoding)))
@@ -1288,6 +1296,8 @@ class ScrollView:
 							msgstrs.append(entry.msgstr_plural[xu])
 							xu+=1
 						item = MsgStrItem(msgids,msgstrs,comments,context,1,encoding,True)
+						if entry.tcomment:
+							item.SetTranslatorComment(entry.tcomment)
 						if entry.previous_msgid:
 							item.SetPrevious(True)
 							item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(encoding)))
@@ -1318,6 +1328,8 @@ class ScrollView:
 						else:
 							context = ""
 						item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,1,encoding,False)
+						if entry.tcomment:
+							item.SetTranslatorComment(entry.tcomment)
 						if entry.previous_msgid:
 							item.SetPrevious(True)
 							item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(encoding)))
@@ -1359,6 +1371,8 @@ class ScrollView:
 							msgstrs.append(entry.msgstr_plural[xu])
 							xu+=1
 						item = MsgStrItem(msgids,msgstrs,comments,context,3,encoding,True)
+						if entry.tcomment:
+							item.SetTranslatorComment(entry.tcomment)
 						if entry.previous_msgid:
 							item.SetPrevious(True)
 							item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(encoding)))
@@ -1389,6 +1403,8 @@ class ScrollView:
 						else:
 							context = ""
 						item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,3,encoding,False)
+						if entry.tcomment:
+							item.SetTranslatorComment(entry.tcomment)
 						if entry.previous_msgid:
 							item.SetPrevious(True)
 							item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(encoding)))
@@ -1456,6 +1472,7 @@ class MsgStrItem(BListItem):
 		self.occurvalue=0
 		self.previous=False
 		self.previousmsgs=[]
+		self.tcomment=""
 		BListItem.__init__(self)
 
 	def DrawItem(self, owner, frame,complete):
@@ -1516,6 +1533,9 @@ class MsgStrItem(BListItem):
 	
 	def SetPrevious(self,bool):
 		self.previous=bool
+
+	def SetTranslatorComment(self,tcomment):
+		self.tcomment=tcomment
 		
 	def Text(self):
 		return self.text
@@ -1918,6 +1938,8 @@ class POEditorBBox(BBox): #jackal
 						msgstrs.append(entry.msgstr_plural[xu])
 						xu+=1
 					item = MsgStrItem(msgids,msgstrs,comments,context,2,encoding,True)
+					if entry.tcomment:
+						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
@@ -1951,6 +1973,8 @@ class POEditorBBox(BBox): #jackal
 					else:
 							context = ""
 					item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,2,encoding,False)
+					if entry.tcomment:
+						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
@@ -1993,6 +2017,8 @@ class POEditorBBox(BBox): #jackal
 						msgstrs.append(entry.msgstr_plural[xu])
 						xu+=1
 					item = MsgStrItem(msgids,msgstrs,comments,context,0,encoding,True)
+					if entry.tcomment:
+						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
@@ -2025,6 +2051,8 @@ class POEditorBBox(BBox): #jackal
 					else:
 							context = ""
 					item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,0,encoding,False)
+					if entry.tcomment:
+						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
@@ -2067,6 +2095,8 @@ class POEditorBBox(BBox): #jackal
 						msgstrs.append(entry.msgstr_plural[xu])
 						xu+=1
 					item = MsgStrItem(msgids,msgstrs,comments,context,1,encoding,True)
+					if entry.tcomment:
+						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
@@ -2099,6 +2129,8 @@ class POEditorBBox(BBox): #jackal
 					else:
 							context = ""
 					item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,1,encoding,False)
+					if entry.tcomment:
+						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
@@ -2141,6 +2173,8 @@ class POEditorBBox(BBox): #jackal
 						msgstrs.append(entry.msgstr_plural[xu])
 						xu+=1
 					item = MsgStrItem(msgids,msgstrs,comments,context,3,encoding,True)
+					if entry.tcomment:
+						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
@@ -2173,6 +2207,8 @@ class POEditorBBox(BBox): #jackal
 					else:
 							context = ""
 					item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,3,encoding,False)
+					if entry.tcomment:
+						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
@@ -2553,6 +2589,30 @@ class PoWindow(BWindow):
 					
 						b.scrollb.MoveTo(k-21,5)
 						b.scrollb.ResizeTo(cv-zx,l-10)
+			try:
+				h,j,k,l=self.contextview.Bounds()
+				a,s,d,f=self.scrollcontext.Bounds()
+				self.scrollcontext.ResizeTo(d-a,l-j)
+			except:
+				pass
+			try:
+				h,j,k,l=self.previousview.Bounds()
+				a,s,d,f=self.scrollprevious.Bounds()
+				self.scrollprevious.ResizeTo(d-a,l-j)
+			except:
+				pass
+			try:
+				h,j,k,l=self.commentview.Bounds()
+				a,s,d,f=self.scrollcomment.Bounds()
+				self.scrollcomment.ResizeTo(d-a,l-j)
+			except:
+				pass
+			try:
+				h,j,k,l=self.tcommenttview.Bounds()
+				a,s,d,f=self.scrolltcomment.Bounds()
+				self.scrolltcomment.ResizeToP(d-a,l-j)
+			except:
+				pass
 			
 	def Nichilize(self):
 					if (len(self.listemsgid)-1) == 1:    #IF THERE'S A PLURAL MSGID, REMOVE IT
@@ -2775,6 +2835,9 @@ class PoWindow(BWindow):
 			self.usersettings.Show()
 			self.SetFlags(B_AVOID_FOCUS)
 			return
+		
+		elif msg.what == 32:
+			print "doppioclick"
 			
 		elif msg.what == 42:
 			# PO metadata
@@ -3260,12 +3323,24 @@ class PoWindow(BWindow):
 							entry.msgstr_plural[y]=intended.decode(self.encoding)
 						if 'fuzzy' in entry.flags:
 							entry.flags.remove('fuzzy')
+						if entry.previous_msgid:
+							entry.previous_msgid=None
+						if entry.previous_msgid_plural:
+							entry.previous_msgid_plural=None
+						if entry.previous_msgctxt:
+							entry.previous_msgctxt=None
 
 				elif entry and not entry.msgid_plural:
 						entry.msgstr = textsave.decode(self.encoding)
 						if 'fuzzy' in entry.flags:
 							entry.flags.remove('fuzzy')
-							
+						if entry.previous_msgid:
+							entry.previous_msgid=None
+						if entry.previous_msgid_plural:
+							entry.previous_msgid_plural=None
+						if entry.previous_msgctxt:
+							entry.previous_msgctxt=None
+
 				#'Last-Translator'
 				scheda.pofile.metadata['Last-Translator']=defname
 				scheda.pofile.metadata['PO-Revision-Date']=now
@@ -3320,11 +3395,23 @@ class PoWindow(BWindow):
 							entry.msgstr_plural[y]=intended.decode(self.encoding)
 						if 'fuzzy' in entry.flags:
 							entry.flags.remove('fuzzy')
+						if entry.previous_msgid:
+							entry.previous_msgid=None
+						if entry.previous_msgid_plural:
+							entry.previous_msgid_plural=None
+						if entry.previous_msgctxt:
+							entry.previous_msgctxt=None						
 
 				elif entry and not entry.msgid_plural:
 						entry.msgstr = textsave.decode(self.encoding)
 						if 'fuzzy' in entry.flags:
 							entry.flags.remove('fuzzy')
+						if entry.previous_msgid:
+							entry.previous_msgid=None
+						if entry.previous_msgid_plural:
+							entry.previous_msgid_plural=None
+						if entry.previous_msgctxt:
+							entry.previous_msgctxt=None
 							
 				#'Last-Translator'
 				scheda.pofile.metadata['Last-Translator']=defname
@@ -3532,6 +3619,12 @@ class PoWindow(BWindow):
 											#print "trovata voce OID"
 					if 'fuzzy' in self.workonthisentry.flags:
 						self.workonthisentry.flags.remove('fuzzy')
+						if self.workonthisentry.previous_msgid:
+							self.workonthisentry.previous_msgid=None
+						if self.workonthisentry.previous_msgid_plural:
+							self.workonthisentry.previous_msgid_plural=None
+						if self.workonthisentry.previous_msgctxt:
+							self.workonthisentry.previous_msgctxt=None
 					else:
 						self.workonthisentry.flags.append('fuzzy')
 					bckpmsg=BMessage(17893)
@@ -3544,6 +3637,12 @@ class PoWindow(BWindow):
 						if entry.msgid.encode(self.encoding) == txttosearch:
 							if 'fuzzy' in entry.flags:
 								entry.flags.remove('fuzzy')
+								if entry.previous_msgid:
+									entry.previous_msgid=None
+								if entry.previous_msgid_plural:
+									entry.previous_msgid_plural=None
+								if entry.previous_msgctxt:
+									entry.previous_msgctxt=None
 							else:
 								entry.flags.append('fuzzy')
 							bckpmsg=BMessage(17893)
@@ -3553,6 +3652,10 @@ class PoWindow(BWindow):
 							break
 				self.editorslist[self.postabview.Selection()].list.reload(self.poview,self.editorslist[self.postabview.Selection()].pofile,self.encoding)
 		
+		
+######################## TODO: percentuale tradotto ##########################################		
+		
+
 		if msg.what == 54173:
 			#Save as 
 			txt=self.editorslist[self.postabview.Selection()].fp.GetPanelDirectory()
@@ -3684,6 +3787,28 @@ class PoWindow(BWindow):
 						self.contextview.RemoveSelf()
 						self.scrollcontext.RemoveSelf()
 						self.contextlabel.RemoveSelf()
+					except:
+						pass
+				if item.tcomment!="": ############################################Finire le dimensioni della finestra !!!! TODO #################################
+					try:
+						self.tcommentview.RemoveSelf()
+						self.scrolltcomment.RemoveSelf()
+						self.tcommentlabel.RemoveSelf()
+					except:
+						pass
+					self.tcommentlabel=BStringView((4,208,dfg-4,hig+208),"Tcomment","Translator comment:",B_FOLLOW_TOP|B_FOLLOW_LEFT)
+					self.lubox.AddChild(self.tcommentlabel)
+					self.tcommentview=BTextView((8,hig+208,dfg-26,300),"tcommentview",(4,4,179,292),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)#dfg-asd-36,fgh/3-8     ->197
+					self.tcommentview.MakeEditable(False)
+					self.scrolltcomment=BScrollBar((dfg-24,hig+208,dfg-8,300),'tcommentview_ScrollBar',self.contextview,0.0,0.0,B_VERTICAL)
+					self.lubox.AddChild(self.scrolltcomment)
+					self.lubox.AddChild(self.tcommentview)
+					self.tcommentview.SetText(item.tcomment)
+				else:
+					try:
+						self.tcommentview.RemoveSelf()
+						self.scrolltcomment.RemoveSelf()
+						self.tcommentlabel.RemoveSelf()
 					except:
 						pass
 				if item.previous:
