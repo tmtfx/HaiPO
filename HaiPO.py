@@ -586,7 +586,7 @@ class FindRepTrans(BWindow):
 		self.reptv=BTextControl((5,37,r-5,64),'replacetxt','Replace:','',BMessage(8046))
 		self.reptv.SetDivider(60.0)
 		self.underframe.AddChild(self.reptv)
-		self.pb=BStatusBar((5,b-42,r-5,b+5),"searchpb",None,None)#"File position:"
+		self.pb=BStatusBar((5,b-42,r-5,b+5),"searchpb",None,None)
 		self.pb.SetBarHeight(float(14))
 		self.underframe.AddChild(self.pb)
 		lista=BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].list.lv
@@ -942,7 +942,7 @@ class AboutWindow(BWindow):
 	BUTTON_MSG = struct.unpack('!l', 'PRES')[0]
 
 	def __init__(self):							
-		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, B_MODAL_WINDOW, B_NOT_RESIZABLE)#|B_WILL_DRAW 
+		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, B_MODAL_WINDOW, B_NOT_RESIZABLE) 
 		bbox=BBox((0,0,500,470), 'underbox', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(bbox)
 		self.CloseButton = BButton(self.kButtonFrame, self.kButtonName, self.kButtonName, BMessage(self.BUTTON_MSG))		
@@ -981,7 +981,7 @@ class TranslatorComment(BWindow):
 		ix,iy,fx,fy=bounds
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(self.underframe)
-		self.tcommentview=BTextView((4,4,fx-4,fy-50),"commentview",(4,4,fx-12,fy-48),B_FOLLOW_ALL)#TOP|B_FOLLOW_LEFT_RIGHT)
+		self.tcommentview=BTextView((4,4,fx-4,fy-50),"commentview",(4,4,fx-12,fy-48),B_FOLLOW_ALL)
 		self.underframe.AddChild(self.tcommentview)
 		kButtonFrame = (fx-150, fy-40, fx-10, fy-10)
 		kButtonName = "Save comment"
@@ -3479,12 +3479,10 @@ class PoWindow(BWindow):
 							entry.previous_msgid_plural=None
 						if entry.previous_msgctxt:
 							entry.previous_msgctxt=None
-							
-				#'Last-Translator'
+
 				scheda.pofile.metadata['Last-Translator']=defname
 				scheda.pofile.metadata['PO-Revision-Date']=now
 				scheda.pofile.metadata['X-Editor']=version
-				#self.metadata = scheda.pofile.ordered_metadata()
 				scheda.pofile.save(bckppath)
 				scheda.list.lv.ItemAt(tvindex).state=1
 				scheda.list.lv.ItemAt(tvindex).tosave=False
@@ -3822,7 +3820,7 @@ class PoWindow(BWindow):
 					except:
 						pass
 					self.headlabel=BStringView((4,4,dfg-4,hig+4),"Header","Comments:",B_FOLLOW_TOP|B_FOLLOW_LEFT)
-					self.commentview=BTextView((8,4+hig,dfg-26,200),"commentview",(4,4,179,197),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT) #dfg-asd-36,fgh/3-8    ->197
+					self.commentview=BTextView((8,4+hig,dfg-26,200),"commentview",(4,4,179,197),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)
 					self.commentview.MakeEditable(False)
 					self.lubox.AddChild(self.headlabel)
 					self.scrollcomment=BScrollBar((dfg-24,4+hig,dfg-8,200),'commentview_ScrollBar',self.commentview,0.0,0.0,B_VERTICAL)
@@ -3845,7 +3843,7 @@ class PoWindow(BWindow):
 						pass
 					self.contextlabel=BStringView((4,208,dfg-4,hig+208),"Context","Context:",B_FOLLOW_TOP|B_FOLLOW_LEFT)
 					self.lubox.AddChild(self.contextlabel)
-					self.contextview=BTextView((8,hig+208,dfg-26,300),"contextview",(4,4,179,292),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)#dfg-asd-36,fgh/3-8     ->197
+					self.contextview=BTextView((8,hig+208,dfg-26,300),"contextview",(4,4,179,292),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)
 					self.contextview.MakeEditable(False)
 					self.scrollcontext=BScrollBar((dfg-24,hig+208,dfg-8,300),'contextview_ScrollBar',self.contextview,0.0,0.0,B_VERTICAL)
 					self.lubox.AddChild(self.scrollcontext)
@@ -3867,7 +3865,7 @@ class PoWindow(BWindow):
 						pass
 					self.tcommentlabel=BStringView((4,408,dfg-4,hig+408),"Tcomment","Translator comment:",B_FOLLOW_TOP|B_FOLLOW_LEFT)
 					self.lubox.AddChild(self.tcommentlabel)
-					self.tcommentview=BTextView((8,hig+408,dfg-26,500),"tcommentview",(4,4,179,292),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)#dfg-asd-36,fgh/3-8     ->197
+					self.tcommentview=BTextView((8,hig+408,dfg-26,500),"tcommentview",(4,4,179,292),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)
 					self.tcommentview.MakeEditable(False)
 					self.scrolltcomment=BScrollBar((dfg-24,hig+408,dfg-8,500),'tcommentview_ScrollBar',self.contextview,0.0,0.0,B_VERTICAL)
 					self.lubox.AddChild(self.scrolltcomment)
