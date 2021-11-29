@@ -110,12 +110,11 @@ try:
 	from BMimeType import BMimeType
 	from BCheckBox import BCheckBox
 	from BView import BView
-#	import BFilePanel, 
 	import BEntry
 	from BFilePanel import BFilePanel
 	from BEntry import BEntry
 	from BScrollBar import BScrollBar
-	from InterfaceKit import B_PAGE_UP,B_PAGE_DOWN,B_TAB,B_ESCAPE,B_DOWN_ARROW,B_UP_ARROW,B_V_SCROLL_BAR_WIDTH,B_FULL_UPDATE_ON_RESIZE,B_VERTICAL,B_FOLLOW_ALL,B_FOLLOW_TOP,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_WIDTH_FROM_LABEL,B_TRIANGLE_THUMB,B_BLOCK_THUMB,B_FLOATING_WINDOW,B_DOCUMENT_WINDOW,B_TITLED_WINDOW,B_WILL_DRAW,B_NAVIGABLE,B_FRAME_EVENTS,B_ALIGN_CENTER,B_FOLLOW_ALL_SIDES,B_MODAL_WINDOW,B_FOLLOW_TOP_BOTTOM,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT_RIGHT,B_SINGLE_SELECTION_LIST,B_NOT_RESIZABLE,B_NOT_ZOOMABLE,B_PLAIN_BORDER,B_FANCY_BORDER,B_NO_BORDER,B_ITEMS_IN_COLUMN,B_AVOID_FOCUS
+	from InterfaceKit import B_PAGE_UP,B_PAGE_DOWN,B_TAB,B_ESCAPE,B_DOWN_ARROW,B_UP_ARROW,B_V_SCROLL_BAR_WIDTH,B_FULL_UPDATE_ON_RESIZE,B_VERTICAL,B_FOLLOW_ALL,B_FOLLOW_TOP,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_WIDTH_FROM_LABEL,B_TRIANGLE_THUMB,B_BLOCK_THUMB,B_FLOATING_WINDOW,B_DOCUMENT_WINDOW,B_TITLED_WINDOW,B_WILL_DRAW,B_NAVIGABLE,B_FRAME_EVENTS,B_ALIGN_CENTER,B_ALIGN_RIGHT,B_FOLLOW_ALL_SIDES,B_MODAL_WINDOW,B_FOLLOW_TOP_BOTTOM,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT_RIGHT,B_SINGLE_SELECTION_LIST,B_NOT_RESIZABLE,B_NOT_ZOOMABLE,B_PLAIN_BORDER,B_FANCY_BORDER,B_NO_BORDER,B_ITEMS_IN_COLUMN,B_AVOID_FOCUS
 	from AppKit import B_QUIT_REQUESTED,B_KEY_UP,B_KEY_DOWN,B_MODIFIERS_CHANGED,B_UNMAPPED_KEY_DOWN,B_REFS_RECEIVED,B_SAVE_REQUESTED,B_CANCEL,B_WINDOW_RESIZED,B_CUT,B_PASTE
 	from StorageKit import B_SAVE_PANEL,B_OPEN_PANEL,B_FILE_NODE,B_READ_ONLY
 	from SupportKit import B_ERROR,B_ENTRY_NOT_FOUND,B_OK,B_ANY_TYPE
@@ -199,9 +198,7 @@ class POmetadata(BWindow):
 				self.underframe.ChildAt(conta).RemoveSelf()
 				print "rimosso"
 				conta=conta-1
-				
-			#for entry in self.pofile.metadata_as_entry():
-			#	print entry.msgid,entry.msgstr
+
 			self.metadata = self.pofile.ordered_metadata()
 			
 			rect = [10,10,425,30]
@@ -1028,6 +1025,8 @@ class MyListView(BListView):
 		BListView.__init__(self, frame, name, type, resizingMode, flags)
 		self.preselected=-1
 
+	def SelectionChanged(self):
+		BApplication.be_app.WindowAt(0).infoprogress.SetText(str(BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].pofile.percent_translated()))
 	#def SelectionChanged(self):
 		#if self.preselected>-1:
 			#if self.ItemAt(self.preselected).tosave:
@@ -2231,6 +2230,7 @@ class postabview(BTabView):
 			if (point[0]>=self.TabFrame(gg)[0]) and (point[0]<=self.TabFrame(gg)[2]) and (point[1]>=self.TabFrame(gg)[1]) and (point[1]<=self.TabFrame(gg)[3]):
 				if self.Selection()!=gg: #non sto cambiando file
 					shouldstop=False
+					self.superself.infoprogress.SetText(str(self.superself.editorslist[gg].pofile.percent_translated()))
 					if self.superself.editorslist[self.Selection()].list.lv.CurrentSelection()>-1:
 						hasplural=self.superself.editorslist[self.Selection()].list.lv.ItemAt(self.superself.editorslist[self.Selection()].list.lv.CurrentSelection()).hasplural
 						if hasplural:
@@ -2324,6 +2324,7 @@ class postabview(BTabView):
 						self.superself.srctabview.Select(1)
 						self.superself.srctabview.Select(0)
 			gg=gg+1
+		
 		return BTabView.MouseDown(self,point)
 
 ######## TODO: handle comments  ###############################################################################################################
@@ -2458,11 +2459,17 @@ class PoWindow(BWindow):
 		self.ofp=BFilePanel()
 		self.lubox=BBox((d*3/4,2,d,s), 'leftunderbox', B_FOLLOW_TOP_BOTTOM|B_FOLLOW_RIGHT, B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS|B_NAVIGABLE,B_FANCY_BORDER)
 		asd,dfg,ghj,jkl=self.lubox.Bounds()
-		#print self.lubox.GetFontHeight()
 		hig=round(self.lubox.GetFontHeight()[0])
-		#(d*3/4+2,4,d-2,20)
-		#4+self.lubox.GetFontHeight()[0]+182
-		
+		txtw="Completed:"
+		self.infoforprogress=BStringView((4,jkl-hig-4,self.lubox.StringWidth(txtw),jkl-4),"infotxt",txtw, B_FOLLOW_BOTTOM|B_FOLLOW_LEFT)
+		lengthtxt=self.lubox.StringWidth("100%")
+		self.prcntstring=BStringView((ghj-self.lubox.StringWidth("%")-4,jkl-hig-4,ghj-4,jkl-4),"prcnt","%", B_FOLLOW_BOTTOM|B_FOLLOW_RIGHT)
+		self.lubox.AddChild(self.prcntstring)
+		self.infoprogress=BStringView((ghj-lengthtxt-self.lubox.StringWidth("%")-4,jkl-hig-4,ghj-self.lubox.StringWidth("%")-4,jkl-4),"progresstxt","", B_FOLLOW_BOTTOM|B_FOLLOW_RIGHT)
+		self.infoprogress.SetAlignment(B_ALIGN_RIGHT)
+		self.lubox.AddChild(self.infoforprogress)
+		self.lubox.AddChild(self.infoprogress)
+
 		
 		self.background.AddChild(self.lubox)
 		self.postabview = postabview(self,(5.0, 5.0, d*3/4-5, b-barheight-245), 'postabview',B_WIDTH_FROM_LABEL)
@@ -2763,7 +2770,7 @@ class PoWindow(BWindow):
 				result=title.lower().find("python2.7")    ###################### TODO: find a better solution #########################
 				if result>-1:
 					thiswindow=i
-					BApplication.be_app.WindowAt(i).PostMessage(B_KEY_DOWN)#<---- Fix bug save button not enabled
+					BApplication.be_app.WindowAt(i).PostMessage(B_KEY_DOWN)#<---- Fixes bug: save button not enabled
 				i=i+1
 			
 		elif msg.what == 6:
@@ -4016,6 +4023,8 @@ class PoWindow(BWindow):
 			self.postabview.AddTab(self.editorslist[x], self.tabslabels[x])
 			self.postabview.SetFocusTab(x,True)
 			self.postabview.Select(x)
+			self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated()))
+			
 			
 	def QuitRequested(self):
 		print "So long and thanks for all the fish"
