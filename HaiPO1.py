@@ -115,7 +115,7 @@ try:
 	from BFilePanel import BFilePanel
 	from BEntry import BEntry
 	from BScrollBar import BScrollBar
-	from InterfaceKit import B_PAGE_UP,B_PAGE_DOWN,B_TAB,B_ESCAPE,B_DOWN_ARROW,B_UP_ARROW,B_V_SCROLL_BAR_WIDTH,B_FULL_UPDATE_ON_RESIZE,B_VERTICAL,B_FOLLOW_ALL,B_FOLLOW_TOP,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_WIDTH_FROM_LABEL,B_TRIANGLE_THUMB,B_BLOCK_THUMB,B_FLOATING_WINDOW,B_TITLED_WINDOW,B_WILL_DRAW,B_NAVIGABLE,B_FRAME_EVENTS,B_ALIGN_CENTER,B_FOLLOW_ALL_SIDES,B_MODAL_WINDOW,B_FOLLOW_TOP_BOTTOM,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT_RIGHT,B_SINGLE_SELECTION_LIST,B_NOT_RESIZABLE,B_NOT_ZOOMABLE,B_PLAIN_BORDER,B_FANCY_BORDER,B_NO_BORDER,B_ITEMS_IN_COLUMN,B_AVOID_FOCUS
+	from InterfaceKit import B_PAGE_UP,B_PAGE_DOWN,B_TAB,B_ESCAPE,B_DOWN_ARROW,B_UP_ARROW,B_V_SCROLL_BAR_WIDTH,B_FULL_UPDATE_ON_RESIZE,B_VERTICAL,B_FOLLOW_ALL,B_FOLLOW_TOP,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_WIDTH_FROM_LABEL,B_TRIANGLE_THUMB,B_BLOCK_THUMB,B_FLOATING_WINDOW,B_DOCUMENT_WINDOW,B_TITLED_WINDOW,B_WILL_DRAW,B_NAVIGABLE,B_FRAME_EVENTS,B_ALIGN_CENTER,B_FOLLOW_ALL_SIDES,B_MODAL_WINDOW,B_FOLLOW_TOP_BOTTOM,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT_RIGHT,B_SINGLE_SELECTION_LIST,B_NOT_RESIZABLE,B_NOT_ZOOMABLE,B_PLAIN_BORDER,B_FANCY_BORDER,B_NO_BORDER,B_ITEMS_IN_COLUMN,B_AVOID_FOCUS
 	from AppKit import B_QUIT_REQUESTED,B_KEY_UP,B_KEY_DOWN,B_MODIFIERS_CHANGED,B_UNMAPPED_KEY_DOWN,B_REFS_RECEIVED,B_SAVE_REQUESTED,B_CANCEL,B_WINDOW_RESIZED,B_CUT,B_PASTE
 	from StorageKit import B_SAVE_PANEL,B_OPEN_PANEL,B_FILE_NODE,B_READ_ONLY
 	from SupportKit import B_ERROR,B_ENTRY_NOT_FOUND,B_OK,B_ANY_TYPE
@@ -614,7 +614,6 @@ class FindRepTrans(BWindow):
 			indaco=lista.CurrentSelection()
 			self.arrayview=BApplication.be_app.WindowAt(0).poview
 			datab=[]
-#			print "reinizializzo datab"
 			if self.arrayview[0]:
 				for entry in self.pof.fuzzy_entries():
 					value=[]
@@ -698,7 +697,7 @@ class FindRepTrans(BWindow):
 							if orb>1:
 								for items in values:
 									if items.find(self.looktv.Text())>-1:
-										lista.Select(now)
+										lista.Select(now)################################ todo: switch transtabview se sul plurale ##############
 										BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741)) ############################ TODO: evidenziare testo #################
 										break
 							else:
@@ -710,7 +709,7 @@ class FindRepTrans(BWindow):
 							if orb>1:
 								for items in values:
 									if items.lower().find(self.looktv.Text().lower())>-1:
-										lista.Select(now)
+										lista.Select(now)################################ todo: switch transtabview se sul plurale ##############
 										BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741)) ############################ TODO: evidenziare testo #################
 										break
 							else:
@@ -728,100 +727,6 @@ class FindRepTrans(BWindow):
 						loopa=False
 						say = BAlert('not_found', 'No matches found on listed entries', 'Ok',None, None, None, 3)
 						say.Go()
-			
-#			if self.looktv.Text() != "":
-#				self.pof=BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].pofile
-#				self.arrayview=BApplication.be_app.WindowAt(0).poview
-#				lista=BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].list.lv
-#				total=lista.CountItems()
-#				indaco=lista.CurrentSelection()
-#				applydelta=float(indaco-self.pb.CurrentValue())
-#				deltamsg=BMessage(7047)
-#				deltamsg.AddFloat('delta',applydelta)
-#				BApplication.be_app.WindowAt(self.thiswindow).PostMessage(deltamsg)
-#				max = total
-#				now = indaco
-#				lastvalue=now
-#				partial = False
-#				partiali = False
-#				loopa =True
-#				while loopa:
-#					now+=1
-#					if now < total:
-#						#print now
-#						curmsgid=lista.ItemAt(now).Text().decode(self.encoding)#aggiunto decode
-#						delta=float(now-lastvalue)
-#						deltamsg=BMessage(7047)
-#						deltamsg.AddFloat('delta',delta)
-#						BApplication.be_app.WindowAt(self.thiswindow).PostMessage(deltamsg)
-#						lastvalue=now
-#						entry=self.pof.find(curmsgid)
-#						if self.casesens.Value():
-#							if entry and entry.msgid_plural:################################ todo: switch transtabview se sul plurale ##############
-#								if entry.msgstr_plural[0].find(self.looktv.Text().decode(self.encoding))>-1:
-#									lista.Select(now)
-#									BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
-#									break
-#								cont= len(entry.msgstr_plural)-1
-#								y=0
-#								while y!=cont:
-#									y+=1
-#									if entry.msgstr_plural[y].find(self.looktv.Text().decode(self.encoding))>-1:
-#										lista.Select(now)
-#										BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
-#										break
-#							elif entry:
-#								#txt=#.encode(self.encoding)
-#								
-#								if entry.msgstr.find(self.looktv.Text().decode(self.encoding))>-1:#.decode(self.encoding))>-1:
-#									#print entry.msgstr,self.looktv.Text().decode(self.encoding)
-#									lista.Select(now)
-#									BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
-#									break
-#							else:
-#								print "something wrong here",now
-#								print curmsgid
-
-
-#							#if lista.ItemAt(now).Text().find(self.looktv.Text())>-1:
-#							#	
-#							#	
-#							#	################################## TODO: evidenziare testo #################################
-#							#	break
-					
-#						else:
-#							if entry and entry.msgid_plural:################################# todo: switch transtabview se sul plurale ##############
-#								if entry.msgstr_plural[0].lower().find(self.looktv.Text().lower().decode(self.encoding))>-1:
-#									lista.Select(now)
-#									BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
-#									break
-#								cont= len(entry.msgstr_plural)-1
-#								y=0
-#								while y!=cont:
-#									y+=1
-#									if entry.msgstr_plural[y].lower().find(self.looktv.Text().lower().decode(self.encoding))>-1:
-#										lista.Select(now)
-#										BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
-#										break
-#							elif entry:
-#								if entry.msgstr.lower().find(self.looktv.Text().lower().decode(self.encoding))>-1:
-#									lista.Select(now)
-#									BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
-#									break
-							#if lista.ItemAt(now).Text().lower().find(self.looktv.Text().lower())>-1:
-							#	
-							#	################################## TODO: evidenziare testo #################################
-							#	break
-#					if now == total:
-#						now = -1
-#						total = indaco+1
-#						partial = True
-#					if now == indaco:
-#						partiali = True
-#					if partial and partiali:
-#						loopa=False
-#						say = BAlert('not_found', 'No matches found on listed entries', 'Ok',None, None, None, 3)
-#						say.Go()
 
 		elif msg.what == 7047:
 			addfloat=msg.FindFloat('delta')
@@ -1040,7 +945,7 @@ class AboutWindow(BWindow):
 	BUTTON_MSG = struct.unpack('!l', 'PRES')[0]
 
 	def __init__(self):							
-		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, B_MODAL_WINDOW, B_NOT_RESIZABLE)#|B_WILL_DRAW
+		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, B_MODAL_WINDOW, B_NOT_RESIZABLE)#|B_WILL_DRAW 
 		bbox=BBox((0,0,500,470), 'underbox', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(bbox)
 		self.CloseButton = BButton(self.kButtonFrame, self.kButtonName, self.kButtonName, BMessage(self.BUTTON_MSG))		
@@ -1068,6 +973,55 @@ class AboutWindow(BWindow):
 			self.Quit()
 		else:
 			return
+			
+class TranslatorComment(BWindow):
+	kWindowFrame = (150, 150, 450, 300)
+	kWindowName = "Translator comment"
+	
+	def __init__(self,listindex,indextab,item,encoding):
+		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, B_FLOATING_WINDOW, B_NOT_RESIZABLE)
+		bounds=self.Bounds()
+		ix,iy,fx,fy=bounds
+		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		self.AddChild(self.underframe)
+		self.tcommentview=BTextView((4,4,fx-4,fy-50),"commentview",(4,4,fx-12,fy-48),B_FOLLOW_ALL)#TOP|B_FOLLOW_LEFT_RIGHT)
+		self.underframe.AddChild(self.tcommentview)
+		kButtonFrame = (fx-150, fy-40, fx-10, fy-10)
+		kButtonName = "Save comment"
+		self.savebtn = BButton(kButtonFrame, kButtonName, kButtonName, BMessage(5252))
+		self.underframe.AddChild(self.savebtn)
+		self.item=item
+		self.indextab=indextab
+		self.listindex=listindex
+		self.encoding=encoding
+		if self.item.tcomment!="":
+			self.tcommentview.SetText(self.item.tcomment.encode(self.encoding))
+		
+	def Save(self):
+		if self.item.occurrency:
+			bckpmsg=BMessage(17892)
+			bckpmsg.AddInt32('OID',self.item.occurvalue)
+		else:
+			bckpmsg=BMessage(17893)
+		cursel=BApplication.be_app.WindowAt(0).editorslist[self.indextab]
+		bckpmsg.AddInt8('savetype',3)
+		bckpmsg.AddInt32('tvindex',self.listindex)
+		bckpmsg.AddInt32('tabview',self.indextab)
+		bckpmsg.AddString('tcomment',self.item.tcomment)
+		bckpmsg.AddString('bckppath',cursel.backupfile)
+		BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
+		
+
+	def MessageReceived(self, msg):
+		if msg.what == 5252:
+			self.item.tcomment=self.tcommentview.Text().decode(self.encoding)
+			self.Save()
+			BApplication.be_app.WindowAt(0).postabview.Select(self.indextab)
+			BApplication.be_app.WindowAt(0).editorslist[self.indextab].list.lv.DeselectAll()
+			BApplication.be_app.WindowAt(0).editorslist[self.indextab].list.lv.Select(self.listindex)
+			self.Quit()
+		else:
+			return BWindow.MessageReceived(self, msg)
 			
 class MyListView(BListView):
 	def __init__(self, frame, name, type, resizingMode, flags):
@@ -1539,6 +1493,7 @@ class MsgStrItem(BListItem):
 		
 	def Text(self):
 		return self.text
+		
 class temporizedcheck:
 	def run(self,oldtext):
 			self.event.wait(1)
@@ -2838,6 +2793,13 @@ class PoWindow(BWindow):
 		
 		elif msg.what == 32:
 			print "doppioclick"
+			indextab=self.postabview.Selection()
+			cursel=self.editorslist[indextab]
+			listsel=cursel.list.lv.CurrentSelection()
+			
+			thisBlistitem=cursel.list.lv.ItemAt(listsel)
+			self.tcommentdialog=TranslatorComment(listsel,indextab,thisBlistitem,self.encoding)
+			self.tcommentdialog.Show()
 			
 		elif msg.what == 42:
 			# PO metadata
@@ -3185,6 +3147,7 @@ class PoWindow(BWindow):
 						self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
 		
 		elif msg.what == 17892:
+			#same as 17893 for multiple occurrencies
 			try:
 				Config.read(confile)
 				defname=ConfigSectionMap("Users")['default']
@@ -3358,7 +3321,121 @@ class PoWindow(BWindow):
 				self.editorslist[indexroot].pofile.metadata['PO-Revision-Date']=now
 				self.editorslist[indexroot].pofile.metadata['X-Editor']=version
 				self.editorslist[indexroot].pofile.save(bckppath)
-				return			
+				return
+			elif savetype == 3:
+				self.pofile=self.editorslist[self.postabview.Selection()].pofile
+				occurem=[]
+				if self.poview[0]:
+					for entry in self.pofile.fuzzy_entries():
+						if entry and entry.msgid_plural:
+							conto=0
+							for ent in self.pofile:
+								if ent.msgid == entry.msgid:
+									conto+=1
+							if conto > 1:
+									value=len(occurem)
+									occurem.append((entry.msgid,value))
+									if value == OID:
+										self.workonthisentry=entry
+										#print "trovata voce OID"
+						else:
+							conto=0
+							for ent in self.pofile:
+								if ent.msgid == entry.msgid:
+									conto+=1
+							if conto > 1:
+									value=len(occurem)
+									occurem.append((entry.msgid,value))
+									if value == OID:
+										self.workonthisentry=entry
+										#print "trovata voce OID"
+				if self.poview[1]:
+					for entry in self.pofile.untranslated_entries():
+						if entry and entry.msgid_plural:
+							conto=0
+							for ent in self.pofile:
+								if ent.msgid == entry.msgid:
+									conto+=1
+							if conto > 1:
+									value=len(occurem)
+									occurem.append((entry.msgid,value))
+									if value == OID:
+										self.workonthisentry=entry
+										#print "trovata voce OID"
+						else:
+							conto=0
+							for ent in self.pofile:
+								if ent.msgid == entry.msgid:
+									conto+=1
+							if conto > 1:
+									value=len(occurem)
+									occurem.append((entry.msgid,value))
+									if value == OID:
+										self.workonthisentry=entry
+										#print "trovata voce OID"
+				if self.poview[2]:
+					for entry in self.pofile.translated_entries():
+						if entry and entry.msgid_plural:
+							conto=0
+							for ent in self.pofile:
+								if ent.msgid == entry.msgid:
+									conto+=1
+							if conto > 1:
+									value=len(occurem)
+									occurem.append((entry.msgid,value))
+									if value == OID:
+										self.workonthisentry=entry
+										#print "trovata voce OID"
+						else:
+							conto=0
+							for ent in self.pofile:
+								if ent.msgid == entry.msgid:
+									conto+=1
+							if conto > 1:
+									value=len(occurem)
+									occurem.append((entry.msgid,value))
+									if value == OID:
+										self.workonthisentry=entry
+										#print "trovata voce OID"
+				if self.poview[3]:
+					for entry in self.pofile.obsolete_entries():
+						if entry and entry.msgid_plural:
+							conto=0
+							for ent in self.pofile:
+								if ent.msgid == entry.msgid:
+									conto+=1
+							if conto > 1:
+									value=len(occurem)
+									occurem.append((entry.msgid,value))
+									if value == OID:
+										self.workonthisentry=entry
+										#print "trovata voce OID"
+						else:
+							conto=0
+							for ent in self.pofile:
+								if ent.msgid == entry.msgid:
+									conto+=1
+							if conto > 1:
+									value=len(occurem)
+									occurem.append((entry.msgid,value))
+									if value == OID:
+										self.workonthisentry=entry
+										#print "trovata voce OID"
+				tvindex=msg.FindInt32('tvindex')
+				textsave=msg.FindString('tcomment')
+				intscheda=msg.FindInt32('tabview')
+				scheda=self.editorslist[intscheda]
+				entry = self.workonthisentry
+				entry.tcomment=textsave
+				scheda.pofile.metadata['Last-Translator']=defname
+				scheda.pofile.metadata['PO-Revision-Date']=now
+				scheda.pofile.metadata['X-Editor']=version
+				#self.metadata = scheda.pofile.ordered_metadata()
+				scheda.pofile.save(bckppath)
+				self.postabview.Select(intscheda)
+				scheda.list.lv.DeselectAll()
+				scheda.list.lv.Select(tvindex)
+				return
 			return
 		elif msg.what == 17893:
 			try:
@@ -3431,7 +3508,23 @@ class PoWindow(BWindow):
 				self.editorslist[indexroot].pofile.metadata['PO-Revision-Date']=now
 				self.editorslist[indexroot].pofile.metadata['X-Editor']=version
 				self.editorslist[indexroot].pofile.save(bckppath)
-				return			
+				return
+			elif savetype == 3:
+				tvindex=msg.FindInt32('tvindex')
+				textsave=msg.FindString('tcomment')
+				intscheda=msg.FindInt32('tabview')
+				scheda=self.editorslist[intscheda]
+				entry = scheda.pofile.find(scheda.list.lv.ItemAt(tvindex).Text().decode(self.encoding))
+				entry.tcomment=textsave
+				scheda.pofile.metadata['Last-Translator']=defname
+				scheda.pofile.metadata['PO-Revision-Date']=now
+				scheda.pofile.metadata['X-Editor']=version
+				#self.metadata = scheda.pofile.ordered_metadata()
+				scheda.pofile.save(bckppath)
+				self.postabview.Select(intscheda)
+				scheda.list.lv.DeselectAll()
+				scheda.list.lv.Select(tvindex)
+				return
 			return
 			
 		elif msg.what == 445380:
@@ -3789,18 +3882,18 @@ class PoWindow(BWindow):
 						self.contextlabel.RemoveSelf()
 					except:
 						pass
-				if item.tcomment!="": ############################################Finire le dimensioni della finestra !!!! TODO #################################
+				if item.tcomment!="":
 					try:
 						self.tcommentview.RemoveSelf()
 						self.scrolltcomment.RemoveSelf()
 						self.tcommentlabel.RemoveSelf()
 					except:
 						pass
-					self.tcommentlabel=BStringView((4,208,dfg-4,hig+208),"Tcomment","Translator comment:",B_FOLLOW_TOP|B_FOLLOW_LEFT)
+					self.tcommentlabel=BStringView((4,408,dfg-4,hig+408),"Tcomment","Translator comment:",B_FOLLOW_TOP|B_FOLLOW_LEFT)
 					self.lubox.AddChild(self.tcommentlabel)
-					self.tcommentview=BTextView((8,hig+208,dfg-26,300),"tcommentview",(4,4,179,292),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)#dfg-asd-36,fgh/3-8     ->197
+					self.tcommentview=BTextView((8,hig+408,dfg-26,500),"tcommentview",(4,4,179,292),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)#dfg-asd-36,fgh/3-8     ->197
 					self.tcommentview.MakeEditable(False)
-					self.scrolltcomment=BScrollBar((dfg-24,hig+208,dfg-8,300),'tcommentview_ScrollBar',self.contextview,0.0,0.0,B_VERTICAL)
+					self.scrolltcomment=BScrollBar((dfg-24,hig+408,dfg-8,500),'tcommentview_ScrollBar',self.contextview,0.0,0.0,B_VERTICAL)
 					self.lubox.AddChild(self.scrolltcomment)
 					self.lubox.AddChild(self.tcommentview)
 					self.tcommentview.SetText(item.tcomment)
@@ -3821,9 +3914,9 @@ class PoWindow(BWindow):
 					
 					self.labelprevious=BStringView((4,308,dfg-4,hig+308),"Previous","Previous:",B_FOLLOW_TOP|B_FOLLOW_LEFT)
 					self.lubox.AddChild(self.labelprevious)
-					self.previousview=BTextView((8,hig+308,dfg-26,500),"previousview",(4,4,dfg-asd-36,fgh/3-8),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW)
+					self.previousview=BTextView((8,hig+308,dfg-26,400),"previousview",(4,4,dfg-asd-36,fgh/3-8),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW)
 					self.previousview.MakeEditable(False)
-					self.scrollprevious=BScrollBar((dfg-24,hig+308,dfg-8,500),'previousview_ScrollBar',self.previousview,0.0,0.0,B_VERTICAL)
+					self.scrollprevious=BScrollBar((dfg-24,hig+308,dfg-8,400),'previousview_ScrollBar',self.previousview,0.0,0.0,B_VERTICAL)
 					self.lubox.AddChild(self.scrollprevious)
 					resultxt=""
 					bolds=[]
