@@ -2,20 +2,26 @@
 # -*- coding: utf-8 -*-
 
 #   A Simple PO editor for Haiku.
-#   Copyright (C) 2021  Fabio Tomat
 #
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>
+# Copyright (c) 2021 Fabio Tomat
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 
 #******************************************************
@@ -27,7 +33,7 @@
 
 import os,sys,ConfigParser,struct,re,thread,datetime,time,threading
 
-version='HaiPO 0.2 alpha'
+version='HaiPO 0.3 alpha'
 (appname,ver,state)=version.split(' ')
 
 jes = False
@@ -935,34 +941,37 @@ class PView(BView):
 		self.DrawBitmap(self.immagine,rect)
 
 class AboutWindow(BWindow):
-	kWindowFrame = (150, 150, 650, 620)
-	kButtonFrame = (395, 433, 490, 468)
+	kWindowFrame = (50, 50, 600, 750)
+	kButtonFrame = (395, 661, 546, 696)
 	kWindowName = "About"
 	kButtonName = "Close"
 	BUTTON_MSG = struct.unpack('!l', 'PRES')[0]
 
 	def __init__(self):							
-		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, B_MODAL_WINDOW, B_NOT_RESIZABLE) 
-		bbox=BBox((0,0,500,470), 'underbox', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, B_MODAL_WINDOW, B_NOT_RESIZABLE)
+		brec=self.Bounds()
+		bbox=BBox(brec, 'underbox', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(bbox)
-		self.CloseButton = BButton(self.kButtonFrame, self.kButtonName, self.kButtonName, BMessage(self.BUTTON_MSG))		
-		cise=(10,4,490,428)
-		cjamput=(0,0,480,428)
+		self.CloseButton = BButton(self.kButtonFrame, self.kButtonName, self.kButtonName, BMessage(self.BUTTON_MSG))
+		zxc,xcv,cvb,vbn=brec
+		cise=(4,4,cvb-4,vbn-44)
+		cjamput=(4,0,cvb-14,vbn-48)
 		self.messagjio= BTextView(cise, 'TxTView', cjamput, B_FOLLOW_ALL, B_WILL_DRAW)
+		#self.messagjio.SetViewColor(bbox.ViewColor())
 		self.messagjio.SetStylable(1)
 		self.messagjio.MakeSelectable(0)
 		self.messagjio.MakeEditable(0)
-		stuff = '\n\t\t\t\t\t\t\t\t'+appname+'\n\t\t\t\t\t\t\t\t\t\t\tA simple PO editor\n\t\t\t\t\t\t\t\t\t\t\tfor Haiku, version '+ver+' '+state+'\n\t\t\t\t\t\t\t\t\t\t\tcodename "Pobeda"\n\n\t\t\t\t\t\t\t\t\t\t\tby Fabio Tomat aka TmTFx\n\t\t\t\t\t\t\t\t\t\t\te-mail:\n\t\t\t\t\t\t\t\t\t\t\tf.t.public@gmail.com\n\nGNU GENERAL PUBLIC LICENSE:\nThis program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program.  If not, see \n<http://www.gnu.org/licenses/>'
-		n = stuff.find('HaiPO')
-		m = stuff.find('This')
-		command=[(0, be_plain_font, (0, 0, 0, 0)), (n, be_bold_font, (0, 150, 0, 0)), (n + 5, be_plain_font, (0, 0, 0, 0)),(m,be_plain_font,(100,150,0,0))]
+		stuff = '\n\t\t\t\t\t\t\t\t\t'+appname+'\n\n\t\t\t\t\t\t\t\t\t\t\t\tA simple PO editor\n\t\t\t\t\t\t\t\t\t\t\t\tfor Haiku, version '+ver+' '+state+'\n\t\t\t\t\t\t\t\t\t\t\t\tcodename "Pobeda"\n\n\t\t\t\t\t\t\t\t\t\t\t\tby Fabio Tomat\n\t\t\t\t\t\t\t\t\t\t\t\te-mail:\n\t\t\t\t\t\t\t\t\t\t\t\tf.t.public@gmail.com\n\n\n\nMIT LICENSE\nCopyright © 2021 Fabio Tomat\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.'
+		n = stuff.find(appname)
+		m = stuff.find('MIT LICENSE')
+		command=[(0, be_plain_font, (0, 0, 0, 0)), (n, be_bold_font, (0, 0, 0, 0)), (n + 5, be_plain_font, (100, 100, 100, 0)),(m,be_bold_font,(0,0,0,0)),(m+11,be_plain_font,(100,100,100,0))]
 		self.messagjio.SetText(stuff, command)
 		bbox.AddChild(self.messagjio)
 		bbox.AddChild(self.CloseButton)
 		self.CloseButton.MakeFocus(1)
 		link=sys.path[0]+"/data/HaiPO.png"
 		self.img=BTranslationUtils.GetBitmap(link)
-		self.photoframe=PView((40,40,255,255),"photoframe",self.img)
+		self.photoframe=PView((40,50,255,255),"photoframe",self.img)
 		bbox.AddChild(self.photoframe)
 
 	def MessageReceived(self, msg):
