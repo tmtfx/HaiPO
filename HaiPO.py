@@ -3823,7 +3823,7 @@ class PoWindow(BWindow):
 				################################################################
 				item=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
 				if item.hasplural:
-							beta=len(item.msgids)
+							beta=len(item.msgstrs)
 							self.Nichilize()
 							self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr[0]',altece,self))
 							self.transtablabels.append(BTab())
