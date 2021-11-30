@@ -957,7 +957,6 @@ class AboutWindow(BWindow):
 		cise=(4,4,cvb-4,vbn-44)
 		cjamput=(4,0,cvb-14,vbn-48)
 		self.messagjio= BTextView(cise, 'TxTView', cjamput, B_FOLLOW_ALL, B_WILL_DRAW)
-		#self.messagjio.SetViewColor(bbox.ViewColor())
 		self.messagjio.SetStylable(1)
 		self.messagjio.MakeSelectable(0)
 		self.messagjio.MakeEditable(0)
@@ -1034,8 +1033,10 @@ class MyListView(BListView):
 		BListView.__init__(self, frame, name, type, resizingMode, flags)
 		#self.preselected=-1
 
-	def SelectionChanged(self):
-		BApplication.be_app.WindowAt(0).infoprogress.SetText(str(BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].pofile.percent_translated()))
+#	def SelectionChanged(self):
+#		BApplication.be_app.WindowAt(0).infoprogress.SetText(str(BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].pofile.percent_translated()))
+############################### TODO: this thing above, place this function on every ctrl+down or up or TAB or mouseclic
+
 #		if self.CurrentSelection()>-1:
 #			print self.ItemAt(self.CurrentSelection()).linenum
 #		else:
@@ -1059,7 +1060,6 @@ class MyListView(BListView):
 				itemtext=BApplication.be_app.WindowAt(0).listemsgstr[0].trnsl
 				if itemtext.tosave:
 					if itemtext.Text()!= itemtext.oldtext:
-						print "salvo prima di cambiare"
 						itemtext.Save()
 		return BListView.MouseDown(self,point)
 
@@ -1556,6 +1556,8 @@ class EventTextView(BTextView):
 				cox+=1
 		bckpmsg.AddString('bckppath',cursel.backupfile)
 		BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
+		#ocio a questa riga qui sotto
+		self.superself.infoprogress.SetText(str(cursel.pofile.percent_translated()))
 
 	def checklater(self,name,oldtext,cursel,indexBlistitem):
 			mes=BMessage(112118)
@@ -2622,11 +2624,12 @@ class PoWindow(BWindow):
 		if msg.what == B_MODIFIERS_CHANGED: #quando modificatore ctrl cambia stato
 			value=msg.FindInt32("modifiers")
 			self.sem.acquire()
+			print value
 			if value==self.modifiervalue or value==self.modifiervalue+8 or value ==self.modifiervalue+32 or value ==self.modifiervalue+40:
 				#print "ctrl premuto self.modifier diventa true"
 				self.modifier=True
 				self.shortcut = False
-			elif value == self.modifiervalue+257 or value==self.modifiervalue+265 or value==self.modifiervalue+289 or value == self.modifiervalue+297:
+			elif value == self.modifiervalue+4357 or value==self.modifiervalue+265 or value==self.modifiervalue+289 or value == self.modifiervalue+297:
 				#print "ctrl maiusc premuto self.shortcut diventa true"
 				self.shortcut = True
 				self.modifier = False
@@ -2644,17 +2647,17 @@ class PoWindow(BWindow):
 				lung = len(self.editorslist)
 				if lung > 0:
 					if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
-						print "focalizzo transtextview"
 						self.listemsgstr[self.transtabview.Selection()].trnsl.MakeFocus()
 					else:
 						self.editorslist[self.postabview.Selection()].list.lv.Select(0)
 						self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
 
-			elif key == 61: # s key  - - -  does it ever happens?
+			elif key == 61: # s key
 				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
 					self.sem.acquire()
+					print "ok mando messaggio"
 					if self.shortcut:
-						print "copio da sorgente e indico che è da salvare con postmessage(BMessage(3))"
+						BApplication.be_app.WindowAt(0).PostMessage(3)
 					else:
 						pass
 					self.sem.release()
@@ -2737,6 +2740,7 @@ class PoWindow(BWindow):
 			
 		elif msg.what == 3:
 			#copy from source
+			print "copio da sorgente"
 			cursel=self.editorslist[self.postabview.Selection()]
 			thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
 			thisBlistitem.tosave=True
@@ -2754,9 +2758,7 @@ class PoWindow(BWindow):
 				thisBlistitem.txttosave=thisBlistitem.text.decode(self.encoding)
 				thisBlistitem.msgstrs=thisBlistitem.txttosave
 				bckpmsg.AddString('translation',thisBlistitem.txttosave)
-				print "salvo solo singolare"
 			else:
-				print "provo a salvare tutto"
 				thisBlistitem.txttosavepl=[]
 				thisBlistitem.txttosave=self.listemsgid[0].src.Text().decode(self.encoding)
 				thisBlistitem.msgstrs=[]
@@ -2791,13 +2793,11 @@ class PoWindow(BWindow):
 			
 		elif msg.what == 6:
 			# Find source
-			print "Find source"
 			self.Findsrc = Findsource()
 			self.Findsrc.Show()
 		
 		elif msg.what == 7:
 			# Find/Replace translation
-			print "Find/Replace translation"
 			self.FindReptrnsl = FindRepTrans()
 			self.FindReptrnsl.Show()
 		
@@ -2815,7 +2815,6 @@ class PoWindow(BWindow):
 			return
 		
 		elif msg.what == 32:
-			print "doppioclick"
 			indextab=self.postabview.Selection()
 			cursel=self.editorslist[indextab]
 			listsel=cursel.list.lv.CurrentSelection()
@@ -2851,7 +2850,6 @@ class PoWindow(BWindow):
 				pick+=1
 			thistranslEdit=self.listemsgstr[self.transtabview.Selection()].trnsl
 			if gonogo:
-				print "procedo a salvare tramite menù"
 				cursel=self.editorslist[self.postabview.Selection()]
 				thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
 				thisBlistitem.tosave=True
@@ -2868,9 +2866,7 @@ class PoWindow(BWindow):
 				if tabs == 0:   #->      if not thisBlistitem.hasplural:                         <-------------------------- or this?
 					thisBlistitem.txttosave=thistranslEdit.Text()#.decode(self.encoding)		 <----- reinsert this
 					bckpmsg.AddString('translation',thisBlistitem.txttosave)
-					print "salvo solo singolare"
 				else:
-					print "provo a salvare tutto"
 					thisBlistitem.txttosavepl=[]
 					thisBlistitem.txttosave=self.listemsgstr[0].trnsl.Text()#.decode(self.encoding)     <----- reinsert this
 					bckpmsg.AddString('translation',thisBlistitem.txttosave)
@@ -3069,6 +3065,7 @@ class PoWindow(BWindow):
 					self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
 				elif self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()==-1:
 					self.editorslist[self.postabview.Selection()].list.lv.Select(0)
+				#self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated())) # reinsert if not working properly
 			elif movetype == 1:
 				#select one up
 				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>0 :
@@ -3076,6 +3073,7 @@ class PoWindow(BWindow):
 				elif self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()==-1:
 					self.editorslist[self.postabview.Selection()].list.lv.Select(self.editorslist[self.postabview.Selection()].list.lv.CountItems()-1)
 				self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+				#self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated())) # reinsert if not working properly
 			elif movetype == 2:
 				#select one page up
 				thisitem=self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()
@@ -3093,6 +3091,7 @@ class PoWindow(BWindow):
 				else:
 					self.editorslist[self.postabview.Selection()].list.lv.Select(0)
 				self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+				#self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated())) # reinsert if not working properly
 			elif movetype == 3:
 				#select one page down
 				thisitem=self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()
@@ -3110,7 +3109,7 @@ class PoWindow(BWindow):
 				else:
 					self.editorslist[self.postabview.Selection()].list.lv.Select(self.editorslist[self.postabview.Selection()].list.lv.CountItems()-1)	
 				self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
-					
+				#self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated())) # reinsert if not working properly
 			elif  movetype == 4:
 				#select next untranslated (or needing work) string
 				if (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1):
@@ -3138,13 +3137,14 @@ class PoWindow(BWindow):
 						lookingfor = False
 					if tt==max:
 						tt=0
+				#self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated())) # reinsert if not working properly
 				###
 			thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
 			try:
 				if thisBlistitem.tosave: #it happens when something SOMEHOW has not been saved
 					print("testo da salvare (this shouldn\'t happen)",thisBlistitem.txttosave)
 			except:
-				print "no tosave"
+				pass
 			return
 
 		elif msg.what == 305:
@@ -3161,7 +3161,6 @@ class PoWindow(BWindow):
 			indexBlistitem=msg.FindInt32('indexBlistitem')
 			tabs=len(self.listemsgstr)-1
 			if cursel == self.postabview.Selection():
-				print "stesso postabview"
 				tmp=self.editorslist[cursel]
 				if indexBlistitem == tmp.list.lv.CurrentSelection():
 					if self.listemsgstr[self.transtabview.Selection()].trnsl.oldtext != self.listemsgstr[self.transtabview.Selection()].trnsl.Text():  ### o è meglio controllare nel caso di plurale tutti gli eventtextview?
@@ -3426,6 +3425,7 @@ class PoWindow(BWindow):
 				intscheda=msg.FindInt32('tabview')
 				scheda=self.editorslist[intscheda]
 				entry = self.workonthisentry
+				### non passava di qui
 				entry.tcomment=textsave
 				scheda.pofile.metadata['Last-Translator']=defname
 				scheda.pofile.metadata['PO-Revision-Date']=now
@@ -3435,6 +3435,7 @@ class PoWindow(BWindow):
 				scheda.list.lv.DeselectAll()
 				scheda.list.lv.Select(tvindex)
 				return
+			self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated()))
 			return
 		elif msg.what == 17893:
 			try:
@@ -3521,6 +3522,7 @@ class PoWindow(BWindow):
 				scheda.list.lv.DeselectAll()
 				scheda.list.lv.Select(tvindex)
 				return
+			self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated()))
 			return
 			
 		elif msg.what == 445380:
@@ -3876,7 +3878,7 @@ class PoWindow(BWindow):
 					self.lubox.AddChild(self.tcommentlabel)
 					self.tcommentview=BTextView((8,hig+408,dfg-26,500),"tcommentview",(4,4,179,292),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)
 					self.tcommentview.MakeEditable(False)
-					self.scrolltcomment=BScrollBar((dfg-24,hig+408,dfg-8,500),'tcommentview_ScrollBar',self.contextview,0.0,0.0,B_VERTICAL)
+					self.scrolltcomment=BScrollBar((dfg-24,hig+408,dfg-8,500),'tcommentview_ScrollBar',self.tcommentview,0.0,0.0,B_VERTICAL)
 					self.lubox.AddChild(self.scrolltcomment)
 					self.lubox.AddChild(self.tcommentview)
 					self.tcommentview.SetText(item.tcomment)
