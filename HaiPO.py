@@ -1032,15 +1032,6 @@ class MyListView(BListView):
 	def __init__(self, frame, name, type, resizingMode, flags):
 		BListView.__init__(self, frame, name, type, resizingMode, flags)
 		#self.preselected=-1
-
-#	def SelectionChanged(self):
-#		BApplication.be_app.WindowAt(0).infoprogress.SetText(str(BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].pofile.percent_translated()))
-############################### TODO: this thing above, place this function on every ctrl+down or up or TAB or mouseclic
-
-#		if self.CurrentSelection()>-1:
-#			print self.ItemAt(self.CurrentSelection()).linenum
-#		else:
-#			print "deselezionato azzero linenum"
 	
 	def MouseDown(self,point):
 		if self.CurrentSelection() >-1:
@@ -1557,7 +1548,7 @@ class EventTextView(BTextView):
 		bckpmsg.AddString('bckppath',cursel.backupfile)
 		BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
 		#ocio a questa riga qui sotto
-		self.superself.infoprogress.SetText(str(cursel.pofile.percent_translated()))
+		#self.superself.infoprogress.SetText(str(cursel.pofile.percent_translated())) #reinsert if something doesn't work properly but it should write in 17892/3
 
 	def checklater(self,name,oldtext,cursel,indexBlistitem):
 			mes=BMessage(112118)
@@ -1825,9 +1816,44 @@ class trnsltabbox(BBox):
 		self.scrollbtrans=BScrollBar((bo -21,1,bo-5,ba-5),name+'_ScrollBar',self.trnsl,0.0,0.0,B_VERTICAL)
 		self.AddChild(self.scrollbtrans)
 
+class HeaderWindow(BWindow):
+	kWindowFrame = (150, 150, 500, 600)
+	kWindowName = "Po header"
+	
+	def __init__(self,indextab,pofile,encoding):
+		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, B_FLOATING_WINDOW, B_NOT_RESIZABLE)
+		bounds=self.Bounds()
+		ix,iy,fx,fy=bounds
+		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		self.AddChild(self.underframe)
+		self.headerview=BTextView((4,4,fx-4,fy-50),"headerview",(4,4,fx-12,fy-48),B_FOLLOW_ALL)
+		self.underframe.AddChild(self.headerview)
+		kButtonFrame = (fx-150, fy-40, fx-10, fy-10)
+		kButtonName = "Save header"
+		self.savebtn = BButton(kButtonFrame, kButtonName, kButtonName, BMessage(5252))
+		self.underframe.AddChild(self.savebtn)
+		self.indextab=indextab
+		self.pofile=pofile
+		self.encoding=encoding
+		if self.pofile.header!="":
+			self.headerview.SetText(self.pofile.header.encode(self.encoding))
+		
+	def Save(self):
+		bckpmsg=BMessage(17893)
+		cursel=BApplication.be_app.WindowAt(0).editorslist[self.indextab]
+		bckpmsg.AddInt8('savetype',4)
+		bckpmsg.AddInt32('tabview',self.indextab)
+		bckpmsg.AddString('header',self.headerview.Text().decode(self.encoding))
+		bckpmsg.AddString('bckppath',cursel.backupfile)
+		BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
+		
 
-
-##################################### TODO : integrare gestione pofile.header ###############################################
+	def MessageReceived(self, msg):
+		if msg.what == 5252:
+			self.Save()
+			self.Quit()
+		else:
+			return BWindow.MessageReceived(self, msg)
 
 
 class POEditorBBox(BBox):
@@ -2362,7 +2388,7 @@ class PoWindow(BWindow):
 		('File', ((295485, 'Open'), (2, 'Save'), (1, 'Close'), (5, 'Save as...'),(None, None),(B_QUIT_REQUESTED, 'Quit'))),
 		('Translation', ((3, 'Copy from source'), (4,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy'), (72, 'Previous w/o saving'),(73,'Next w/o saving'),(None, None), (6, 'Find source'), (7, 'Find/Replace translation'))),
 		('View', ((74,'Fuzzy'), (75, 'Untranslated'),(76,'Translated'),(77, 'Obsolete'))),
-		('Settings', ((41, 'User settings'), (42, 'Po properties')	)),
+		('Settings', ((41, 'User settings'), (42, 'Po properties'), (43, 'Po header'))),
 		('About', ((8, 'Help'),(None, None),(9, 'About')))
 		)
 	def __init__(self, frame):
@@ -2837,6 +2863,12 @@ class PoWindow(BWindow):
 					thiswindow=i
 				i=i+1
 			BApplication.be_app.WindowAt(thiswindow).PostMessage(99111)
+		
+		elif msg.what == 43:
+			#Po header
+			tmp = self.postabview.Selection()
+			self.HeaderWindow = HeaderWindow(tmp,self.editorslist[tmp].pofile,self.encoding)
+			self.HeaderWindow.Show()
 
 		elif msg.what == 70:
 			# Done and next
@@ -3435,6 +3467,7 @@ class PoWindow(BWindow):
 				scheda.list.lv.DeselectAll()
 				scheda.list.lv.Select(tvindex)
 				return
+
 			self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated()))
 			return
 		elif msg.what == 17893:
@@ -3521,6 +3554,16 @@ class PoWindow(BWindow):
 				self.postabview.Select(intscheda)
 				scheda.list.lv.DeselectAll()
 				scheda.list.lv.Select(tvindex)
+				return
+			elif savetype == 4:
+				textsave=msg.FindString('header')
+				intscheda=msg.FindInt32('tabview')
+				scheda=self.editorslist[intscheda]
+				scheda.pofile.header=textsave
+				scheda.pofile.metadata['Last-Translator']=defname
+				scheda.pofile.metadata['PO-Revision-Date']=now
+				scheda.pofile.metadata['X-Editor']=version
+				scheda.pofile.save(bckppath)
 				return
 			self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated()))
 			return
