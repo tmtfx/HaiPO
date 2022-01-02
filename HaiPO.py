@@ -33,7 +33,7 @@
 
 import os,sys,ConfigParser,struct,re,thread,datetime,time,threading
 
-version='HaiPO 0.3 alpha'
+version='HaiPO 0.4 alpha'
 (appname,ver,state)=version.split(' ')
 
 jes = False
@@ -230,7 +230,7 @@ class POmetadata(BWindow):
 			indi=msg.FindInt8('itemindex')
 			self.pofile.metadata[ind]=self.listBTextControl[indi].Text().decode(BApplication.be_app.WindowAt(0).encoding)   ################### possible error? check encoding
 			# save self.pofile to backup file
-			smesg=BMessage(17893)
+			smesg=BMessage(16893)
 			smesg.AddInt8('savetype',2)
 			smesg.AddInt8('indexroot',self.indexroot)
 			smesg.AddString('bckppath',BApplication.be_app.WindowAt(0).editorslist[self.indexroot].backupfile)
@@ -1003,11 +1003,7 @@ class TranslatorComment(BWindow):
 			self.tcommentview.SetText(self.item.tcomment.encode(self.encoding))
 		
 	def Save(self):
-		if self.item.occurrency:
-			bckpmsg=BMessage(17892)
-			bckpmsg.AddInt32('OID',self.item.occurvalue)
-		else:
-			bckpmsg=BMessage(17893)
+		bckpmsg=BMessage(16893)
 		cursel=BApplication.be_app.WindowAt(0).editorslist[self.indextab]
 		bckpmsg.AddInt8('savetype',3)
 		bckpmsg.AddInt32('tvindex',self.listindex)
@@ -1091,7 +1087,7 @@ class ScrollView:
 						while xu<lenmsgstr:
 							msgstrs.append(entry.msgstr_plural[xu])
 							xu+=1
-						item = MsgStrItem(msgids,msgstrs,comments,context,2,encoding,True)
+						item = MsgStrItem(msgids,msgstrs,entry,comments,context,2,encoding,True)
 						if entry.tcomment:
 							item.SetTranslatorComment(entry.tcomment)
 						if entry.previous_msgid:
@@ -1104,17 +1100,6 @@ class ScrollView:
 							item.SetPrevious(True)
 							item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(encoding)))
 						item.SetLineNum(entry.linenum)
-						conto=0
-						for ent in pofile:
-							if ent.msgid == entry.msgid:
-								conto+=1
-						if conto > 1:
-							item.SetOccurrency(True)
-							value=len(self.occumemo)
-							self.occumemo.append((entry.msgid,value))
-							item.SetOccurrencyID(value)
-						else:
-							item.SetOccurrency(False)						
 					else:
 						if entry.comment:
 							comments=entry.comment
@@ -1124,7 +1109,7 @@ class ScrollView:
 							context = entry.msgctxt
 						else:
 							context = ""
-						item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,2,encoding,False)
+						item = MsgStrItem(entry.msgid,entry.msgstr,entry,comments,context,2,encoding,False)
 						if entry.tcomment:
 							item.SetTranslatorComment(entry.tcomment)
 						if entry.previous_msgid:
@@ -1137,18 +1122,6 @@ class ScrollView:
 							item.SetPrevious(True)
 							item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(encoding)))
 						item.SetLineNum(entry.linenum)
-						conto=0
-						for ent in pofile:
-							if ent.msgid == entry.msgid:
-								conto+=1
-						if conto > 1:
-							item.SetOccurrency(True)
-							value=len(self.occumemo)
-							self.occumemo.append((entry.msgid,value))
-							item.SetOccurrencyID(value)
-							print "valore di associazione",value
-						else:
-							item.SetOccurrency(False)						
 					self.lv.AddItem(item)
 			if arrayview[1]:
 				for entry in pofile.untranslated_entries():
@@ -1168,7 +1141,7 @@ class ScrollView:
 						while xu<lenmsgstr:
 							msgstrs.append(entry.msgstr_plural[xu])
 							xu+=1
-						item = MsgStrItem(msgids,msgstrs,comments,context,0,encoding,True)
+						item = MsgStrItem(msgids,msgstrs,entry,comments,context,0,encoding,True)
 						if entry.tcomment:
 							item.SetTranslatorComment(entry.tcomment)
 						if entry.previous_msgid:
@@ -1181,17 +1154,6 @@ class ScrollView:
 							item.SetPrevious(True)
 							item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(encoding)))
 						item.SetLineNum(entry.linenum)
-						conto=0
-						for ent in pofile:
-							if ent.msgid == entry.msgid:
-								conto+=1
-						if conto > 1:
-							item.SetOccurrency(True)
-							value=len(self.occumemo)
-							self.occumemo.append((entry.msgid,value))
-							item.SetOccurrencyID(value)
-						else:
-							item.SetOccurrency(False)						
 					else:
 						if entry.comment:
 							comments=entry.comment
@@ -1201,7 +1163,7 @@ class ScrollView:
 							context = entry.msgctxt
 						else:
 							context = ""
-						item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,0,encoding,False)
+						item = MsgStrItem(entry.msgid,entry.msgstr,entry,comments,context,0,encoding,False)
 						if entry.tcomment:
 							item.SetTranslatorComment(entry.tcomment)
 						if entry.previous_msgid:
@@ -1213,18 +1175,7 @@ class ScrollView:
 						if entry.previous_msgctxt:
 							item.SetPrevious(True)
 							item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(encoding)))
-						item.SetLineNum(entry.linenum)
-						conto=0
-						for ent in pofile:
-							if ent.msgid == entry.msgid:
-								conto+=1
-						if conto > 1:
-							item.SetOccurrency(True)
-							value=len(self.occumemo)
-							self.occumemo.append((entry.msgid,value))
-							item.SetOccurrencyID(value)
-						else:
-							item.SetOccurrency(False)						
+						item.SetLineNum(entry.linenum)				
 					self.lv.AddItem(item)
 			if arrayview[2]:
 				for entry in pofile.translated_entries():
@@ -1244,7 +1195,7 @@ class ScrollView:
 						while xu<lenmsgstr:
 							msgstrs.append(entry.msgstr_plural[xu])
 							xu+=1
-						item = MsgStrItem(msgids,msgstrs,comments,context,1,encoding,True)
+						item = MsgStrItem(msgids,msgstrs,entry,comments,context,1,encoding,True)
 						if entry.tcomment:
 							item.SetTranslatorComment(entry.tcomment)
 						if entry.previous_msgid:
@@ -1256,18 +1207,7 @@ class ScrollView:
 						if entry.previous_msgctxt:
 							item.SetPrevious(True)
 							item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(encoding)))
-						item.SetLineNum(entry.linenum)
-						conto=0
-						for ent in pofile:
-							if ent.msgid == entry.msgid:
-								conto+=1
-						if conto > 1:
-							item.SetOccurrency(True)
-							value=len(self.occumemo)
-							self.occumemo.append((entry.msgid,value))
-							item.SetOccurrencyID(value)
-						else:
-							item.SetOccurrency(False)						
+						item.SetLineNum(entry.linenum)					
 					else:
 						if entry.comment:
 							comments=entry.comment
@@ -1277,7 +1217,7 @@ class ScrollView:
 							context = entry.msgctxt
 						else:
 							context = ""
-						item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,1,encoding,False)
+						item = MsgStrItem(entry.msgid,entry.msgstr,entry,comments,context,1,encoding,False)
 						if entry.tcomment:
 							item.SetTranslatorComment(entry.tcomment)
 						if entry.previous_msgid:
@@ -1289,18 +1229,7 @@ class ScrollView:
 						if entry.previous_msgctxt:
 							item.SetPrevious(True)
 							item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(encoding)))
-						item.SetLineNum(entry.linenum)
-						conto=0
-						for ent in pofile:
-							if ent.msgid == entry.msgid:
-								conto+=1
-						if conto > 1:
-							item.SetOccurrency(True)
-							value=len(self.occumemo)
-							self.occumemo.append((entry.msgid,value))
-							item.SetOccurrencyID(value)
-						else:
-							item.SetOccurrency(False)
+						item.SetLineNum(entry.linenum)					
 					self.lv.AddItem(item)
 			if arrayview[3]:
 				for entry in pofile.obsolete_entries():
@@ -1320,7 +1249,7 @@ class ScrollView:
 						while xu<lenmsgstr:
 							msgstrs.append(entry.msgstr_plural[xu])
 							xu+=1
-						item = MsgStrItem(msgids,msgstrs,comments,context,3,encoding,True)
+						item = MsgStrItem(msgids,msgstrs,entry,comments,context,3,encoding,True)
 						if entry.tcomment:
 							item.SetTranslatorComment(entry.tcomment)
 						if entry.previous_msgid:
@@ -1332,18 +1261,7 @@ class ScrollView:
 						if entry.previous_msgctxt:
 							item.SetPrevious(True)
 							item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(encoding)))
-						item.SetLineNum(entry.linenum)
-						conto=0
-						for ent in pofile:
-							if ent.msgid == entry.msgid:
-								conto+=1
-						if conto > 1:
-							item.SetOccurrency(True)
-							value=len(self.occumemo)
-							self.occumemo.append((entry.msgid,value))
-							item.SetOccurrencyID(value)
-						else:
-							item.SetOccurrency(False)
+						item.SetLineNum(entry.linenum)					
 					else:
 						if entry.comment:
 							comments=entry.comment
@@ -1353,7 +1271,7 @@ class ScrollView:
 							context = entry.msgctxt
 						else:
 							context = ""
-						item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,3,encoding,False)
+						item = MsgStrItem(entry.msgid,entry.msgstr,entry,comments,context,3,encoding,False)
 						if entry.tcomment:
 							item.SetTranslatorComment(entry.tcomment)
 						if entry.previous_msgid:
@@ -1365,18 +1283,7 @@ class ScrollView:
 						if entry.previous_msgctxt:
 							item.SetPrevious(True)
 							item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(encoding)))
-						item.SetLineNum(entry.linenum)
-						conto=0
-						for ent in pofile:
-							if ent.msgid == entry.msgid:
-								conto+=1
-						if conto > 1:
-							item.SetOccurrency(True)
-							value=len(self.occumemo)
-							self.occumemo.append((entry.msgid,value))
-							item.SetOccurrencyID(value)
-						else:
-							item.SetOccurrency(False)							
+						item.SetLineNum(entry.linenum)					
 					self.lv.AddItem(item)
 			
 
@@ -1409,7 +1316,7 @@ class MsgStrItem(BListItem):
 	context=""
 
 	
-	def __init__(self, msgids,msgstrs,comments,context,state,encoding,plural):
+	def __init__(self, msgids,msgstrs,entry,comments,context,state,encoding,plural):
 		if plural:
 			self.text = msgids[0].encode(encoding)  #it's in english should this always be utf-8?
 		else:
@@ -1420,12 +1327,11 @@ class MsgStrItem(BListItem):
 		self.msgstrs = msgstrs
 		self.state = state
 		self.hasplural = plural
-		self.occurrency=False
-		self.occurvalue=0
 		self.previous=False
 		self.previousmsgs=[]
 		self.tcomment=""
 		self.linenum=None
+		self.entry=entry
 		BListItem.__init__(self)
 
 	def DrawItem(self, owner, frame,complete):
@@ -1473,15 +1379,9 @@ class MsgStrItem(BListItem):
 			owner.SetLowColor((255,255,255,255))
 		#owner.StrokeTriangle((float(frame[2]-10),float(frame[3]+3)),(frame[2]-2,frame[3]+3),(frame[2]-6,frame[3]+7.5));#,B_SOLID_HIGH
 		#should I? return BListItem.DrawItem(self, owner, frame,complete)
-		
-	def SetOccurrencyID(self,value):
-		self.occurvalue=value
 	
 	def SetLineNum(self,value):
 		self.linenum=value
-		
-	def SetOccurrency(self,bool):
-		self.occurrency=bool
 		
 	def SetPreviousMsgs(self,msgs):
 		self.previousmsgs.append(msgs)
@@ -1491,6 +1391,10 @@ class MsgStrItem(BListItem):
 
 	def SetTranslatorComment(self,tcomment):
 		self.tcomment=tcomment
+		
+	def Save(self,something):
+		print "salvo senza passare attraverso postmessage"
+		print something
 		
 	def Text(self):
 		return self.text
@@ -1518,11 +1422,7 @@ class EventTextView(BTextView):
 		thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
 		thisBlistitem.tosave=True
 		tabs=len(self.superself.listemsgstr)-1
-		if thisBlistitem.occurrency:
-			bckpmsg=BMessage(17892)
-			bckpmsg.AddInt32('OID',thisBlistitem.occurvalue)
-		else:
-			bckpmsg=BMessage(17893)
+		bckpmsg=BMessage(16893)
 		bckpmsg.AddInt8('savetype',1)
 		bckpmsg.AddInt32('tvindex',cursel.list.lv.CurrentSelection())
 		bckpmsg.AddInt8('plurals',tabs)
@@ -1547,8 +1447,7 @@ class EventTextView(BTextView):
 				cox+=1
 		bckpmsg.AddString('bckppath',cursel.backupfile)
 		BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
-		#ocio a questa riga qui sotto
-		#self.superself.infoprogress.SetText(str(cursel.pofile.percent_translated())) #reinsert if something doesn't work properly but it should write in 17892/3
+		#self.superself.infoprogress.SetText(str(cursel.pofile.percent_translated())) #reinsert if something doesn't work properly but it should write in 16892/3
 
 	def checklater(self,name,oldtext,cursel,indexBlistitem):
 			mes=BMessage(112118)
@@ -1739,7 +1638,7 @@ class EventTextView(BTextView):
 							thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
 							thisBlistitem.tosave=True
 							tabs=len(self.superself.listemsgstr)-1
-							bckpmsg=BMessage(17893)
+							bckpmsg=BMessage(16893)
 							bckpmsg.AddInt8('savetype',1)
 							bckpmsg.AddInt32('tvindex',cursel.list.lv.CurrentSelection())
 							bckpmsg.AddInt8('plurals',tabs)
@@ -1839,7 +1738,7 @@ class HeaderWindow(BWindow):
 			self.headerview.SetText(self.pofile.header.encode(self.encoding))
 		
 	def Save(self):
-		bckpmsg=BMessage(17893)
+		bckpmsg=BMessage(16893)
 		cursel=BApplication.be_app.WindowAt(0).editorslist[self.indextab]
 		bckpmsg.AddInt8('savetype',4)
 		bckpmsg.AddInt32('tabview',self.indextab)
@@ -1912,7 +1811,7 @@ class POEditorBBox(BBox):
 					while xu<lenmsgstr:
 						msgstrs.append(entry.msgstr_plural[xu])
 						xu+=1
-					item = MsgStrItem(msgids,msgstrs,comments,context,2,encoding,True)
+					item = MsgStrItem(msgids,msgstrs,entry,comments,context,2,encoding,True)
 					if entry.tcomment:
 						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
@@ -1925,19 +1824,6 @@ class POEditorBBox(BBox):
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					item.SetLineNum(entry.linenum)
-					conto=0
-					for ent in self.pofile:
-						if ent.msgid == entry.msgid:
-							conto+=1
-							if conto >1:
-								break
-					if conto > 1:
-						item.SetOccurrency(True)
-						value=len(self.occumemo)
-						self.occumemo.append((entry.msgid,value))
-						item.SetOccurrencyID(value)
-					else:
-						item.SetOccurrency(False)
 				else:
 					if entry.comment:
 						comments=entry.comment
@@ -1947,7 +1833,7 @@ class POEditorBBox(BBox):
 							context = entry.msgctxt
 					else:
 							context = ""
-					item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,2,encoding,False)
+					item = MsgStrItem(entry.msgid,entry.msgstr,entry,comments,context,2,encoding,False)
 					if entry.tcomment:
 						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
@@ -1960,19 +1846,6 @@ class POEditorBBox(BBox):
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					item.SetLineNum(entry.linenum)
-					conto=0
-					for ent in self.pofile:
-						if ent.msgid == entry.msgid:
-							conto+=1
-							if conto >1:
-								break
-					if conto > 1:
-						item.SetOccurrency(True)
-						value=len(self.occumemo)
-						self.occumemo.append((entry.msgid,value))
-						item.SetOccurrencyID(value)
-					else:
-						item.SetOccurrency(False)
 				self.list.lv.AddItem(item)
 		if arrayview[1]:
 			for entry in self.pofile.untranslated_entries():
@@ -1992,7 +1865,7 @@ class POEditorBBox(BBox):
 					while xu<lenmsgstr:
 						msgstrs.append(entry.msgstr_plural[xu])
 						xu+=1
-					item = MsgStrItem(msgids,msgstrs,comments,context,0,encoding,True)
+					item = MsgStrItem(msgids,msgstrs,entry,comments,context,0,encoding,True)
 					if entry.tcomment:
 						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
@@ -2005,19 +1878,6 @@ class POEditorBBox(BBox):
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					item.SetLineNum(entry.linenum)
-					conto=0
-					for ent in self.pofile:
-						if ent.msgid == entry.msgid:
-							conto+=1
-							if conto >1:
-								break
-					if conto > 1:
-						item.SetOccurrency(True)
-						value=len(self.occumemo)
-						self.occumemo.append((entry.msgid,value))
-						item.SetOccurrencyID(value)
-					else:
-						item.SetOccurrency(False)
 				else:
 					if entry.comment:
 						comments=entry.comment
@@ -2027,7 +1887,7 @@ class POEditorBBox(BBox):
 							context = entry.msgctxt
 					else:
 							context = ""
-					item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,0,encoding,False)
+					item = MsgStrItem(entry.msgid,entry.msgstr,entry,comments,context,0,encoding,False)
 					if entry.tcomment:
 						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
@@ -2040,19 +1900,6 @@ class POEditorBBox(BBox):
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					item.SetLineNum(entry.linenum)
-					conto=0
-					for ent in self.pofile:
-						if ent.msgid == entry.msgid:
-							conto+=1
-							if conto >1:
-								break
-					if conto > 1:
-						item.SetOccurrency(True)
-						value=len(self.occumemo)
-						self.occumemo.append((entry.msgid,value))
-						item.SetOccurrencyID(value)
-					else:
-						item.SetOccurrency(False)
 				self.list.lv.AddItem(item)
 		if arrayview[2]:
 			for entry in self.pofile.translated_entries():
@@ -2072,7 +1919,7 @@ class POEditorBBox(BBox):
 					while xu<lenmsgstr:
 						msgstrs.append(entry.msgstr_plural[xu])
 						xu+=1
-					item = MsgStrItem(msgids,msgstrs,comments,context,1,encoding,True)
+					item = MsgStrItem(msgids,msgstrs,entry,comments,context,1,encoding,True)
 					if entry.tcomment:
 						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
@@ -2085,19 +1932,6 @@ class POEditorBBox(BBox):
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					item.SetLineNum(entry.linenum)
-					conto=0
-					for ent in self.pofile:
-						if ent.msgid == entry.msgid:
-							conto+=1
-							if conto >1:
-								break
-					if conto > 1:
-						item.SetOccurrency(True)
-						value=len(self.occumemo)
-						self.occumemo.append((entry.msgid,value))
-						item.SetOccurrencyID(value)
-					else:
-						item.SetOccurrency(False)
 				else:
 					if entry.comment:
 						comments=entry.comment
@@ -2107,7 +1941,7 @@ class POEditorBBox(BBox):
 							context = entry.msgctxt
 					else:
 							context = ""
-					item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,1,encoding,False)
+					item = MsgStrItem(entry.msgid,entry.msgstr,entry,comments,context,1,encoding,False)
 					if entry.tcomment:
 						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
@@ -2120,19 +1954,6 @@ class POEditorBBox(BBox):
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					item.SetLineNum(entry.linenum)
-					conto=0
-					for ent in self.pofile:
-						if ent.msgid == entry.msgid:
-							conto+=1
-							if conto >1:
-								break
-					if conto > 1:
-						item.SetOccurrency(True)
-						value=len(self.occumemo)
-						self.occumemo.append((entry.msgid,value))
-						item.SetOccurrencyID(value)
-					else:
-						item.SetOccurrency(False)
 				self.list.lv.AddItem(item)
 		if arrayview[3]:
 			for entry in self.pofile.obsolete_entries():
@@ -2152,7 +1973,7 @@ class POEditorBBox(BBox):
 					while xu<lenmsgstr:
 						msgstrs.append(entry.msgstr_plural[xu])
 						xu+=1
-					item = MsgStrItem(msgids,msgstrs,comments,context,3,encoding,True)
+					item = MsgStrItem(msgids,msgstrs,entry,comments,context,3,encoding,True)
 					if entry.tcomment:
 						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
@@ -2165,19 +1986,6 @@ class POEditorBBox(BBox):
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					item.SetLineNum(entry.linenum)
-					conto=0
-					for ent in self.pofile:
-						if ent.msgid == entry.msgid:
-							conto+=1
-							if conto >1:
-								break
-					if conto > 1:
-						item.SetOccurrency(True)
-						value=len(self.occumemo)
-						self.occumemo.append((entry.msgid,value))
-						item.SetOccurrencyID(value)
-					else:
-						item.SetOccurrency(False)
 				else:
 					if entry.comment:
 						comments = entry.comment
@@ -2187,7 +1995,7 @@ class POEditorBBox(BBox):
 							context = entry.msgctxt
 					else:
 							context = ""
-					item = MsgStrItem(entry.msgid,entry.msgstr,comments,context,3,encoding,False)
+					item = MsgStrItem(entry.msgid,entry.msgstr,entry,comments,context,3,encoding,False)
 					if entry.tcomment:
 						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
@@ -2200,19 +2008,6 @@ class POEditorBBox(BBox):
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					item.SetLineNum(entry.linenum)
-					conto=0
-					for ent in self.pofile:
-						if ent.msgid == entry.msgid:
-							conto+=1
-							if conto >1:
-								break
-					if conto > 1:
-						item.SetOccurrency(True)
-						value=len(self.occumemo)
-						self.occumemo.append((entry.msgid,value))
-						item.SetOccurrencyID(value)
-					else:
-						item.SetOccurrency(False)
 				self.list.lv.AddItem(item)
 		
 class translationtabview(BTabView):
@@ -2308,7 +2103,7 @@ class postabview(BTabView):
 							thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
 							thisBlistitem.tosave=True
 							tabs=len(self.superself.listemsgstr)-1
-							bckpmsg=BMessage(17893)
+							bckpmsg=BMessage(16893)
 							bckpmsg.AddInt8('savetype',1)
 							bckpmsg.AddInt32('tvindex',cursel.list.lv.CurrentSelection())
 							bckpmsg.AddInt8('plurals',tabs)
@@ -2521,7 +2316,8 @@ class PoWindow(BWindow):
 		self.lubox.AddChild(self.valueln)
 		self.lubox.AddChild(self.infoforprogress)
 		self.lubox.AddChild(self.infoprogress)
-
+		self.tempbtn=BButton((4,jkl-hig*3-12,ghj-4,jkl-hig*2-8), "temp", "Test", BMessage(12343))
+		self.lubox.AddChild(self.tempbtn)
 		
 		self.background.AddChild(self.lubox)
 		self.postabview = postabview(self,(5.0, 5.0, d*3/4-5, b-barheight-245), 'postabview',B_WIDTH_FROM_LABEL)
@@ -2771,11 +2567,7 @@ class PoWindow(BWindow):
 			thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
 			thisBlistitem.tosave=True
 			tabs=len(self.listemsgstr)-1
-			if thisBlistitem.occurrency:
-				bckpmsg=BMessage(17892)
-				bckpmsg.AddInt32('OID',thisBlistitem.occurvalue)
-			else:
-				bckpmsg=BMessage(17893)
+			bckpmsg=BMessage(16893)
 			bckpmsg.AddInt8('savetype',1)
 			bckpmsg.AddInt32('tvindex',cursel.list.lv.CurrentSelection())
 			bckpmsg.AddInt8('plurals',tabs)
@@ -2886,11 +2678,7 @@ class PoWindow(BWindow):
 				thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
 				thisBlistitem.tosave=True
 				tabs=len(self.listemsgstr)-1
-				if thisBlistitem.occurrency:
-					bckpmsg=BMessage(17892)
-					bckpmsg.AddInt32('OID',thisBlistitem.occurvalue)
-				else:
-					bckpmsg=BMessage(17893)
+				bckpmsg=BMessage(16893)
 				bckpmsg.AddInt8('savetype',1)
 				bckpmsg.AddInt32('tvindex',cursel.list.lv.CurrentSelection())
 				bckpmsg.AddInt8('plurals',tabs)
@@ -3197,9 +2985,99 @@ class PoWindow(BWindow):
 				if indexBlistitem == tmp.list.lv.CurrentSelection():
 					if self.listemsgstr[self.transtabview.Selection()].trnsl.oldtext != self.listemsgstr[self.transtabview.Selection()].trnsl.Text():  ### o è meglio controllare nel caso di plurale tutti gli eventtextview?
 						self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
-		
-		elif msg.what == 17892:
-			#same as 17893 for multiple occurrencies
+						
+#		elif msg.what == 16892: #rewrited multiple occurrencies ACT! use 16893
+#			try:
+#				Config.read(confile)
+#				defname=ConfigSectionMap("Users")['default']
+#			except:
+#				defname=self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']
+#			now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
+#			bckppath = msg.FindString('bckppath')
+#			savetype = msg.FindInt8('savetype')
+#			if savetype == 0: #simple save used for fuzzy state and metadata change
+#				self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']=defname
+#				self.editorslist[self.postabview.Selection()].pofile.metadata['PO-Revision-Date']=now
+#				self.editorslist[self.postabview.Selection()].pofile.metadata['X-Editor']=version
+#				self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
+#				return
+#
+#			elif savetype == 2: ############ No need on multiple occurrencies
+#				#save of metadata
+#				indexroot=msg.FindInt8('indexroot')
+#				self.editorslist[indexroot].pofile.metadata['Last-Translator']=defname # metadata saved from po settings
+#				self.editorslist[indexroot].pofile.metadata['PO-Revision-Date']=now
+#				self.editorslist[indexroot].pofile.metadata['X-Editor']=version
+#				self.editorslist[indexroot].pofile.save(bckppath)
+#				return
+#
+#			elif savetype == 1:
+#				self.pofile=self.editorslist[self.postabview.Selection()].pofile
+#				tvindex=msg.FindInt32('tvindex')
+#				textsave=msg.FindString('translation')
+#				tabbi=msg.FindInt8('plurals')
+#				intscheda=msg.FindInt32('tabview')
+#				scheda=self.editorslist[intscheda]
+#				entry = scheda.list.lv.ItemAt(tvindex).entry 
+#				#print entry   ######TEST IT##################################################
+#				if entry and entry.msgid_plural:
+#						y=0
+#						textsavepl=[]
+#						entry.msgstr_plural[0] = textsave.decode(self.encoding)
+#						while y < tabbi:
+#							varname='translationpl'+str(y) ######################################### check! stry(y) or  y+1???????? plurale
+#							intended=msg.FindString(varname)
+#							textsavepl.append(intended) #useless???
+#							y+=1
+#							entry.msgstr_plural[y]=intended.decode(self.encoding)
+#						if 'fuzzy' in entry.flags:
+#							entry.flags.remove('fuzzy')
+#						if entry.previous_msgid:
+#							entry.previous_msgid=None
+#						if entry.previous_msgid_plural:
+#							entry.previous_msgid_plural=None
+#						if entry.previous_msgctxt:
+#							entry.previous_msgctxt=None
+#				elif entry and not entry.msgid_plural:
+#						entry.msgstr = textsave.decode(self.encoding)
+#						if 'fuzzy' in entry.flags:
+#							entry.flags.remove('fuzzy')
+#						if entry.previous_msgid:
+#							entry.previous_msgid=None
+#						if entry.previous_msgid_plural:
+#							entry.previous_msgid_plural=None
+#						if entry.previous_msgctxt:
+#							entry.previous_msgctxt=None
+#				scheda.pofile.metadata['Last-Translator']=defname
+#				scheda.pofile.metadata['PO-Revision-Date']=now
+#				scheda.pofile.metadata['X-Editor']=version
+#				scheda.pofile.save(bckppath)
+#				scheda.list.lv.ItemAt(tvindex).state=1
+#				scheda.list.lv.ItemAt(tvindex).tosave=False
+#				self.editorslist[intscheda].list.lv.ItemAt(tvindex).txttosave=""
+#				self.editorslist[intscheda].list.lv.ItemAt(tvindex).txttosavepl=[]
+#				return
+#				
+#			elif savetype == 3:
+#				self.pofile=self.editorslist[self.postabview.Selection()].pofile
+#				tvindex=msg.FindInt32('tvindex')
+#				textsave=msg.FindString('tcomment')
+#				intscheda=msg.FindInt32('tabview')
+#				scheda=self.editorslist[intscheda]
+#				entry = self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tvindex).entry
+#				entry.tcomment=textsave
+#				scheda.pofile.metadata['Last-Translator']=defname
+#				scheda.pofile.metadata['PO-Revision-Date']=now
+#				scheda.pofile.metadata['X-Editor']=version
+#				scheda.pofile.save(bckppath)
+#				self.postabview.Select(intscheda)
+#				scheda.list.lv.DeselectAll()
+#				scheda.list.lv.Select(tvindex)
+#				return
+#			self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated()))
+#			return
+
+		elif msg.what == 16893:
 			try:
 				Config.read(confile)
 				defname=ConfigSectionMap("Users")['default']
@@ -3207,7 +3085,6 @@ class PoWindow(BWindow):
 				defname=self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']
 			now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
 			# save to backup and update the blistitem
-			OID=msg.FindInt32('OID')
 			bckppath = msg.FindString('bckppath')
 			savetype = msg.FindInt8('savetype')
 			if savetype == 0: #simple save used for fuzzy state and metadata change
@@ -3216,144 +3093,7 @@ class PoWindow(BWindow):
 				self.editorslist[self.postabview.Selection()].pofile.metadata['X-Editor']=version
 				self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
 				return
-			elif savetype == 1:
-				self.pofile=self.editorslist[self.postabview.Selection()].pofile
-				occurem=[]
-				if self.poview[0]:
-					for entry in self.pofile.fuzzy_entries():
-						if entry and entry.msgid_plural:
-							conto=0
-							for ent in self.pofile:
-								if ent.msgid == entry.msgid:
-									conto+=1
-							if conto > 1:
-									value=len(occurem)
-									occurem.append((entry.msgid,value))
-									if value == OID:
-										self.workonthisentry=entry
-						else:
-							conto=0
-							for ent in self.pofile:
-								if ent.msgid == entry.msgid:
-									conto+=1
-							if conto > 1:
-									value=len(occurem)
-									occurem.append((entry.msgid,value))
-									if value == OID:
-										self.workonthisentry=entry
-				if self.poview[1]:
-					for entry in self.pofile.untranslated_entries():
-						if entry and entry.msgid_plural:
-							conto=0
-							for ent in self.pofile:
-								if ent.msgid == entry.msgid:
-									conto+=1
-							if conto > 1:
-									value=len(occurem)
-									occurem.append((entry.msgid,value))
-									if value == OID:
-										self.workonthisentry=entry
-						else:
-							conto=0
-							for ent in self.pofile:
-								if ent.msgid == entry.msgid:
-									conto+=1
-							if conto > 1:
-									value=len(occurem)
-									occurem.append((entry.msgid,value))
-									if value == OID:
-										self.workonthisentry=entry
-				if self.poview[2]:
-					for entry in self.pofile.translated_entries():
-						if entry and entry.msgid_plural:
-							conto=0
-							for ent in self.pofile:
-								if ent.msgid == entry.msgid:
-									conto+=1
-							if conto > 1:
-									value=len(occurem)
-									occurem.append((entry.msgid,value))
-									if value == OID:
-										self.workonthisentry=entry
-						else:
-							conto=0
-							for ent in self.pofile:
-								if ent.msgid == entry.msgid:
-									conto+=1
-							if conto > 1:
-									value=len(occurem)
-									occurem.append((entry.msgid,value))
-									if value == OID:
-										self.workonthisentry=entry
-				if self.poview[3]:
-					for entry in self.pofile.obsolete_entries():
-						if entry and entry.msgid_plural:
-							conto=0
-							for ent in self.pofile:
-								if ent.msgid == entry.msgid:
-									conto+=1
-							if conto > 1:
-									value=len(occurem)
-									occurem.append((entry.msgid,value))
-									if value == OID:
-										self.workonthisentry=entry
-						else:
-							conto=0
-							for ent in self.pofile:
-								if ent.msgid == entry.msgid:
-									conto+=1
-							if conto > 1:
-									value=len(occurem)
-									occurem.append((entry.msgid,value))
-									if value == OID:
-										self.workonthisentry=entry
-			
-				tvindex=msg.FindInt32('tvindex')
-				textsave=msg.FindString('translation')
-				tabbi=msg.FindInt8('plurals')
-				intscheda=msg.FindInt32('tabview')
-				scheda=self.editorslist[intscheda]
-				entry = self.workonthisentry
-				if entry and entry.msgid_plural:
-						y=0
-						textsavepl=[]
-						entry.msgstr_plural[0] = textsave.decode(self.encoding)
-						while y < tabbi:
-							varname='translationpl'+str(y) ######################################### check! stry(y) or  y+1???????? plurale
-							intended=msg.FindString(varname)
-							textsavepl.append(intended) #useless???
-							y+=1
-							entry.msgstr_plural[y]=intended.decode(self.encoding)
-						if 'fuzzy' in entry.flags:
-							entry.flags.remove('fuzzy')
-						if entry.previous_msgid:
-							entry.previous_msgid=None
-						if entry.previous_msgid_plural:
-							entry.previous_msgid_plural=None
-						if entry.previous_msgctxt:
-							entry.previous_msgctxt=None
-
-				elif entry and not entry.msgid_plural:
-						entry.msgstr = textsave.decode(self.encoding)
-						if 'fuzzy' in entry.flags:
-							entry.flags.remove('fuzzy')
-						if entry.previous_msgid:
-							entry.previous_msgid=None
-						if entry.previous_msgid_plural:
-							entry.previous_msgid_plural=None
-						if entry.previous_msgctxt:
-							entry.previous_msgctxt=None
-							
-				scheda.pofile.metadata['Last-Translator']=defname
-				scheda.pofile.metadata['PO-Revision-Date']=now
-				scheda.pofile.metadata['X-Editor']=version
-				scheda.pofile.save(bckppath)
-				scheda.list.lv.ItemAt(tvindex).state=1
-				scheda.list.lv.ItemAt(tvindex).tosave=False
-				self.editorslist[intscheda].list.lv.ItemAt(tvindex).txttosave=""
-				self.editorslist[intscheda].list.lv.ItemAt(tvindex).txttosavepl=[]
-				return
-			elif savetype == 2: ############ No need on multiple occurrencies
+			elif savetype == 2:
 				#save of metadata
 				indexroot=msg.FindInt8('indexroot')
 				self.editorslist[indexroot].pofile.metadata['Last-Translator']=defname # metadata saved from po settings
@@ -3361,138 +3101,13 @@ class PoWindow(BWindow):
 				self.editorslist[indexroot].pofile.metadata['X-Editor']=version
 				self.editorslist[indexroot].pofile.save(bckppath)
 				return
-			elif savetype == 3:
-				self.pofile=self.editorslist[self.postabview.Selection()].pofile
-				occurem=[]
-				if self.poview[0]:
-					for entry in self.pofile.fuzzy_entries():
-						if entry and entry.msgid_plural:
-							conto=0
-							for ent in self.pofile:
-								if ent.msgid == entry.msgid:
-									conto+=1
-							if conto > 1:
-									value=len(occurem)
-									occurem.append((entry.msgid,value))
-									if value == OID:
-										self.workonthisentry=entry
-						else:
-							conto=0
-							for ent in self.pofile:
-								if ent.msgid == entry.msgid:
-									conto+=1
-							if conto > 1:
-									value=len(occurem)
-									occurem.append((entry.msgid,value))
-									if value == OID:
-										self.workonthisentry=entry
-				if self.poview[1]:
-					for entry in self.pofile.untranslated_entries():
-						if entry and entry.msgid_plural:
-							conto=0
-							for ent in self.pofile:
-								if ent.msgid == entry.msgid:
-									conto+=1
-							if conto > 1:
-									value=len(occurem)
-									occurem.append((entry.msgid,value))
-									if value == OID:
-										self.workonthisentry=entry
-						else:
-							conto=0
-							for ent in self.pofile:
-								if ent.msgid == entry.msgid:
-									conto+=1
-							if conto > 1:
-									value=len(occurem)
-									occurem.append((entry.msgid,value))
-									if value == OID:
-										self.workonthisentry=entry
-				if self.poview[2]:
-					for entry in self.pofile.translated_entries():
-						if entry and entry.msgid_plural:
-							conto=0
-							for ent in self.pofile:
-								if ent.msgid == entry.msgid:
-									conto+=1
-							if conto > 1:
-									value=len(occurem)
-									occurem.append((entry.msgid,value))
-									if value == OID:
-										self.workonthisentry=entry
-						else:
-							conto=0
-							for ent in self.pofile:
-								if ent.msgid == entry.msgid:
-									conto+=1
-							if conto > 1:
-									value=len(occurem)
-									occurem.append((entry.msgid,value))
-									if value == OID:
-										self.workonthisentry=entry
-				if self.poview[3]:
-					for entry in self.pofile.obsolete_entries():
-						if entry and entry.msgid_plural:
-							conto=0
-							for ent in self.pofile:
-								if ent.msgid == entry.msgid:
-									conto+=1
-							if conto > 1:
-									value=len(occurem)
-									occurem.append((entry.msgid,value))
-									if value == OID:
-										self.workonthisentry=entry
-						else:
-							conto=0
-							for ent in self.pofile:
-								if ent.msgid == entry.msgid:
-									conto+=1
-							if conto > 1:
-									value=len(occurem)
-									occurem.append((entry.msgid,value))
-									if value == OID:
-										self.workonthisentry=entry
-				tvindex=msg.FindInt32('tvindex')
-				textsave=msg.FindString('tcomment')
-				intscheda=msg.FindInt32('tabview')
-				scheda=self.editorslist[intscheda]
-				entry = self.workonthisentry
-				### non passava di qui
-				entry.tcomment=textsave
-				scheda.pofile.metadata['Last-Translator']=defname
-				scheda.pofile.metadata['PO-Revision-Date']=now
-				scheda.pofile.metadata['X-Editor']=version
-				scheda.pofile.save(bckppath)
-				self.postabview.Select(intscheda)
-				scheda.list.lv.DeselectAll()
-				scheda.list.lv.Select(tvindex)
-				return
-
-			self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated()))
-			return
-		elif msg.what == 17893:
-			try:
-				Config.read(confile)
-				defname=ConfigSectionMap("Users")['default']
-			except:
-				defname=self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']
-			now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
-			# save to backup and update the blistitem
-			bckppath = msg.FindString('bckppath')
-			savetype = msg.FindInt8('savetype')
-			if savetype == 0: #simple save used for fuzzy state and metadata change
-				self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']=defname
-				self.editorslist[self.postabview.Selection()].pofile.metadata['PO-Revision-Date']=now
-				self.editorslist[self.postabview.Selection()].pofile.metadata['X-Editor']=version
-				self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
-				return
 			elif savetype == 1:
 				tvindex=msg.FindInt32('tvindex')
 				textsave=msg.FindString('translation')
 				tabbi=msg.FindInt8('plurals')
 				intscheda=msg.FindInt32('tabview')
 				scheda=self.editorslist[intscheda]
-				entry = scheda.pofile.find(scheda.list.lv.ItemAt(tvindex).Text().decode(self.encoding))
+				entry = scheda.list.lv.ItemAt(tvindex).entry
 				if entry and entry.msgid_plural:
 						y=0
 						textsavepl=[]
@@ -3510,8 +3125,7 @@ class PoWindow(BWindow):
 						if entry.previous_msgid_plural:
 							entry.previous_msgid_plural=None
 						if entry.previous_msgctxt:
-							entry.previous_msgctxt=None						
-
+							entry.previous_msgctxt=None
 				elif entry and not entry.msgid_plural:
 						entry.msgstr = textsave.decode(self.encoding)
 						if 'fuzzy' in entry.flags:
@@ -3522,30 +3136,21 @@ class PoWindow(BWindow):
 							entry.previous_msgid_plural=None
 						if entry.previous_msgctxt:
 							entry.previous_msgctxt=None
-
 				scheda.pofile.metadata['Last-Translator']=defname
 				scheda.pofile.metadata['PO-Revision-Date']=now
 				scheda.pofile.metadata['X-Editor']=version
 				scheda.pofile.save(bckppath)
 				scheda.list.lv.ItemAt(tvindex).state=1
 				scheda.list.lv.ItemAt(tvindex).tosave=False
-				self.editorslist[intscheda].list.lv.ItemAt(tvindex).txttosave=""
-				self.editorslist[intscheda].list.lv.ItemAt(tvindex).txttosavepl=[]
-				return
-			elif savetype == 2:
-				#save of metadata
-				indexroot=msg.FindInt8('indexroot')
-				self.editorslist[indexroot].pofile.metadata['Last-Translator']=defname # metadata saved from po settings
-				self.editorslist[indexroot].pofile.metadata['PO-Revision-Date']=now
-				self.editorslist[indexroot].pofile.metadata['X-Editor']=version
-				self.editorslist[indexroot].pofile.save(bckppath)
+				scheda.list.lv.ItemAt(tvindex).txttosave=""
+				scheda.list.lv.ItemAt(tvindex).txttosavepl=[]
 				return
 			elif savetype == 3:
 				tvindex=msg.FindInt32('tvindex')
 				textsave=msg.FindString('tcomment')
 				intscheda=msg.FindInt32('tabview')
 				scheda=self.editorslist[intscheda]
-				entry = scheda.pofile.find(scheda.list.lv.ItemAt(tvindex).Text().decode(self.encoding))
+				entry = scheda.list.lv.ItemAt(tvindex).entry
 				entry.tcomment=textsave
 				scheda.pofile.metadata['Last-Translator']=defname
 				scheda.pofile.metadata['PO-Revision-Date']=now
@@ -3649,99 +3254,7 @@ class PoWindow(BWindow):
 		elif msg.what == 71:
 			# mark unmark as fuzzy
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
-				if self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).occurrency:
-					pofi=self.editorslist[self.postabview.Selection()].pofile
-					txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText().decode(self.encoding)
-					OID=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).occurvalue
-					occurem=[]
-					if self.poview[0]:
-						for entry in pofi.fuzzy_entries():
-							if entry and entry.msgid_plural:
-								conto=0
-								for ent in pofi:
-									if ent.msgid == entry.msgid:
-										conto+=1
-								if conto > 1:
-										value=len(occurem)
-										occurem.append((entry.msgid,value))
-										if value == OID:
-											self.workonthisentry=entry
-							else:
-								conto=0
-								for ent in pofi:
-									if ent.msgid == entry.msgid:
-										conto+=1
-								if conto > 1:
-										value=len(occurem)
-										occurem.append((entry.msgid,value))
-										if value == OID:
-											self.workonthisentry=entry
-					if self.poview[1]:
-						for entry in pofi.untranslated_entries():
-							if entry and entry.msgid_plural:
-								conto=0
-								for ent in pofi:
-									if ent.msgid == entry.msgid:
-										conto+=1
-								if conto > 1:
-										value=len(occurem)
-										occurem.append((entry.msgid,value))
-										if value == OID:
-											self.workonthisentry=entry
-							else:
-								conto=0
-								for ent in pofi:
-									if ent.msgid == entry.msgid:
-										conto+=1
-								if conto > 1:
-										value=len(occurem)
-										occurem.append((entry.msgid,value))
-										if value == OID:
-											self.workonthisentry=entry
-					if self.poview[2]:
-						for entry in pofi.translated_entries():
-							if entry and entry.msgid_plural:
-								conto=0
-								for ent in pofi:
-									if ent.msgid == entry.msgid:
-										conto+=1
-								if conto > 1:
-										value=len(occurem)
-										occurem.append((entry.msgid,value))
-										if value == OID:
-											self.workonthisentry=entry
-							else:
-								conto=0
-								for ent in pofi:
-									if ent.msgid == entry.msgid:
-										conto+=1
-								if conto > 1:
-										value=len(occurem)
-										occurem.append((entry.msgid,value))
-										if value == OID:
-											self.workonthisentry=entry
-					if self.poview[3]:
-						for entry in pofi.obsolete_entries():
-							if entry and entry.msgid_plural:
-								conto=0
-								for ent in pofi:
-									if ent.msgid == entry.msgid:
-										conto+=1
-								if conto > 1:
-										value=len(occurem)
-										occurem.append((entry.msgid,value))
-										if value == OID:
-											self.workonthisentry=entry
-							else:
-								conto=0
-								for ent in pofi:
-									if ent.msgid == entry.msgid:
-										conto+=1
-								if conto > 1:
-										value=len(occurem)
-										occurem.append((entry.msgid,value))
-										if value == OID:
-											self.workonthisentry=entry
+					self.workonthisentry = self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).entry
 					if 'fuzzy' in self.workonthisentry.flags:
 						self.workonthisentry.flags.remove('fuzzy')
 						if self.workonthisentry.previous_msgid:
@@ -3752,33 +3265,17 @@ class PoWindow(BWindow):
 							self.workonthisentry.previous_msgctxt=None
 					else:
 						self.workonthisentry.flags.append('fuzzy')
-					bckpmsg=BMessage(17893)
+					bckpmsg=BMessage(16893)
 					bckpmsg.AddInt8('savetype',0)
 					bckpmsg.AddString('bckppath',self.editorslist[self.postabview.Selection()].backupfile)
 					BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
-				else:
-					txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText()
-					for entry in self.editorslist[self.postabview.Selection()].pofile:
-						if entry.msgid.encode(self.encoding) == txttosearch:
-							if 'fuzzy' in entry.flags:
-								entry.flags.remove('fuzzy')
-								if entry.previous_msgid:
-									entry.previous_msgid=None
-								if entry.previous_msgid_plural:
-									entry.previous_msgid_plural=None
-								if entry.previous_msgctxt:
-									entry.previous_msgctxt=None
-							else:
-								entry.flags.append('fuzzy')
-							bckpmsg=BMessage(17893)
-							bckpmsg.AddInt8('savetype',0)
-							bckpmsg.AddString('bckppath',self.editorslist[self.postabview.Selection()].backupfile)
-							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
-							break
-				self.editorslist[self.postabview.Selection()].list.reload(self.poview,self.editorslist[self.postabview.Selection()].pofile,self.encoding)
-		
-
-		if msg.what == 54173:
+					self.editorslist[self.postabview.Selection()].list.reload(self.poview,self.editorslist[self.postabview.Selection()].pofile,self.encoding)
+		elif msg.what == 12343:
+			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
+				asd=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).entry
+				print asd
+				#provare a modificare l'entry e mandare il postmessage per salvare il pofile
+		elif msg.what == 54173:
 			#Save as 
 			txt=self.editorslist[self.postabview.Selection()].fp.GetPanelDirectory()
 			savepath= BEntry(txt,True).GetPath().Path()
@@ -3810,17 +3307,17 @@ class PoWindow(BWindow):
 			END_UP_MSG = struct.unpack('!l', '_KYU')[0]
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
 				
-				txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText()
-				
-				#######  check for multiple occurencies just for debug ########
-				count=0
-				for entry in self.editorslist[self.postabview.Selection()].pofile:
-					if entry.msgid.encode(self.encoding) == txttosearch:
-						count = count +1
-						if count > 1:
-							print "multiple occurrencies for this entry msgid"
-							break
-				################################################################
+#				txttosearch=self.editorslist[self.postabview.Selection()].list.SelectedText()
+#				
+#				#######  check for multiple occurencies just for debug ########
+#				count=0
+#				for entry in self.editorslist[self.postabview.Selection()].pofile:
+#					if entry.msgid.encode(self.encoding) == txttosearch:
+#						count = count +1
+#						if count > 1:
+#							print "multiple occurrencies for this entry msgid"
+#							break
+#				################################################################
 				item=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
 				if item.hasplural:
 							beta=len(item.msgstrs)
