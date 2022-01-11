@@ -33,7 +33,7 @@
 
 import os,sys,ConfigParser,struct,re,thread,datetime,time,threading
 
-version='HaiPO 0.4 alpha'
+version='HaiPO 0.5 beta'
 (appname,ver,state)=version.split(' ')
 
 jes = False
@@ -941,8 +941,8 @@ class PView(BView):
 		self.DrawBitmap(self.immagine,rect)
 
 class AboutWindow(BWindow):
-	kWindowFrame = (50, 50, 600, 750)
-	kButtonFrame = (395, 661, 546, 696)
+	kWindowFrame = (50, 50, 600, 730)
+	kButtonFrame = (kWindowFrame[2]-205,kWindowFrame[3]-89,kWindowFrame[2]-54,kWindowFrame[3]-54)#(395, 641, 546, 676)
 	kWindowName = "About"
 	kButtonName = "Close"
 	BUTTON_MSG = struct.unpack('!l', 'PRES')[0]
@@ -960,7 +960,7 @@ class AboutWindow(BWindow):
 		self.messagjio.SetStylable(1)
 		self.messagjio.MakeSelectable(0)
 		self.messagjio.MakeEditable(0)
-		stuff = '\n\t\t\t\t\t\t\t\t\t'+appname+'\n\n\t\t\t\t\t\t\t\t\t\t\t\tA simple PO editor\n\t\t\t\t\t\t\t\t\t\t\t\tfor Haiku, version '+ver+' '+state+'\n\t\t\t\t\t\t\t\t\t\t\t\tcodename "Pobeda"\n\n\t\t\t\t\t\t\t\t\t\t\t\tby Fabio Tomat\n\t\t\t\t\t\t\t\t\t\t\t\te-mail:\n\t\t\t\t\t\t\t\t\t\t\t\tf.t.public@gmail.com\n\n\n\n\n\nMIT LICENSE\nCopyright © 2021 Fabio Tomat\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.'
+		stuff = '\n\t\t\t\t\t\t\t\t\t'+appname+'\n\n\t\t\t\t\t\t\t\t\t\t\t\tA simple PO editor\n\t\t\t\t\t\t\t\t\t\t\t\tfor Haiku, version '+ver+' '+state+'\n\t\t\t\t\t\t\t\t\t\t\t\tcodename "Ciduline"\n\n\t\t\t\t\t\t\t\t\t\t\t\tby Fabio Tomat\n\t\t\t\t\t\t\t\t\t\t\t\te-mail:\n\t\t\t\t\t\t\t\t\t\t\t\tf.t.public@gmail.com\n\n\n\n\n\n\nMIT LICENSE\nCopyright © 2021 Fabio Tomat\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.'
 		n = stuff.find(appname)
 		m = stuff.find('MIT LICENSE')
 		command=[(0, be_plain_font, (0, 0, 0, 0)), (n, be_bold_font, (0, 0, 0, 0)), (n + 5, be_plain_font, (100, 100, 100, 0)),(m,be_bold_font,(0,0,0,0)),(m+11,be_plain_font,(100,100,100,0))]
@@ -1768,6 +1768,7 @@ class POEditorBBox(BBox):
 		pathorig,nameorig=os.path.split(percors)
 		self.fp.SetPanelDirectory(pathorig)
 		self.fp.SetSaveText(nameorig)
+		self.writter = threading.Semaphore()
 
 #		if file_ext=='.po':
 #			self.typefile=0
@@ -2009,6 +2010,9 @@ class POEditorBBox(BBox):
 						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					item.SetLineNum(entry.linenum)
 				self.list.lv.AddItem(item)
+	def Save(self,path):
+		self.pofile.save(path)
+		self.writter.release()
 		
 class translationtabview(BTabView):
 	def __init__(self,frame,name,width,risizingMode,flags,superself):
@@ -2181,7 +2185,7 @@ class postabview(BTabView):
 class PoWindow(BWindow):
 	Menus = (
 		('File', ((295485, 'Open'), (2, 'Save'), (1, 'Close'), (5, 'Save as...'),(None, None),(B_QUIT_REQUESTED, 'Quit'))),
-		('Translation', ((3, 'Copy from source'), (4,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy'), (72, 'Previous w/o saving'),(73,'Next w/o saving'),(None, None), (6, 'Find source'), (7, 'Find/Replace translation'))),
+		('Translation', ((3, 'Copy from source (ctrl+shif+s)'), (4,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy'), (72, 'Previous w/o saving'),(73,'Next w/o saving'),(None, None), (6, 'Find source'), (7, 'Find/Replace translation'))),
 		('View', ((74,'Fuzzy'), (75, 'Untranslated'),(76,'Translated'),(77, 'Obsolete'))),
 		('Settings', ((41, 'User settings'), (42, 'Po properties'), (43, 'Po header'))),
 		('About', ((8, 'Help'),(None, None),(9, 'About')))
@@ -2473,7 +2477,11 @@ class PoWindow(BWindow):
 					else:
 						self.editorslist[self.postabview.Selection()].list.lv.Select(0)
 						self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
-
+			elif key in (98,87,54,33):#== 98 or key == 87 or key == 54 or key == 33:
+				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection() < 0:
+					self.editorslist[self.postabview.Selection()].list.lv.Select(0)
+					self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+					
 			elif key == 61: # s key
 				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
 					self.sem.acquire()
@@ -2483,6 +2491,7 @@ class PoWindow(BWindow):
 					else:
 						pass
 					self.sem.release()
+			print key
 			return
 
 		elif msg.what == 295485:
@@ -2491,133 +2500,143 @@ class PoWindow(BWindow):
 			
 		elif msg.what == 1:
 			# Close opened file
-			whichrem=self.postabview.Selection()
-			if whichrem>0:
-				actualselection=self.editorslist[whichrem-1].list.lv.CurrentSelection()
-				if actualselection>-1:
-					self.editorslist[whichrem-1].list.lv.DeselectAll()
-					self.editorslist[whichrem-1].list.lv.Select(actualselection)
+			if len(self.editorslist)>0:
+				whichrem=self.postabview.Selection()
+				if whichrem>0:
+					actualselection=self.editorslist[whichrem-1].list.lv.CurrentSelection()
+					if actualselection>-1:
+						self.editorslist[whichrem-1].list.lv.DeselectAll()
+						self.editorslist[whichrem-1].list.lv.Select(actualselection)
+					else:
+						self.Nichilize()
+						bounds = self.Bounds()
+						l, t, r, b = bounds
+						binds = self.background.Bounds()
+						luwidth=self.lubox.Bounds()[2]-self.lubox.Bounds()[0]
+						c,p,d,s = binds
+						plygrnd2 = (5, b-142,r -luwidth-5, s-2)
+						altece = self.srctabview.TabHeight()
+						tabrc2 = (3, 3, plygrnd2[2] - plygrnd2[0], plygrnd2[3] - plygrnd2[1]-altece)
+						self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
+						self.transtablabels.append(BTab())
+						self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
+						################### BUG? ###################
+						self.transtabview.Select(1)									###### bug fix
+						self.transtabview.Select(0)
+						self.listemsgid[0].src.SetText("")
+						self.srctabview.Select(1)
+						self.srctabview.Select(0)
 				else:
-					self.Nichilize()
-					bounds = self.Bounds()
-					l, t, r, b = bounds
-					binds = self.background.Bounds()
-					luwidth=self.lubox.Bounds()[2]-self.lubox.Bounds()[0]
-					c,p,d,s = binds
-					plygrnd2 = (5, b-142,r -luwidth-5, s-2)
-					altece = self.srctabview.TabHeight()
-					tabrc2 = (3, 3, plygrnd2[2] - plygrnd2[0], plygrnd2[3] - plygrnd2[1]-altece)
-					self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
-					self.transtablabels.append(BTab())
-					self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
-					################### BUG? ###################
-					self.transtabview.Select(1)									###### bug fix
-					self.transtabview.Select(0)
-					self.listemsgid[0].src.SetText("")
-					self.srctabview.Select(1)
-					self.srctabview.Select(0)
-			else:
-				actualselection=self.editorslist[whichrem+1].list.lv.CurrentSelection()
-				if actualselection>-1:
-					self.editorslist[whichrem-1].list.lv.DeselectAll()
-					self.editorslist[whichrem-1].list.lv.Select(actualselection)
-				else:
-					self.Nichilize()
-					bounds = self.Bounds()
-					l, t, r, b = bounds
-					binds = self.background.Bounds()
-					luwidth=self.lubox.Bounds()[2]-self.lubox.Bounds()[0]
-					c,p,d,s = binds
-					plygrnd2 = (5, b-142,r -luwidth-5, s-2)
-					altece = self.srctabview.TabHeight()
-					tabrc2 = (3, 3, plygrnd2[2] - plygrnd2[0], plygrnd2[3] - plygrnd2[1]-altece)
-					self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
-					self.transtablabels.append(BTab())
-					self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
-					################### BUG? ###################
-					self.transtabview.Select(1)									###### bug fix
-					self.transtabview.Select(0)
-					self.listemsgid[0].src.SetText("")
-					self.srctabview.Select(1)
-					self.srctabview.Select(0)
-			self.postabview.RemoveTab(whichrem)
-			self.tabslabels.pop(whichrem)
-			self.editorslist.pop(whichrem)
-			
+					actualselection=self.editorslist[whichrem+1].list.lv.CurrentSelection()
+					if actualselection>-1:
+						self.editorslist[whichrem-1].list.lv.DeselectAll()
+						self.editorslist[whichrem-1].list.lv.Select(actualselection)
+					else:
+						self.Nichilize()
+						bounds = self.Bounds()
+						l, t, r, b = bounds
+						binds = self.background.Bounds()
+						luwidth=self.lubox.Bounds()[2]-self.lubox.Bounds()[0]
+						c,p,d,s = binds
+						plygrnd2 = (5, b-142,r -luwidth-5, s-2)
+						altece = self.srctabview.TabHeight()
+						tabrc2 = (3, 3, plygrnd2[2] - plygrnd2[0], plygrnd2[3] - plygrnd2[1]-altece)
+						self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
+						self.transtablabels.append(BTab())
+						self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
+						################### BUG? ###################
+						self.transtabview.Select(1)									###### bug fix
+						self.transtabview.Select(0)
+						self.listemsgid[0].src.SetText("")
+						self.srctabview.Select(1)
+						self.srctabview.Select(0)
+				self.postabview.RemoveTab(whichrem)
+				self.tabslabels.pop(whichrem)
+				self.editorslist.pop(whichrem)
+			return
 			
 		elif msg.what == 2:
 			# Save current file
-			try:
-				Config.read(confile)
-				defname=ConfigSectionMap("Users")['default']
-			except:
-				defname=self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']
-			now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
-			savepath=self.editorslist[self.postabview.Selection()].filen+self.editorslist[self.postabview.Selection()].file_ext
-			self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']=defname
-			self.editorslist[self.postabview.Selection()].pofile.metadata['PO-Revision-Date']=now
-			self.editorslist[self.postabview.Selection()].pofile.metadata['X-Editor']=version
-			self.editorslist[self.postabview.Selection()].pofile.save(savepath)
-			
-			
+			if len(self.editorslist)>0:
+				try:
+					Config.read(confile)
+					defname=ConfigSectionMap("Users")['default']
+				except:
+					defname=self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']
+				now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
+				savepath=self.editorslist[self.postabview.Selection()].filen+self.editorslist[self.postabview.Selection()].file_ext
+				self.editorslist[self.postabview.Selection()].writter.acquire()
+				self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']=defname
+				self.editorslist[self.postabview.Selection()].pofile.metadata['PO-Revision-Date']=now
+				self.editorslist[self.postabview.Selection()].pofile.metadata['X-Editor']=version
+				thread.start_new_thread( self.editorslist[self.postabview.Selection()].Save, (savepath,) )
+				#which has these two code-rows:
+				#self.editorslist[self.postabview.Selection()].pofile.save(savepath)
+				#self.editorslist[self.postabview.Selection()].writter.release()
+			return
+
 		elif msg.what == 3:
 			#copy from source
-			print "copio da sorgente"
-			cursel=self.editorslist[self.postabview.Selection()]
-			thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
-			thisBlistitem.tosave=True
-			tabs=len(self.listemsgstr)-1
-			bckpmsg=BMessage(16893)
-			bckpmsg.AddInt8('savetype',1)
-			bckpmsg.AddInt32('tvindex',cursel.list.lv.CurrentSelection())
-			bckpmsg.AddInt8('plurals',tabs)
-			bckpmsg.AddInt32('tabview',self.postabview.Selection())
-			if tabs == 0:   #->      if not thisBlistitem.hasplural:                         <-------------------------- or this?
-				thisBlistitem.txttosave=thisBlistitem.text.decode(self.encoding)
-				thisBlistitem.msgstrs=thisBlistitem.txttosave
-				bckpmsg.AddString('translation',thisBlistitem.txttosave)
-			else:
-				thisBlistitem.txttosavepl=[]
-				thisBlistitem.txttosave=self.listemsgid[0].src.Text().decode(self.encoding)
-				thisBlistitem.msgstrs=[]
-				thisBlistitem.msgstrs.append(thisBlistitem.txttosave)
-				bckpmsg.AddString('translation',thisBlistitem.txttosave)
-				cox=1
-				while cox < tabs+1:
-					thisBlistitem.msgstrs.append(self.listemsgid[1].src.Text().decode(self.encoding))
-					thisBlistitem.txttosavepl.append(self.listemsgid[1].src.Text().decode(self.encoding))
-					bckpmsg.AddString('translationpl'+str(cox-1),self.listemsgid[1].src.Text())    #<------- check for decode(self.encoding)
-					cox+=1
-			bckpmsg.AddString('bckppath',cursel.backupfile)
-			BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
+			if len(self.editorslist)>0:
+				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
+					cursel=self.editorslist[self.postabview.Selection()]
+					thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
+					thisBlistitem.tosave=True
+					tabs=len(self.listemsgstr)-1
+					bckpmsg=BMessage(16893)
+					bckpmsg.AddInt8('savetype',1)
+					bckpmsg.AddInt32('tvindex',cursel.list.lv.CurrentSelection())
+					bckpmsg.AddInt8('plurals',tabs)
+					bckpmsg.AddInt32('tabview',self.postabview.Selection())
+					if tabs == 0:   #->      if not thisBlistitem.hasplural:                         <-------------------------- or this?
+						thisBlistitem.txttosave=thisBlistitem.text.decode(self.encoding)
+						thisBlistitem.msgstrs=thisBlistitem.txttosave
+						bckpmsg.AddString('translation',thisBlistitem.txttosave)
+					else:
+						thisBlistitem.txttosavepl=[]
+						thisBlistitem.txttosave=self.listemsgid[0].src.Text().decode(self.encoding)
+						thisBlistitem.msgstrs=[]
+						thisBlistitem.msgstrs.append(thisBlistitem.txttosave)
+						bckpmsg.AddString('translation',thisBlistitem.txttosave)
+						cox=1
+						while cox < tabs+1:
+							thisBlistitem.msgstrs.append(self.listemsgid[1].src.Text().decode(self.encoding))
+							thisBlistitem.txttosavepl.append(self.listemsgid[1].src.Text().decode(self.encoding))
+							bckpmsg.AddString('translationpl'+str(cox-1),self.listemsgid[1].src.Text())    #<------- check for decode(self.encoding)
+							cox+=1
+					bckpmsg.AddString('bckppath',cursel.backupfile)
+					BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
 
-			kmesg=BMessage(130550)
-			kmesg.AddInt8('movekind',0)
-			BApplication.be_app.WindowAt(0).PostMessage(kmesg)
+					kmesg=BMessage(130550)
+					kmesg.AddInt8('movekind',0)
+					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 			return
 		
 		elif msg.what == 5:
 			# Save as
-			self.editorslist[self.postabview.Selection()].fp.Show()
-			i = 1
-			w = BApplication.be_app.CountWindows()
-			while w > i:
-				title=BApplication.be_app.WindowAt(i).Title()
-				result=title.lower().find("python2.7")    ###################### TODO: find a better solution #########################
-				if result>-1:
-					thiswindow=i
-					BApplication.be_app.WindowAt(i).PostMessage(B_KEY_DOWN)#<---- Fixes bug: save button not enabled
-				i=i+1
+			if len(self.editorslist)>0:
+				self.editorslist[self.postabview.Selection()].fp.Show()
+				i = 1
+				w = BApplication.be_app.CountWindows()
+				while w > i:
+					title=BApplication.be_app.WindowAt(i).Title()
+					result=title.lower().find("python2.7")    ###################### TODO: find a better solution #########################
+					if result>-1:
+						thiswindow=i
+						BApplication.be_app.WindowAt(i).PostMessage(B_KEY_DOWN)#<---- Fixes bug: save button not enabled
+					i=i+1
 			
 		elif msg.what == 6:
 			# Find source
-			self.Findsrc = Findsource()
-			self.Findsrc.Show()
+			if len(self.editorslist)>0:
+				self.Findsrc = Findsource()
+				self.Findsrc.Show()
 		
 		elif msg.what == 7:
 			# Find/Replace translation
-			self.FindReptrnsl = FindRepTrans()
-			self.FindReptrnsl.Show()
+			if len(self.editorslist)>0:
+				self.FindReptrnsl = FindRepTrans()
+				self.FindReptrnsl.Show()
 		
 		elif msg.what == 9:
 			#ABOUT
@@ -2633,6 +2652,7 @@ class PoWindow(BWindow):
 			return
 		
 		elif msg.what == 32:
+			#Double clic = translator comment
 			indextab=self.postabview.Selection()
 			cursel=self.editorslist[indextab]
 			listsel=cursel.list.lv.CurrentSelection()
@@ -2643,88 +2663,99 @@ class PoWindow(BWindow):
 			
 		elif msg.what == 42:
 			# PO metadata
-			self.POMetadata = POmetadata()
-			self.POMetadata.Show()
+			if len(self.editorslist)>0:
+				self.POMetadata = POmetadata()
+				self.POMetadata.Show()
 
-			self.POMetadata.pofile = self.editorslist[self.postabview.Selection()].pofile
-			self.POMetadata.orderedmetadata = self.editorslist[self.postabview.Selection()].orderedmetadata
-			i = 1
-			w = BApplication.be_app.CountWindows()
-			while w > i:
-				if BApplication.be_app.WindowAt(i).Title()=="POSettings":
-					thiswindow=i
-				i=i+1
-			BApplication.be_app.WindowAt(thiswindow).PostMessage(99111)
-		
+				self.POMetadata.pofile = self.editorslist[self.postabview.Selection()].pofile
+				self.POMetadata.orderedmetadata = self.editorslist[self.postabview.Selection()].orderedmetadata
+				i = 1
+				w = BApplication.be_app.CountWindows()
+				while w > i:
+					if BApplication.be_app.WindowAt(i).Title()=="POSettings":
+						thiswindow=i
+					i=i+1
+				BApplication.be_app.WindowAt(thiswindow).PostMessage(99111)
+			return
+
 		elif msg.what == 43:
 			#Po header
-			tmp = self.postabview.Selection()
-			self.HeaderWindow = HeaderWindow(tmp,self.editorslist[tmp].pofile,self.encoding)
-			self.HeaderWindow.Show()
+			if len(self.editorslist)>0:
+				tmp = self.postabview.Selection()
+				self.HeaderWindow = HeaderWindow(tmp,self.editorslist[tmp].pofile,self.encoding)
+				self.HeaderWindow.Show()
+			return
 
 		elif msg.what == 70:
 			# Done and next
-			lung=len(self.listemsgstr)
-			pick=0
-			gonogo=False
-			while pick<lung:
-				thistranslEdit=self.listemsgstr[pick].trnsl
-				if thistranslEdit.tosave:
-					gonogo=True
-				pick+=1
-			thistranslEdit=self.listemsgstr[self.transtabview.Selection()].trnsl
-			if gonogo:
-				cursel=self.editorslist[self.postabview.Selection()]
-				thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
-				thisBlistitem.tosave=True
-				tabs=len(self.listemsgstr)-1
-				bckpmsg=BMessage(16893)
-				bckpmsg.AddInt8('savetype',1)
-				bckpmsg.AddInt32('tvindex',cursel.list.lv.CurrentSelection())
-				bckpmsg.AddInt8('plurals',tabs)
-				bckpmsg.AddInt32('tabview',self.postabview.Selection())
-				if tabs == 0:   #->      if not thisBlistitem.hasplural:                         <-------------------------- or this?
-					thisBlistitem.txttosave=thistranslEdit.Text()#.decode(self.encoding)		 <----- reinsert this
-					bckpmsg.AddString('translation',thisBlistitem.txttosave)
-				else:
-					thisBlistitem.txttosavepl=[]
-					thisBlistitem.txttosave=self.listemsgstr[0].trnsl.Text()#.decode(self.encoding)     <----- reinsert this
-					bckpmsg.AddString('translation',thisBlistitem.txttosave)
-					cox=1
-					while cox < tabs+1:
-						thisBlistitem.txttosavepl.append(self.listemsgstr[1].trnsl.Text())
-						bckpmsg.AddString('translationpl'+str(cox-1),self.listemsgstr[cox].trnsl.Text())
-						cox+=1
-				bckpmsg.AddString('bckppath',cursel.backupfile)
-				BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
-			kmesg=BMessage(130550)
-			kmesg.AddInt8('movekind',4)
-			BApplication.be_app.WindowAt(0).PostMessage(kmesg)
+			if len(self.editorslist)>0:
+				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
+					lung=len(self.listemsgstr)
+					pick=0
+					gonogo=False
+					while pick<lung:
+						thistranslEdit=self.listemsgstr[pick].trnsl
+						if thistranslEdit.tosave:
+							gonogo=True
+						pick+=1
+					thistranslEdit=self.listemsgstr[self.transtabview.Selection()].trnsl
+					if gonogo:
+						cursel=self.editorslist[self.postabview.Selection()]
+						thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
+						thisBlistitem.tosave=True
+						tabs=len(self.listemsgstr)-1
+						bckpmsg=BMessage(16893)
+						bckpmsg.AddInt8('savetype',1)
+						bckpmsg.AddInt32('tvindex',cursel.list.lv.CurrentSelection())
+						bckpmsg.AddInt8('plurals',tabs)
+						bckpmsg.AddInt32('tabview',self.postabview.Selection())
+						if tabs == 0:   #->      if not thisBlistitem.hasplural:                         <-------------------------- or this?
+							thisBlistitem.txttosave=thistranslEdit.Text()#.decode(self.encoding)		 <----- reinsert this
+							bckpmsg.AddString('translation',thisBlistitem.txttosave)
+						else:
+							thisBlistitem.txttosavepl=[]
+							thisBlistitem.txttosave=self.listemsgstr[0].trnsl.Text()#.decode(self.encoding)     <----- reinsert this
+							bckpmsg.AddString('translation',thisBlistitem.txttosave)
+							cox=1
+							while cox < tabs+1:
+								thisBlistitem.txttosavepl.append(self.listemsgstr[1].trnsl.Text())
+								bckpmsg.AddString('translationpl'+str(cox-1),self.listemsgstr[cox].trnsl.Text())
+								cox+=1
+						bckpmsg.AddString('bckppath',cursel.backupfile)
+						BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
+					kmesg=BMessage(130550)
+					kmesg.AddInt8('movekind',4)
+					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 			return
 
 		elif msg.what == 72:
 			# previous without saving
-			thistranslEdit=self.listemsgstr[self.transtabview.Selection()].trnsl
-			if thistranslEdit.tosave:
-				thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
-				thisBlistitem.tosave=False
-				thisBlistitem.txttosave=""
-			kmesg=BMessage(130550)
-			kmesg.AddInt8('movekind',1)
-			BApplication.be_app.WindowAt(0).PostMessage(kmesg)
+			if len(self.editorslist)>0:
+				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
+					thistranslEdit=self.listemsgstr[self.transtabview.Selection()].trnsl
+					if thistranslEdit.tosave:
+						thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+						thisBlistitem.tosave=False
+						thisBlistitem.txttosave=""
+					kmesg=BMessage(130550)
+					kmesg.AddInt8('movekind',1)
+					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 			
 		elif msg.what == 73:
 			# next without saving
-			thistranslEdit=self.listemsgstr[self.transtabview.Selection()].trnsl
-			if thistranslEdit.tosave:
-				thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
-				thisBlistitem.tosave=False
-				thisBlistitem.txttosave=""
-			kmesg=BMessage(130550)
-			kmesg.AddInt8('movekind',0)
-			BApplication.be_app.WindowAt(0).PostMessage(kmesg)
+			if len(self.editorslist)>0:
+				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
+					thistranslEdit=self.listemsgstr[self.transtabview.Selection()].trnsl
+					if thistranslEdit.tosave:
+						thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+						thisBlistitem.tosave=False
+						thisBlistitem.txttosave=""
+					kmesg=BMessage(130550)
+					kmesg.AddInt8('movekind',0)
+					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 		
 		elif msg.what == 74:
+			#this is slow due to reload
 			if self.poview[0]:
 				#try:
 					Config.read(confile)
@@ -2763,6 +2794,7 @@ class PoWindow(BWindow):
 			return
 					
 		elif msg.what == 75:
+			#this is slow due to reload
 			if self.poview[1]:
 				#try:
 					Config.read(confile)
@@ -2801,6 +2833,7 @@ class PoWindow(BWindow):
 			return
 
 		elif msg.what == 76:
+			#this is slow due to reload	
 			if self.poview[2]:
 				#try:
 					Config.read(confile)
@@ -2839,6 +2872,7 @@ class PoWindow(BWindow):
 			return
 		
 		elif msg.what == 77:
+			#this is slow due to reload
 			if self.poview[3]:
 				#try:
 					Config.read(confile)
@@ -3088,18 +3122,22 @@ class PoWindow(BWindow):
 			bckppath = msg.FindString('bckppath')
 			savetype = msg.FindInt8('savetype')
 			if savetype == 0: #simple save used for fuzzy state and metadata change
+				self.editorslist[self.postabview.Selection()].writter.acquire()
 				self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']=defname
 				self.editorslist[self.postabview.Selection()].pofile.metadata['PO-Revision-Date']=now
 				self.editorslist[self.postabview.Selection()].pofile.metadata['X-Editor']=version
-				self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
+				thread.start_new_thread( self.editorslist[self.postabview.Selection()].Save, (bckppath,) )
+				#self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
 				return
 			elif savetype == 2:
 				#save of metadata
 				indexroot=msg.FindInt8('indexroot')
+				self.editorslist[indexroot].writter.acquire()
 				self.editorslist[indexroot].pofile.metadata['Last-Translator']=defname # metadata saved from po settings
 				self.editorslist[indexroot].pofile.metadata['PO-Revision-Date']=now
 				self.editorslist[indexroot].pofile.metadata['X-Editor']=version
-				self.editorslist[indexroot].pofile.save(bckppath)
+				thread.start_new_thread( self.editorslist[indexroot].Save, (bckppath,) )
+				#self.editorslist[indexroot].pofile.save(bckppath)
 				return
 			elif savetype == 1:
 				tvindex=msg.FindInt32('tvindex')
@@ -3107,6 +3145,7 @@ class PoWindow(BWindow):
 				tabbi=msg.FindInt8('plurals')
 				intscheda=msg.FindInt32('tabview')
 				scheda=self.editorslist[intscheda]
+				scheda.writter.acquire()
 				entry = scheda.list.lv.ItemAt(tvindex).entry
 				if entry and entry.msgid_plural:
 						y=0
@@ -3139,7 +3178,8 @@ class PoWindow(BWindow):
 				scheda.pofile.metadata['Last-Translator']=defname
 				scheda.pofile.metadata['PO-Revision-Date']=now
 				scheda.pofile.metadata['X-Editor']=version
-				scheda.pofile.save(bckppath)
+				thread.start_new_thread( scheda.Save, (bckppath,) )
+				#scheda.pofile.save(bckppath)
 				scheda.list.lv.ItemAt(tvindex).state=1
 				scheda.list.lv.ItemAt(tvindex).tosave=False
 				scheda.list.lv.ItemAt(tvindex).txttosave=""
@@ -3150,12 +3190,14 @@ class PoWindow(BWindow):
 				textsave=msg.FindString('tcomment')
 				intscheda=msg.FindInt32('tabview')
 				scheda=self.editorslist[intscheda]
+				scheda.writter.acquire()
 				entry = scheda.list.lv.ItemAt(tvindex).entry
 				entry.tcomment=textsave
 				scheda.pofile.metadata['Last-Translator']=defname
 				scheda.pofile.metadata['PO-Revision-Date']=now
 				scheda.pofile.metadata['X-Editor']=version
-				scheda.pofile.save(bckppath)
+				thread.start_new_thread( scheda.Save, (bckppath,) )
+				#scheda.pofile.save(bckppath)
 				self.postabview.Select(intscheda)
 				scheda.list.lv.DeselectAll()
 				scheda.list.lv.Select(tvindex)
@@ -3164,11 +3206,13 @@ class PoWindow(BWindow):
 				textsave=msg.FindString('header')
 				intscheda=msg.FindInt32('tabview')
 				scheda=self.editorslist[intscheda]
+				scheda.writter.acquire()
 				scheda.pofile.header=textsave
 				scheda.pofile.metadata['Last-Translator']=defname
 				scheda.pofile.metadata['PO-Revision-Date']=now
 				scheda.pofile.metadata['X-Editor']=version
-				scheda.pofile.save(bckppath)
+				thread.start_new_thread( scheda.Save, (bckppath,) )
+				#scheda.pofile.save(bckppath)
 				return
 			self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated()))
 			return
@@ -3253,7 +3297,9 @@ class PoWindow(BWindow):
 			
 		elif msg.what == 71:
 			# mark unmark as fuzzy
-			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
+			if len(self.editorslist)>0:
+				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
+					self.editorslist[self.postabview.Selection()].writter.acquire()
 					self.workonthisentry = self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).entry
 					if 'fuzzy' in self.workonthisentry.flags:
 						self.workonthisentry.flags.remove('fuzzy')
@@ -3265,11 +3311,14 @@ class PoWindow(BWindow):
 							self.workonthisentry.previous_msgctxt=None
 					else:
 						self.workonthisentry.flags.append('fuzzy')
+					self.editorslist[self.postabview.Selection()].writter.release()
 					bckpmsg=BMessage(16893)
 					bckpmsg.AddInt8('savetype',0)
 					bckpmsg.AddString('bckppath',self.editorslist[self.postabview.Selection()].backupfile)
 					BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
 					self.editorslist[self.postabview.Selection()].list.reload(self.poview,self.editorslist[self.postabview.Selection()].pofile,self.encoding)
+			return
+
 		elif msg.what == 12343:
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
 				asd=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).entry
