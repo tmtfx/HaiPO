@@ -33,7 +33,7 @@
 
 import os,sys,ConfigParser,struct,re,thread,datetime,time,threading
 
-version='HaiPO 0.5 beta'
+version='HaiPO 0.6 beta'
 (appname,ver,state)=version.split(' ')
 
 jes = False
@@ -495,6 +495,7 @@ class Findsource(BWindow):
 				partial = False
 				partiali = False
 				loopa =True
+				################## Selezionare scheda giusta se plurale #####################
 				while loopa:
 					now+=1
 					if now < total:
@@ -505,6 +506,7 @@ class Findsource(BWindow):
 								if ret >-1:
 									lista.Select(now)
 									messace=BMessage(963741)
+									messace.AddInt8('plural',0)
 									#messace.AddInt32('inizi',ret)
 									#messace.AddInt32('fin',tl)
 									#messace.AddInt8('index',0)
@@ -516,6 +518,7 @@ class Findsource(BWindow):
 								if ret >-1:
 									lista.Select(now)
 									messace=BMessage(963741)
+									messace.AddInt8('plural',1)
 									#messace.AddInt32('inizi',ret)
 									#messace.AddInt32('fin',tl)
 									#messace.AddInt8('index',1)
@@ -527,6 +530,7 @@ class Findsource(BWindow):
 								if ret >-1:    #Text().find(self.looktv.Text())>-1:
 									lista.Select(now)
 									messace=BMessage(963741)
+									messace.AddInt8('plural',0)
 									#messace.AddInt32('inizi',ret)
 									#messace.AddInt32('fin',tl)
 									#messace.AddInt8('index',0)
@@ -539,17 +543,23 @@ class Findsource(BWindow):
 							if item.hasplural:
 								if item.msgids[0].encode(self.encoding).lower().find(self.looktv.Text().lower())>-1:
 									lista.Select(now)
-									BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
+									messace=BMessage(963741)
+									messace.AddInt8('plural',0)
+									BApplication.be_app.WindowAt(0).PostMessage(messace)
 									################################## TODO: evidenziare testo #################################
 									break
 								if item.msgids[1].encode(self.encoding).lower().find(self.looktv.Text().lower())>-1:
 									lista.Select(now)
-									BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
+									messace=BMessage(963741)
+									messace.AddInt8('plural',1)
+									BApplication.be_app.WindowAt(0).PostMessage(messace)
 									################################## TODO: evidenziare testo #################################
 									break
 							else:
 								if item.msgids.encode(self.encoding).lower().find(self.looktv.Text().lower())>-1:
 									lista.Select(now)
+									messace=BMessage(963741)
+									messace.AddInt8('plural',0)
 									BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
 									################################## TODO: evidenziare testo #################################
 									break
@@ -561,7 +571,7 @@ class Findsource(BWindow):
 						partiali = True
 					if partial and partiali:
 						loopa=False
-						say = BAlert('not_found', 'No matches found on listed entries', 'Ok',None, None, None, 3)
+						say = BAlert('not_found', 'No matches found on other entries', 'Ok',None, None, None, 3)
 						say.Go()
 
 class FindRepTrans(BWindow):
@@ -616,66 +626,67 @@ class FindRepTrans(BWindow):
 			lista=BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].list.lv
 			indaco=lista.CurrentSelection()
 			self.arrayview=BApplication.be_app.WindowAt(0).poview
-			datab=[]
-			if self.arrayview[0]:
-				for entry in self.pof.fuzzy_entries():
-					value=[]
-					if entry and entry.msgid_plural:
-						bubu=len(entry.msgstr_plural)
-						y=0
-						while y<bubu:
-							txt=entry.msgstr_plural[y].encode(self.encoding)
-							value.append(txt)
-							y+=1
-					else:
-						txt=entry.msgstr.encode(self.encoding)
-						value.append(txt)
-					datab.append(value)
-			if self.arrayview[1]:
-				for entry in self.pof.untranslated_entries():
-					value=[]
-					if entry and entry.msgid_plural:
-						bubu=len(entry.msgstr_plural)
-						y=0
-						while y<bubu:
-							txt=entry.msgstr_plural[y].encode(self.encoding)
-							value.append(txt)
-							y+=1
-					else:
-						txt=entry.msgstr.encode(self.encoding)
-						value.append(txt)
-					datab.append(value)
-			if self.arrayview[2]:
-				for entry in self.pof.translated_entries():
-					value=[]
-					if entry and entry.msgid_plural:
-						bubu=len(entry.msgstr_plural)
-						y=0
-						while y<bubu:
-							txt=entry.msgstr_plural[y].encode(self.encoding)
-							value.append(txt)
-							y+=1
-					else:
-						txt=entry.msgstr.encode(self.encoding)
-						value.append(txt)
-					datab.append(value)
-			if self.arrayview[3]:
-				for entry in self.pof.obsolete_entries():
-					value=[]
-					if entry and entry.msgid_plural:
-						bubu=len(entry.msgstr_plural)
-						y=0
-						while y<bubu:
-							txt=entry.msgstr_plural[y].encode(self.encoding)
-							value.append(txt)
-							y+=1
-					else:
-						txt=entry.msgstr.encode(self.encoding)
-						value.append(txt)
-					datab.append(value)
-					
+#################### NON USARE QUESTO METODO. non tiene conto di ciò che è stato salvato #######################
+#			datab=[]
+#			if self.arrayview[0]:
+#				for entry in self.pof.fuzzy_entries():
+#					value=[]
+#					if entry and entry.msgid_plural:
+#						bubu=len(entry.msgstr_plural)
+#						y=0
+#						while y<bubu:
+#							txt=entry.msgstr_plural[y].encode(self.encoding)
+#							value.append(txt)
+#							y+=1
+#					else:
+#						txt=entry.msgstr.encode(self.encoding)
+#						value.append(txt)
+#					datab.append(value)
+#			if self.arrayview[1]:
+#				for entry in self.pof.untranslated_entries():
+#					value=[]
+#					if entry and entry.msgid_plural:
+#						bubu=len(entry.msgstr_plural)
+#						y=0
+#						while y<bubu:
+#							txt=entry.msgstr_plural[y].encode(self.encoding)
+#							value.append(txt)
+#							y+=1
+#					else:
+#						txt=entry.msgstr.encode(self.encoding)
+#						value.append(txt)
+#					datab.append(value)
+#			if self.arrayview[2]:
+#				for entry in self.pof.translated_entries():
+#					value=[]
+#					if entry and entry.msgid_plural:
+#						bubu=len(entry.msgstr_plural)
+#						y=0
+#						while y<bubu:
+#							txt=entry.msgstr_plural[y].encode(self.encoding)
+#							value.append(txt)
+#							y+=1
+#					else:
+#						txt=entry.msgstr.encode(self.encoding)
+#						value.append(txt)
+#					datab.append(value)
+#			if self.arrayview[3]:
+#				for entry in self.pof.obsolete_entries():
+#					value=[]
+#					if entry and entry.msgid_plural:
+#						bubu=len(entry.msgstr_plural)
+#						y=0
+#						while y<bubu:
+#							txt=entry.msgstr_plural[y].encode(self.encoding)
+#							value.append(txt)
+#							y+=1
+#					else:
+#						txt=entry.msgstr.encode(self.encoding)
+#						value.append(txt)
+#					datab.append(value)
+# ################################################					
 			total=lista.CountItems()
-			indaco=lista.CurrentSelection()
+			#indaco=lista.CurrentSelection()
 			applydelta=float(indaco-self.pb.CurrentValue())
 			deltamsg=BMessage(7047)
 			deltamsg.AddFloat('delta',applydelta)
@@ -686,6 +697,7 @@ class FindRepTrans(BWindow):
 			partial = False
 			partiali = False
 			loopa =True
+			epistola = BMessage(963741)
 			while loopa:
 				now+=1
 				if now < total:
@@ -694,31 +706,48 @@ class FindRepTrans(BWindow):
 						deltamsg.AddFloat('delta',delta)
 						BApplication.be_app.WindowAt(self.thiswindow).PostMessage(deltamsg)
 						lastvalue=now
-						values=datab[now]
-						orb = len(values)
+############## sostituire ###############
+#						values=datab[now]
+#########################################
+						blister=lista.ItemAt(now)
+#						orb = len(values)
 						if self.casesens.Value():
-							if orb>1:
-								for items in values:
+							#if orb>1:
+							if blister.hasplural:
+								for ident,items in enumerate(blister.msgstrs):#enumerate(values):
 									if items.find(self.looktv.Text())>-1:
+										print ident,items
 										lista.Select(now)################################ todo: switch transtabview se sul plurale ##############
-										BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741)) ############################ TODO: evidenziare testo #################
+										epistola.AddInt8('plural',ident)
+										BApplication.be_app.WindowAt(0).PostMessage(epistola) ############################ TODO: evidenziare testo #################
+										#BApplication.be_app.WindowAt(0).transtabview.Select(ident)
+										loopa = False
 										break
 							else:
-								if values[0].find(self.looktv.Text())>-1:
+								if blister.msgstrs.find(self.looktv.Text())>-1:
+								#if values[0].find(self.looktv.Text())>-1:
 									lista.Select(now)
-									BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741)) ############################ TODO: evidenziare testo #################
+									epistola.AddInt8('plural',0)
+									BApplication.be_app.WindowAt(0).PostMessage(epistola) ############################ TODO: evidenziare
+									loopa = False
 									break
 						else:
 							if orb>1:
-								for items in values:
+								for ident,items in enumerate(values):
 									if items.lower().find(self.looktv.Text().lower())>-1:
+										print ident,items
 										lista.Select(now)################################ todo: switch transtabview se sul plurale ##############
-										BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741)) ############################ TODO: evidenziare testo #################
+										epistola.AddInt8('plural',ident)
+										BApplication.be_app.WindowAt(0).PostMessage(epistola) ############################ TODO: evidenziare testo #################
+										#BApplication.be_app.WindowAt(0).transtabview.Select(ident)
+										loopa = False
 										break
 							else:
 								if values[0].lower().find(self.looktv.Text().lower())>-1:
 									lista.Select(now)
-									BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741)) ############################ TODO: evidenziare testo #################
+									epistola.AddInt8('plural',0)
+									BApplication.be_app.WindowAt(0).PostMessage(epistola) ############################ TODO: evidenziare testo #################
+									loopa = False
 									break
 				if now == total:
 						now = -1
@@ -727,6 +756,7 @@ class FindRepTrans(BWindow):
 				if now == indaco:
 						partiali = True
 				if partial and partiali:
+						print "ma che succede"
 						loopa=False
 						say = BAlert('not_found', 'No matches found on listed entries', 'Ok',None, None, None, 3)
 						say.Go()
@@ -1318,7 +1348,7 @@ class MsgStrItem(BListItem):
 	
 	def __init__(self, msgids,msgstrs,entry,comments,context,state,encoding,plural):
 		if plural:
-			self.text = msgids[0].encode(encoding)  #it's in english should this always be utf-8?
+			self.text = msgids[0].encode(encoding)  #(english) should this always be utf-8?
 		else:
 			self.text = msgids.encode(encoding)
 		self.comments = comments
@@ -1392,9 +1422,11 @@ class MsgStrItem(BListItem):
 	def SetTranslatorComment(self,tcomment):
 		self.tcomment=tcomment
 		
-	def Save(self,something):
-		print "salvo senza passare attraverso postmessage"
-		print something
+################### eliminare ######################
+#	def Save(self,something):
+#		print "salvo senza passare attraverso postmessage"
+#		print something
+#####################################################
 		
 	def Text(self):
 		return self.text
@@ -1431,9 +1463,9 @@ class EventTextView(BTextView):
 			thisBlistitem.txttosave=self.Text()
 			thisBlistitem.msgstrs=self.Text().decode(self.superself.encoding)
 			bckpmsg.AddString('translation',thisBlistitem.txttosave)
-			print "salvo solo singolare"
+			#print "salvo solo singolare"
 		else:
-			print "provo a salvare tutto"
+			#print "provo a salvare tutto"
 			thisBlistitem.txttosavepl=[]
 			thisBlistitem.txttosave=self.superself.listemsgstr[0].trnsl.Text()
 			thisBlistitem.msgstrs=[]
@@ -3309,20 +3341,25 @@ class PoWindow(BWindow):
 							self.workonthisentry.previous_msgid_plural=None
 						if self.workonthisentry.previous_msgctxt:
 							self.workonthisentry.previous_msgctxt=None
+						self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).state=1
 					else:
 						self.workonthisentry.flags.append('fuzzy')
+						self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).state=2
+					self.editorslist[self.postabview.Selection()].Hide()
+					self.editorslist[self.postabview.Selection()].Show() #Updates the MsgStrItem
 					self.editorslist[self.postabview.Selection()].writter.release()
 					bckpmsg=BMessage(16893)
 					bckpmsg.AddInt8('savetype',0)
 					bckpmsg.AddString('bckppath',self.editorslist[self.postabview.Selection()].backupfile)
 					BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
-					self.editorslist[self.postabview.Selection()].list.reload(self.poview,self.editorslist[self.postabview.Selection()].pofile,self.encoding)
+					#self.editorslist[self.postabview.Selection()].list.reload(self.poview,self.editorslist[self.postabview.Selection()].pofile,self.encoding)
 			return
 
 		elif msg.what == 12343:
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
 				asd=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).entry
 				print asd
+				
 				#provare a modificare l'entry e mandare il postmessage per salvare il pofile
 		elif msg.what == 54173:
 			#Save as 
@@ -3554,7 +3591,12 @@ class PoWindow(BWindow):
 			self.SetFlags(0)
 			return
 		elif msg.what == 963741:
+			schplur = msg.FindInt8('plural')
+			#schsrcplur = msg.FindInt8('srcplur')
 			self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+			self.transtabview.Select(schplur)
+			if schplur>0:
+				self.srctabview.Select(1)
 			#inizi=msg.FindInt32('inizi')
 			#fin=msg.FindInt32('fin')
 			#indolor=msg.FindInt8('index')
