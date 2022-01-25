@@ -2770,7 +2770,12 @@ class PoWindow(BWindow):
 		
 		elif msg.what == 74:
 			#this is slow due to reload ### todo: reload carica il pofile originale sarebbe da caricare in caso il pofile temporaneo se esistente
-			if self.poview[0]:
+			say = BAlert('Save unsaved work', 'To proceed you need to save this file first, proceed?', 'Yes','No', None, None , 3)
+			out=say.Go()
+			if out == 0:
+				#save first
+				BApplication.be_app.WindowAt(0).PostMessage(2)
+				if self.poview[0]:
 				#try:
 					Config.read(confile)
 					sezpresent = False
@@ -2787,7 +2792,7 @@ class PoWindow(BWindow):
 					Config.write(cfgfile)
 					cfgfile.close()
 					self.poview[0]=False
-			else:
+				else:
 					Config.read(confile)
 					sezpresent = False
 					men=self.savemenu.FindItem(74)
@@ -2803,13 +2808,18 @@ class PoWindow(BWindow):
 					Config.write(cfgfile)
 					cfgfile.close()
 					self.poview[0]=True
-			for b in self.editorslist:
-				b.list.reload(self.poview,b.pofile,self.encoding)
+				for b in self.editorslist:
+					b.list.reload(self.poview,b.pofile,self.encoding)
 			return
 					
 		elif msg.what == 75:
 			#this is slow due to reload ### todo: reload carica il pofile originale sarebbe da caricare in caso il pofile temporaneo se esistente
-			if self.poview[1]:
+			say = BAlert('Save unsaved work', 'To proceed you need to save this file first, proceed?', 'Yes','No', None, None , 3)
+			out=say.Go()
+			if out == 0:
+				#save first
+				BApplication.be_app.WindowAt(0).PostMessage(2)
+				if self.poview[1]:
 				#try:
 					Config.read(confile)
 					sezpresent = False
@@ -2826,7 +2836,7 @@ class PoWindow(BWindow):
 					Config.write(cfgfile)
 					cfgfile.close()
 					self.poview[1]=False
-			else:
+				else:
 					Config.read(confile)
 					sezpresent = False
 					men=self.savemenu.FindItem(75)
@@ -2842,13 +2852,18 @@ class PoWindow(BWindow):
 					Config.write(cfgfile)
 					cfgfile.close()
 					self.poview[1]=True
-			for b in self.editorslist:
-				b.list.reload(self.poview,b.pofile,self.encoding)
+				for b in self.editorslist:
+					b.list.reload(self.poview,b.pofile,self.encoding)
 			return
 
 		elif msg.what == 76:
 			#this is slow due to reload ### todo: reload carica il pofile originale sarebbe da caricare in caso il pofile temporaneo se esistente
-			if self.poview[2]:
+			say = BAlert('Save unsaved work', 'To proceed you need to save this file first, proceed?', 'Yes','No', None, None , 3)
+			out=say.Go()
+			if out == 0:
+				#save first
+				BApplication.be_app.WindowAt(0).PostMessage(2)
+				if self.poview[2]:
 				#try:
 					Config.read(confile)
 					sezpresent = False
@@ -2865,7 +2880,7 @@ class PoWindow(BWindow):
 					Config.write(cfgfile)
 					cfgfile.close()
 					self.poview[2]=False
-			else:
+				else:
 					Config.read(confile)
 					sezpresent = False
 					men=self.savemenu.FindItem(76)
@@ -2881,13 +2896,18 @@ class PoWindow(BWindow):
 					Config.write(cfgfile)
 					cfgfile.close()
 					self.poview[2]=True
-			for b in self.editorslist:
-				b.list.reload(self.poview,b.pofile,self.encoding)
+				for b in self.editorslist:
+					b.list.reload(self.poview,b.pofile,self.encoding)
 			return
 		
 		elif msg.what == 77:
 			#this is slow due to reload ### todo: reload carica il pofile originale sarebbe da caricare in caso il pofile temporaneo se esistente
-			if self.poview[3]:
+			say = BAlert('Save unsaved work', 'To proceed you need to save this file first, proceed?', 'Yes','No', None, None , 3)
+			out=say.Go()
+			if out == 0:
+				#save first
+				BApplication.be_app.WindowAt(0).PostMessage(2)
+				if self.poview[3]:
 				#try:
 					Config.read(confile)
 					sezpresent = False
@@ -2904,7 +2924,7 @@ class PoWindow(BWindow):
 					Config.write(cfgfile)
 					cfgfile.close()
 					self.poview[3]=False
-			else:
+				else:
 					Config.read(confile)
 					sezpresent = False
 					men=self.savemenu.FindItem(77)
@@ -2920,8 +2940,8 @@ class PoWindow(BWindow):
 					Config.write(cfgfile)
 					cfgfile.close()
 					self.poview[3]=True
-			for b in self.editorslist:
-				b.list.reload(self.poview,b.pofile,self.encoding)
+				for b in self.editorslist:
+					b.list.reload(self.poview,b.pofile,self.encoding)
 			return
 
 		elif msg.what == 130550: # change listview selection
