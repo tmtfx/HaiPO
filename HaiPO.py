@@ -33,7 +33,7 @@
 
 import os,sys,ConfigParser,struct,re,thread,datetime,time,threading
 
-version='HaiPO 0.6 beta'
+version='HaiPO 0.7 beta'
 (appname,ver,state)=version.split(' ')
 
 jes = False
@@ -294,21 +294,23 @@ class ImpostazionsUtent(BWindow):
 				self.tabslabels.append(BTab())
 				self.userstabview.AddTab(self.userviewlist[x], self.tabslabels[x])
 				x=x+1
+			self.underframe.AddChild(self.userstabview)
+			kButtonFrame1 = (r/4+5, t+6*h+200, r/2-5, b-5)
+			kButtonName1 = "Remove user"
+			kButtonFrame2 = (r*3/4+5, t+6*h+200, r-5, b-5)
+			kButtonName2 = "Add user"
+			kButtonFrame3 = (r/2+5, t+6*h+200, r*3/4-5, b-5)
+			kButtonName3 = "Set default"
+			self.gjaveBtn = BButton(kButtonFrame1, kButtonName1, kButtonName1, BMessage(50250))
+			self.zonteBtn = BButton(kButtonFrame2, kButtonName2, kButtonName2, BMessage(550250))
+			self.underframe.AddChild(self.gjaveBtn)
+			self.underframe.AddChild(self.zonteBtn)
 		except:
 			say = BAlert('Oops', 'No config file or users found', 'Ok',None, None, None, 3)
 			say.Go()
+			#self.Hide()
 			self.Quit()
-		self.underframe.AddChild(self.userstabview)
-		kButtonFrame1 = (r/4+5, t+6*h+200, r/2-5, b-5)
-		kButtonName1 = "Remove user"
-		kButtonFrame2 = (r*3/4+5, t+6*h+200, r-5, b-5)
-		kButtonName2 = "Add user"
-		kButtonFrame3 = (r/2+5, t+6*h+200, r*3/4-5, b-5)
-		kButtonName3 = "Set default"
-		self.gjaveBtn = BButton(kButtonFrame1, kButtonName1, kButtonName1, BMessage(50250))
-		self.zonteBtn = BButton(kButtonFrame2, kButtonName2, kButtonName2, BMessage(550250))
-		self.underframe.AddChild(self.gjaveBtn)
-		self.underframe.AddChild(self.zonteBtn)
+		
 
 
 	def MessageReceived(self, msg):
@@ -626,65 +628,6 @@ class FindRepTrans(BWindow):
 			lista=BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].list.lv
 			indaco=lista.CurrentSelection()
 			self.arrayview=BApplication.be_app.WindowAt(0).poview
-#################### NON USARE QUESTO METODO. non tiene conto di ciò che è stato salvato #######################
-#			datab=[]
-#			if self.arrayview[0]:
-#				for entry in self.pof.fuzzy_entries():
-#					value=[]
-#					if entry and entry.msgid_plural:
-#						bubu=len(entry.msgstr_plural)
-#						y=0
-#						while y<bubu:
-#							txt=entry.msgstr_plural[y].encode(self.encoding)
-#							value.append(txt)
-#							y+=1
-#					else:
-#						txt=entry.msgstr.encode(self.encoding)
-#						value.append(txt)
-#					datab.append(value)
-#			if self.arrayview[1]:
-#				for entry in self.pof.untranslated_entries():
-#					value=[]
-#					if entry and entry.msgid_plural:
-#						bubu=len(entry.msgstr_plural)
-#						y=0
-#						while y<bubu:
-#							txt=entry.msgstr_plural[y].encode(self.encoding)
-#							value.append(txt)
-#							y+=1
-#					else:
-#						txt=entry.msgstr.encode(self.encoding)
-#						value.append(txt)
-#					datab.append(value)
-#			if self.arrayview[2]:
-#				for entry in self.pof.translated_entries():
-#					value=[]
-#					if entry and entry.msgid_plural:
-#						bubu=len(entry.msgstr_plural)
-#						y=0
-#						while y<bubu:
-#							txt=entry.msgstr_plural[y].encode(self.encoding)
-#							value.append(txt)
-#							y+=1
-#					else:
-#						txt=entry.msgstr.encode(self.encoding)
-#						value.append(txt)
-#					datab.append(value)
-#			if self.arrayview[3]:
-#				for entry in self.pof.obsolete_entries():
-#					value=[]
-#					if entry and entry.msgid_plural:
-#						bubu=len(entry.msgstr_plural)
-#						y=0
-#						while y<bubu:
-#							txt=entry.msgstr_plural[y].encode(self.encoding)
-#							value.append(txt)
-#							y+=1
-#					else:
-#						txt=entry.msgstr.encode(self.encoding)
-#						value.append(txt)
-#					datab.append(value)
-# ################################################					
 			total=lista.CountItems()
 			#indaco=lista.CurrentSelection()
 			applydelta=float(indaco-self.pb.CurrentValue())
@@ -706,13 +649,8 @@ class FindRepTrans(BWindow):
 						deltamsg.AddFloat('delta',delta)
 						BApplication.be_app.WindowAt(self.thiswindow).PostMessage(deltamsg)
 						lastvalue=now
-############## sostituire ###############
-#						values=datab[now]
-#########################################
 						blister=lista.ItemAt(now)
-#						orb = len(values)
 						if self.casesens.Value():
-							#if orb>1:
 							if blister.hasplural:
 								for ident,items in enumerate(blister.msgstrs):#enumerate(values):
 									if items.find(self.looktv.Text())>-1:
@@ -725,7 +663,6 @@ class FindRepTrans(BWindow):
 										break
 							else:
 								if blister.msgstrs.find(self.looktv.Text())>-1:
-								#if values[0].find(self.looktv.Text())>-1:
 									lista.Select(now)
 									epistola.AddInt8('plural',0)
 									BApplication.be_app.WindowAt(0).PostMessage(epistola) ############################ TODO: evidenziare
@@ -801,6 +738,24 @@ class MaacUtent(BWindow):
 
 	def MessageReceived(self, msg):
 		if msg.what == self.BUTTON_MSG:
+			if self.firstime:
+				say = BAlert('Ask again?', 'Do you wish be prompted again?', 'Yes','No', None, None , 3)
+				out=say.Go()
+				if out == 1:
+					if not self.firstime:
+						cfgfile = open(confile,'w')
+						Config.set('Settings','wizardprompt',False)
+						Config.write(cfgfile)
+						cfgfile.close()
+					else:
+						cfgfile = open(confile,'w')
+						try:
+							Config.add_section('Settings')
+						except:
+							pass
+						Config.set('Settings','wizardprompt',False)
+						Config.write(cfgfile)
+						cfgfile.close()
 			BApplication.be_app.WindowAt(0).PostMessage(777)
 			self.Quit()
 			return
@@ -1788,13 +1743,17 @@ class HeaderWindow(BWindow):
 
 
 class POEditorBBox(BBox):
-	def __init__(self,frame,name,percors,pofileloaded,arrayview,encoding):
+	def __init__(self,frame,name,percors,pofileloaded,arrayview,encoding,loadtempfile):
 		self.pofile = pofileloaded
 #		print self.pofile.header
 		self.name = name
 		self.encoding=encoding
 		self.filen, self.file_ext = os.path.splitext(percors)
-		self.backupfile= self.filen+".temp"+self.file_ext
+		if loadtempfile:
+			self.backupfile = percors
+			percors = percors.replace('.temp','')
+		else:	
+			self.backupfile= self.filen+".temp"+self.file_ext
 		self.orderedmetadata=self.pofile.ordered_metadata()
 		self.fp=BFilePanel(B_SAVE_PANEL)
 		pathorig,nameorig=os.path.split(percors)
@@ -1809,8 +1768,7 @@ class POEditorBBox(BBox):
 #		elif file_ext=='.gmo':
 #			self.typefile=2
 #		elif file_ext=='.pot':
-#			
-		
+
 		ind=0
 		for entry in self.pofile:
 				ind=ind+1
@@ -2042,6 +2000,7 @@ class POEditorBBox(BBox):
 						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					item.SetLineNum(entry.linenum)
 				self.list.lv.AddItem(item)
+
 	def Save(self,path):
 		self.pofile.save(path)
 		self.writter.release()
@@ -2401,7 +2360,16 @@ class PoWindow(BWindow):
 		##### if first launch, it opens the profile creator wizard and sets default enconding for polib
 		if  firstrun:
 			self.setencoding = False
-			BApplication.be_app.WindowAt(0).PostMessage(305)
+			goonplz = True
+			try:
+				Config.read(confile)
+				tst = ConfigSectionMap("Settings")['wizardprompt']
+				if tst == "False":
+					goonplz = False
+			except:
+				pass
+			if goonplz:
+				BApplication.be_app.WindowAt(0).PostMessage(305)
 		else:
 			try:
 				Config.read(confile)
@@ -2678,9 +2646,23 @@ class PoWindow(BWindow):
 		
 		elif msg.what == 41:
 			#USER SETTINGS
-			self.usersettings = ImpostazionsUtent()
-			self.usersettings.Show()
-			self.SetFlags(B_AVOID_FOCUS)
+			try:
+				Config.read(confile)
+				sezpres = False
+				sezions=Config.sections()
+				for x in sezions:
+					if x == "Users":
+						sezpres = True
+				if sezpres:
+						self.usersettings = ImpostazionsUtent()
+						self.usersettings.Show()
+						self.SetFlags(B_AVOID_FOCUS)
+				else:
+						self.maacutent = MaacUtent(True)
+						self.maacutent.Show()
+						self.SetFlags(B_AVOID_FOCUS)
+			except:
+				pass
 			return
 		
 		elif msg.what == 32:
@@ -2787,7 +2769,7 @@ class PoWindow(BWindow):
 					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 		
 		elif msg.what == 74:
-			#this is slow due to reload
+			#this is slow due to reload ### todo: reload carica il pofile originale sarebbe da caricare in caso il pofile temporaneo se esistente
 			if self.poview[0]:
 				#try:
 					Config.read(confile)
@@ -2826,7 +2808,7 @@ class PoWindow(BWindow):
 			return
 					
 		elif msg.what == 75:
-			#this is slow due to reload
+			#this is slow due to reload ### todo: reload carica il pofile originale sarebbe da caricare in caso il pofile temporaneo se esistente
 			if self.poview[1]:
 				#try:
 					Config.read(confile)
@@ -2865,7 +2847,7 @@ class PoWindow(BWindow):
 			return
 
 		elif msg.what == 76:
-			#this is slow due to reload	
+			#this is slow due to reload ### todo: reload carica il pofile originale sarebbe da caricare in caso il pofile temporaneo se esistente
 			if self.poview[2]:
 				#try:
 					Config.read(confile)
@@ -2904,7 +2886,7 @@ class PoWindow(BWindow):
 			return
 		
 		elif msg.what == 77:
-			#this is slow due to reload
+			#this is slow due to reload ### todo: reload carica il pofile originale sarebbe da caricare in caso il pofile temporaneo se esistente
 			if self.poview[3]:
 				#try:
 					Config.read(confile)
@@ -3256,7 +3238,32 @@ class PoWindow(BWindow):
 			mimesubtbool = False
 			extbool = False
 			mimeinstalled=False
-			if True:
+			mimecheck = "True"
+			if os.path.isfile(confile):
+				try:
+					Config.read(confile)
+					mimecheck=ConfigSectionMap("Settings")['mimecheck']
+				except: #(ConfigParser.NoSectionError):
+					say = BAlert('Check Mimetype?', 'This is the first time you open a file, do you wish check the files for their mimetype?', 'Yes','No', None, None , 3)
+					out=say.Go()
+					Config.read(confile)
+					cfgfile = open(confile,'w')
+					try:
+						Config.add_section('Settings')
+					except:
+						pass
+					if out == 0:
+						Config.set('Settings','mimecheck','True')
+					else:
+						Config.set('Settings','mimecheck','False')
+					Config.write(cfgfile)
+					cfgfile.close()
+#				try:
+					
+				#mimecheck not present
+				#mimecheck="True"
+			if mimecheck == "True":
+			#if True:
 			#try:
 				letsgo=False
 				supt = msg.FindString("mime_supertype")
@@ -3294,6 +3301,7 @@ class PoWindow(BWindow):
 				if letsgo:
 					if self.setencoding:
 						try:
+							######## ZONTE ACHI ##############
 							self.pof = polib.pofile(txtpath,encoding=self.encoding)
 							if mimeinstalled:
 								say = BAlert('oops', "The file is ok, but there's no gettext mimetype installed in your system", 'Ok',None, None, None, 3)
@@ -3316,11 +3324,16 @@ class PoWindow(BWindow):
 							tfr = self.postabview.Bounds()
 							trc = (0.0, 0.0, tfr[2] - tfr[0], tfr[3] - tfr[1])
 							self.loadPOfile(txtpath,trc,self.pof)
-						#except:
-						#	test = compiletest(mimesuptbool,mimesubtbool,extbool)
-						#	say = BAlert('oops', 'Failed to load: '+test, 'Ok',None, None, None, 3)
-						#	say.Go()
-	
+			else:
+					if self.setencoding:
+						pass
+					else:
+						self.encoding="utf-8"
+					self.pof = polib.pofile(txtpath,encoding=self.encoding)
+					tfr = self.postabview.Bounds()
+					trc = (0.0, 0.0, tfr[2] - tfr[0], tfr[3] - tfr[1])
+					self.loadPOfile(txtpath,trc,self.pof)
+				
 			#except:
 			#	e = None
 			#if e is None:
@@ -3359,6 +3372,11 @@ class PoWindow(BWindow):
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
 				asd=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).entry
 				print asd
+				if self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).hasplural:
+					t=self.listemsgstr[self.transtabview.Selection()].trnsl.Text()
+				else:
+					t=self.listemsgstr[0].trnsl.Text()
+					
 				
 				#provare a modificare l'entry e mandare il postmessage per salvare il pofile
 		elif msg.what == 54173:
@@ -3616,7 +3634,26 @@ class PoWindow(BWindow):
 			# add a tab in the editor's tabview
 			head, tail = os.path.split(pathtofile)
 			startTime = time.time()
-			self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile,self.poview,self.encoding))
+			filen, file_ext = os.path.splitext(pathtofile)
+			backupfile = filen+".temp"+file_ext
+			if os.path.exists(backupfile):
+				if os.path.getmtime(backupfile)>os.path.getmtime(pathtofile):
+					say = BAlert('Backup exist', 'There\'s a recent temporary backup file, open it instead?', 'Yes','No', None, None , 3)
+					out=say.Go()
+					if out == 0:
+#						print "apro il backup"
+						temppathtofile=backupfile
+						temppofile = polib.pofile(backupfile,encoding=self.encoding)
+						self.editorslist.append(POEditorBBox(bounds,tail,temppathtofile,temppofile,self.poview,self.encoding,True))
+					else:
+#						print "apro il file originale"
+						self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile,self.poview,self.encoding,False))
+				else:
+#					print "apro il file originale"
+					self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile,self.poview,self.encoding,False))
+			else:
+#				print "apro il file originale"
+				self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile,self.poview,self.encoding,False))
 			executionTime = (time.time() - startTime)
 			print('Execution time in seconds: ' + str(executionTime))
 			self.tabslabels.append(BTab())
