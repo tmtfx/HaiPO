@@ -1716,14 +1716,14 @@ class srctabbox(BBox):
 		self.name = name
 		BBox.__init__(self,(0,0,playground1[2]-playground1[0],playground1[3]-playground1[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
 		self.hsrc = playground1[3] - playground1[1] - altece 
-		self.src = BTextView((playground1[0],playground1[1],playground1[2]-playground1[0],playground1[3]-playground1[1]),name+'_source_BTextView',(5.0,5.0,playground1[2]-5,playground1[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)
+		self.src = BTextView((playground1[0],playground1[1],playground1[2]-playground1[0],playground1[3]-playground1[1]),name+'_source_BTextView',(5.0,5.0,playground1[2]-15,playground1[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.src.MakeEditable(False)
 		self.AddChild(self.src)
 class trnsltabbox(BBox):
 	def __init__(self,playground2,name,altece,superself):
 		self.name = name
 		BBox.__init__(self,(0,0,playground2[2]-playground2[0],playground2[3]-playground2[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
-		self.trnsl = EventTextView(superself,(playground2[0],playground2[1],playground2[2]-playground2[0]-20,playground2[3]-playground2[1]),name+'_translation_BTextView',(5.0,5.0,playground2[2]-5,playground2[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)
+		self.trnsl = EventTextView(superself,(playground2[0],playground2[1],playground2[2]-playground2[0]-20,playground2[3]-playground2[1]),name+'_translation_BTextView',(5.0,5.0,playground2[2]-30,playground2[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.trnsl.MakeEditable(True)
 		self.AddChild(self.trnsl)
 		bi,bu,bo,ba = playground2
@@ -3627,22 +3627,12 @@ class PoWindow(BWindow):
 						pass
 				self.listemsgstr[0].trnsl.MakeFocus()
 
-
 #							beta=len(sorted(entry.msgstr_plural.keys()))
-
 				
 				############################ TODO: GO TO THE END OF THE TEXT #############################
-				#num=self.editorslist[self.postabview.Selection()].translation.CountLines()
-				#self.editorslist[self.postabview.Selection()].translation.GoToLine(num)
-				
-				#txtlen=self.listemsgstr[self.transtabview.Selection()].trnsl.TextLength()
-				#print self.listemsgstr[self.transtabview.Selection()].trnsl.OffsetAt(txtlen)
-				#self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToOffset(txtlen-1)
-				
-#				pointer=self.editorslist[self.postabview.Selection()].translation.PointAt(len(self.editorslist[self.postabview.Selection()].translation.Text()))
-#				print pointer[0]
-#				self.editorslist[self.postabview.Selection()].translation.MovePenTo(pointer[0][0],pointer[0][1])
-#				print self.editorslist[self.postabview.Selection()].translation.PenLocation()
+				num=self.listemsgstr[self.transtabview.Selection()].trnsl.CountLines()
+				self.listemsgstr[self.transtabview.Selection()].trnsl.GoToLine(num)
+				self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
 				
 			else:
 				self.Nichilize()				
