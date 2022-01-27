@@ -497,7 +497,6 @@ class Findsource(BWindow):
 				partial = False
 				partiali = False
 				loopa =True
-				################## Selezionare scheda giusta se plurale #####################
 				while loopa:
 					now+=1
 					if now < total:
@@ -506,64 +505,72 @@ class Findsource(BWindow):
 							if item.hasplural:
 								ret = item.msgids[0].encode(self.encoding).find(self.looktv.Text())
 								if ret >-1:
-									lista.Select(now)
+									lista.Select(now) #evidenziare-correggere
 									messace=BMessage(963741)
 									messace.AddInt8('plural',0)
-									#messace.AddInt32('inizi',ret)
-									#messace.AddInt32('fin',tl)
+									messace.AddInt32('inizi',ret)
+									messace.AddInt32('fin',ret+tl)
+									messace.AddInt8('srctrnsl',0)
 									#messace.AddInt8('index',0)
 									BApplication.be_app.WindowAt(0).PostMessage(messace)
-
-									################################## TODO: evidenziare testo #################################
 									break
 								ret = item.msgids[1].encode(self.encoding).find(self.looktv.Text())
 								if ret >-1:
 									lista.Select(now)
 									messace=BMessage(963741)
 									messace.AddInt8('plural',1)
-									#messace.AddInt32('inizi',ret)
-									#messace.AddInt32('fin',tl)
+									messace.AddInt32('inizi',ret)
+									messace.AddInt32('fin',ret+tl)
+									messace.AddInt8('srctrnsl',0)
 									#messace.AddInt8('index',1)
 									BApplication.be_app.WindowAt(0).PostMessage(messace)
-									################################## TODO: evidenziare testo #################################
 									break
 							else:
 								ret = item.msgids.encode(self.encoding).find(self.looktv.Text())
-								if ret >-1:    #Text().find(self.looktv.Text())>-1:
+								if ret >-1:
 									lista.Select(now)
 									messace=BMessage(963741)
 									messace.AddInt8('plural',0)
-									#messace.AddInt32('inizi',ret)
-									#messace.AddInt32('fin',tl)
+									messace.AddInt32('inizi',ret)
+									messace.AddInt32('fin',ret+tl)
+									messace.AddInt8('srctrnsl',0)
 									#messace.AddInt8('index',0)
 									BApplication.be_app.WindowAt(0).PostMessage(messace)
-									################################## TODO: evidenziare testo #################################
 									break
 					
 						else:
 							item = lista.ItemAt(now)
 							if item.hasplural:
-								if item.msgids[0].encode(self.encoding).lower().find(self.looktv.Text().lower())>-1:
+								ret = item.msgids[0].encode(self.encoding).lower().find(self.looktv.Text().lower())
+								if ret >-1:
 									lista.Select(now)
 									messace=BMessage(963741)
 									messace.AddInt8('plural',0)
+									messace.AddInt32('inizi',ret)
+									messace.AddInt32('fin',ret+tl)
+									messace.AddInt8('srctrnsl',0)
 									BApplication.be_app.WindowAt(0).PostMessage(messace)
-									################################## TODO: evidenziare testo #################################
 									break
-								if item.msgids[1].encode(self.encoding).lower().find(self.looktv.Text().lower())>-1:
+								ret = item.msgids[1].encode(self.encoding).lower().find(self.looktv.Text().lower())
+								if ret >-1:
 									lista.Select(now)
 									messace=BMessage(963741)
 									messace.AddInt8('plural',1)
+									messace.AddInt32('inizi',ret)
+									messace.AddInt32('fin',ret+tl)
+									messace.AddInt8('srctrnsl',0)
 									BApplication.be_app.WindowAt(0).PostMessage(messace)
-									################################## TODO: evidenziare testo #################################
 									break
 							else:
-								if item.msgids.encode(self.encoding).lower().find(self.looktv.Text().lower())>-1:
+								ret = item.msgids.encode(self.encoding).lower().find(self.looktv.Text().lower())
+								if ret >-1:
 									lista.Select(now)
 									messace=BMessage(963741)
 									messace.AddInt8('plural',0)
-									BApplication.be_app.WindowAt(0).PostMessage(BMessage(963741))
-									################################## TODO: evidenziare testo #################################
+									messace.AddInt32('inizi',ret)
+									messace.AddInt32('fin',ret+tl)
+									messace.AddInt8('srctrnsl',0)
+									BApplication.be_app.WindowAt(0).PostMessage(messace)
 									break
 					if now == total:
 						now = -1
@@ -634,6 +641,7 @@ class FindRepTrans(BWindow):
 			deltamsg=BMessage(7047)
 			deltamsg.AddFloat('delta',applydelta)
 			BApplication.be_app.WindowAt(self.thiswindow).PostMessage(deltamsg)
+			tl = len(self.looktv.Text())
 			max = total
 			now = indaco
 			lastvalue=now
@@ -653,36 +661,56 @@ class FindRepTrans(BWindow):
 						if self.casesens.Value():
 							if blister.hasplural:
 								for ident,items in enumerate(blister.msgstrs):#enumerate(values):
-									if items.find(self.looktv.Text())>-1:
-										print ident,items
-										lista.Select(now)################################ todo: switch transtabview se sul plurale ##############
+									#stringus = BString(items)
+									#rit = stringus.FindFirst(self.looktv.Text())
+									ret = items.encode(self.encoding).find(self.looktv.Text())#.decode(self.encoding)
+									if ret >-1:
+										#print ident,items
+										lista.Select(now)
+										#print "rit: ",rit
+										#print "ret: ",ret
 										epistola.AddInt8('plural',ident)
+										epistola.AddInt32('inizi',ret)
+										epistola.AddInt32('fin',ret+tl)
+										epistola.AddInt8('srctrnsl',1)
 										BApplication.be_app.WindowAt(0).PostMessage(epistola) ############################ TODO: evidenziare testo #################
 										#BApplication.be_app.WindowAt(0).transtabview.Select(ident)
 										loopa = False
 										break
 							else:
-								if blister.msgstrs.find(self.looktv.Text())>-1:
+								ret = blister.msgstrs.encode(self.encoding).find(self.looktv.Text())
+								if ret >-1:
 									lista.Select(now)
 									epistola.AddInt8('plural',0)
+									epistola.AddInt32('inizi',ret)
+									epistola.AddInt32('fin',ret+tl)
+									epistola.AddInt8('srctrnsl',1)
 									BApplication.be_app.WindowAt(0).PostMessage(epistola) ############################ TODO: evidenziare
 									loopa = False
 									break
 						else:
-							if orb>1:
+							if blister.hasplural:
 								for ident,items in enumerate(values):
-									if items.lower().find(self.looktv.Text().lower())>-1:
-										print ident,items
-										lista.Select(now)################################ todo: switch transtabview se sul plurale ##############
+									ret = items.encode(self.encoding).lower().find(self.looktv.Text().lower())
+									if ret >-1:
+										#print ident,items
+										lista.Select(now)
 										epistola.AddInt8('plural',ident)
+										epistola.AddInt32('inizi',ret)
+										epistola.AddInt32('fin',ret+tl)
+										epistola.AddInt8('srctrnsl',1)
 										BApplication.be_app.WindowAt(0).PostMessage(epistola) ############################ TODO: evidenziare testo #################
 										#BApplication.be_app.WindowAt(0).transtabview.Select(ident)
 										loopa = False
 										break
 							else:
-								if values[0].lower().find(self.looktv.Text().lower())>-1:
+								ret = values[0].encode(self.encoding).lower().find(self.looktv.Text().lower())
+								if ret >-1:
 									lista.Select(now)
 									epistola.AddInt8('plural',0)
+									epistola.AddInt32('inizi',ret)
+									epistola.AddInt32('fin',ret+tl)
+									epistola.AddInt8('srctrnsl',1)
 									BApplication.be_app.WindowAt(0).PostMessage(epistola) ############################ TODO: evidenziare testo #################
 									loopa = False
 									break
@@ -2313,7 +2341,7 @@ class PoWindow(BWindow):
 		self.lubox.AddChild(self.infoprogress)
 		self.tempbtn=BButton((4,jkl-hig*3-12,ghj-4,jkl-hig*2-8), "temp", "Test", BMessage(12343))
 		self.lubox.AddChild(self.tempbtn)
-		
+		self.event= threading.Event()
 		self.background.AddChild(self.lubox)
 		self.postabview = postabview(self,(5.0, 5.0, d*3/4-5, b-barheight-245), 'postabview',B_WIDTH_FROM_LABEL)
 
@@ -2769,7 +2797,7 @@ class PoWindow(BWindow):
 					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 		
 		elif msg.what == 74:
-			#this is slow due to reload ### todo: reload carica il pofile originale sarebbe da caricare in caso il pofile temporaneo se esistente
+			#this is slow due to reload
 			say = BAlert('Save unsaved work', 'To proceed you need to save this file first, proceed?', 'Yes','No', None, None , 3)
 			out=say.Go()
 			if out == 0:
@@ -2813,7 +2841,7 @@ class PoWindow(BWindow):
 			return
 					
 		elif msg.what == 75:
-			#this is slow due to reload ### todo: reload carica il pofile originale sarebbe da caricare in caso il pofile temporaneo se esistente
+			#this is slow due to reload
 			say = BAlert('Save unsaved work', 'To proceed you need to save this file first, proceed?', 'Yes','No', None, None , 3)
 			out=say.Go()
 			if out == 0:
@@ -2857,7 +2885,7 @@ class PoWindow(BWindow):
 			return
 
 		elif msg.what == 76:
-			#this is slow due to reload ### todo: reload carica il pofile originale sarebbe da caricare in caso il pofile temporaneo se esistente
+			#this is slow due to reload
 			say = BAlert('Save unsaved work', 'To proceed you need to save this file first, proceed?', 'Yes','No', None, None , 3)
 			out=say.Go()
 			if out == 0:
@@ -2901,7 +2929,7 @@ class PoWindow(BWindow):
 			return
 		
 		elif msg.what == 77:
-			#this is slow due to reload ### todo: reload carica il pofile originale sarebbe da caricare in caso il pofile temporaneo se esistente
+			#this is slow due to reload
 			say = BAlert('Save unsaved work', 'To proceed you need to save this file first, proceed?', 'Yes','No', None, None , 3)
 			out=say.Go()
 			if out == 0:
@@ -3390,12 +3418,18 @@ class PoWindow(BWindow):
 
 		elif msg.what == 12343:
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
-				asd=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).entry
-				print asd
-				if self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).hasplural:
-					t=self.listemsgstr[self.transtabview.Selection()].trnsl.Text()
-				else:
-					t=self.listemsgstr[0].trnsl.Text()
+				asd=self.listemsgstr[self.transtabview.Selection()].trnsl.Text()#self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
+				self.listemsgstr[self.transtabview.Selection()].trnsl.Highlight(0,5)
+				stringus = asd.decode("shift_jis")
+				print stringus
+				#FindWord()
+				#Highlight()
+				#asd=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).entry
+				#print asd
+				#if self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).hasplural:
+				#	t=self.listemsgstr[self.transtabview.Selection()].trnsl.Text()
+				#else:
+				#	t=self.listemsgstr[0].trnsl.Text()
 					
 				
 				#provare a modificare l'entry e mandare il postmessage per salvare il pofile
@@ -3635,16 +3669,46 @@ class PoWindow(BWindow):
 			self.transtabview.Select(schplur)
 			if schplur>0:
 				self.srctabview.Select(1)
-			#inizi=msg.FindInt32('inizi')
-			#fin=msg.FindInt32('fin')
+			inizi=msg.FindInt32('inizi')
+			fin=msg.FindInt32('fin')
+			srctrnsl=msg.FindInt8('srctrnsl')
 			#indolor=msg.FindInt8('index')
-			#self.listemsgid[indolor].src.MakeFocus(True)
-			#self.listemsgid[indolor].src.Select(inizi,fin)
-			
-			
+			name=time.time()
+			thread.start_new_thread( self.highlightlater, (str(name),inizi, fin,schplur,srctrnsl,) )
 			return
+		elif msg.what == 852630:
+			#highlight source text
+			inizi = msg.FindInt32("inizi")
+			fin = msg.FindInt32("fin")
+			schede =  msg.FindInt8("schede")
+			self.listemsgid[schede].src.MakeFocus(True)
+			asdomar=self.listemsgid[schede].src.Text()
+			print asdomar[:inizi]
+			self.listemsgid[schede].src.Highlight(inizi,fin)
+		elif msg.what == 852631:
+			#highlight translation text
+			inizi = msg.FindInt32("inizi")
+			fin = msg.FindInt32("fin")
+			schede =  msg.FindInt8("schede")
+			self.listemsgstr[schede].trnsl.MakeFocus(True)
+			self.listemsgstr[schede].trnsl.Highlight(inizi,fin)
+
 		else:
 			BWindow.MessageReceived(self, msg)
+			
+			
+	def highlightlater(self,name,inizi,fin,schede,srctrnsl):
+		self.event.wait(0.1)
+		if srctrnsl==0:
+			mexacio = BMessage(852630)
+		else:
+			mexacio = BMessage(852631)
+		mexacio.AddInt32("inizi",inizi)
+		mexacio.AddInt32("fin",fin)
+		mexacio.AddInt8("schede",schede)
+#		mexacio.AddInt8("srctrnsl",srctrnsl)
+		BApplication.be_app.WindowAt(0).PostMessage(mexacio)
+		
 			
 	def  loadPOfile(self,pathtofile,bounds,pofile):
 			########################## TODO ####################################
