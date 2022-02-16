@@ -31,7 +31,7 @@
 #
 #******************************************************
 
-import os,sys,ConfigParser,struct,re,thread,datetime,time,threading
+import os,sys,ConfigParser,struct,re,thread,datetime,time,threading,unicodedata
 
 version='HaiPO 0.8 beta'
 (appname,ver,state)=version.split(' ')
@@ -1467,6 +1467,7 @@ class EventTextView(BTextView):
 		self.dragndrop = False
 		self.event= threading.Event()
 		self.SetStylable(1)
+		self.evstile=[]
 		
 	def Save(self):
 		cursel=self.superself.editorslist[self.superself.postabview.Selection()]
@@ -1751,11 +1752,45 @@ class EventTextView(BTextView):
 	def CheckSpell(self):
 		print "controllo ortografia"
 		speller = Popen( comm, stdout=PIPE, stdin=PIPE, stderr=PIPE)
-		eltxt=self.Text()
+		eltxt=self.Text() #re.sub(r'[^\w\s]',"",self.Text())
+
+		l=[chr for chr in eltxt]
+		#print l
+		#lst = [x for x in eltxt]
+		sd=0
+		se=len(l)
+		inclusion=["û"]
+		esclusion=["Pc","Pd","Pe","Pi","Po","Ps","Cc","Pf"] # punctuation and special chars Pf needed for û
+		while sd<se:
+			print unicodedata.category(unichr(ord(l[sd]))),l[sd]
+			if sd==0:
+				if l[sd]+l[sd+1] in inclusion:
+					pass
+				else:
+					if unicodedata.category(unichr(ord(l[sd]))) in esclusion: #.startswith("P"):
+						l[sd]=" "
+			if sd==se-1:
+				if l[sd-1]+l[sd] in inclusion:
+					pass
+				else:
+					if unicodedata.category(unichr(ord(l[sd]))) in esclusion: #.startswith("P"):
+						l[sd]=" "
+			if sd>0 and sd<se-1:
+				if l[sd]+l[sd+1] in inclusion:
+					pass
+				elif l[sd-1]+l[sd] in inclusion:
+					pass
+				else:
+					if unicodedata.category(unichr(ord(l[sd]))) in esclusion: #.startswith("P"):
+						l[sd]=" "
+			sd+=1
+		print "############################################################" 
+		eltxt="".join(l)
+		#print "new eltxt",eltxt
+
 		diffeltxt=eltxt.decode(self.superself.encoding,errors='replace')
-		#print "eltxt length",len(eltxt)
-		#print "diffeltxt length",len(diffeltxt)
 		stdout_data = speller.communicate(input=eltxt)[0]
+		#print stdout_data
 		reallength=len(diffeltxt)
 		areltxt=eltxt.split(" ")
 		ardiffeltxt=diffeltxt.split(" ")
@@ -1763,27 +1798,22 @@ class EventTextView(BTextView):
 		whe=0
 		whd=0
 		cop=0
-		delta = 0
 		newareltxt=[]
 		while cop < len(areltxt):
 			lparola = len(areltxt[cop])
 			lparoladiff = len(ardiffeltxt[cop])
-			#if lparola!=lparoladiff:
-			#	delta= lparola-lparoladiff
 			val=(areltxt[cop],(whd,whd+len(ardiffeltxt[cop])),(whe,whe+len(areltxt[cop])))
 			whe=whe+len(areltxt[cop])+1
 			whd=whd+len(ardiffeltxt[cop])+1
 			newareltxt.append(val)
 			cop+=1
-				
-		print newareltxt
 		
+		#print newareltxt
 		errors = []
-		#print stdout_data
 		############# elaborare stdout_data ####################
+		#print stdout_data
 		stdout_data=stdout_data.split('\n')
-		row=0
-		progressiv=0
+
 		for s in stdout_data:
 			if s != "":
 				words=s.split()
@@ -1805,30 +1835,36 @@ class EventTextView(BTextView):
 						x+=1
 					#print "soluzioni:",t.strings()
 					errors.append(t)
-					progressiv+=1
 
 				elif s[0] == "#":
-					print "elaboro #:"
 					#print "no solutions"
-					#print s
 					liw=s.find(words[2])
 					lun=len(words[2])
-					iz=liw+len(words[2])+1
+					#iz=liw+len(words[2])+1
 					outs=s[liw:liw+lun]
-					#print "inizio parola:",outs
-					t=word2fix(words[1],int(outs))
+					print outs
+					#print newareltxt
+					for items in newareltxt:
+						#print items
+						if items[1][0] == int(outs):
+							realouts=items[2][0]
+					t=word2fix(words[1],realouts)
 					errors.append(t)
-					progressive+=1
-			row+=1
+
 		#### Ricreo stringa colorata ####
 		stile=[]
 		if len(errors)>0:
+			BApplication.be_app.WindowAt(0).PostMessage(982757)
+			#self.superself.checkres.SetText("☒")
 			if errors[0].pos>0:
 				stile.append((0, be_plain_font, (0, 0, 0, 0)))
 				stile=startinserting(stile,errors)
 			else:
 				stile = startinserting(stile,errors)
-#		print stile
+		else:
+			BApplication.be_app.WindowAt(0).PostMessage(735157)
+			#self.superself.checkres.SetText("☑")
+		
 		evstyle.acquire()
 		self.evstile=stile
 		evstyle.release()
@@ -2577,10 +2613,19 @@ class PoWindow(BWindow):
 
 		if showspell:
 			thread.start_new_thread( self.speloop, () )
+			self.spellabel = BStringView((8,jkl-hig*3-80,ghj-8,jkl-hig*2-72),"spellabel","Spellcheck status: enabled")
+			self.spellresp = BStringView((8,jkl-hig*3-68,ghj-48,jkl-hig*2-56),"spellresp","Spellcheck reply:")
+			self.checkres = BStringView((ghj-16,jkl-hig*3-68,ghj-8,jkl-hig*2-56),"checkres","☐") #☑☒
+			self.lubox.AddChild(self.spellabel)
+			self.lubox.AddChild(self.spellresp)
+			self.lubox.AddChild(self.checkres)
 			# lancia finestra spellcheck
 			# aggiungere BStringview (nascosta) per notificare errori di ortografia + PButton per aprire finestra di spellcheck
 			# lancia polling per controllo ortografia <--- NO
 			#thread.start_new_thread( self.pollspellcheck, ("polling-spellcheck",) )  <--- NO
+		else:
+			self.spellabel= BStringView((8,jkl-hig*3-80,ghj-8,jkl-hig*2-72),"spellabel","Spellcheck status: disabled")
+			self.lubox.AddChild(self.spellabel)
 			
 ############# end of _init_ ################
 			
@@ -3233,6 +3278,10 @@ class PoWindow(BWindow):
 					print("testo da salvare (this shouldn\'t happen)",thisBlistitem.txttosave)
 			except:
 				pass
+			if self.listemsgstr[self.transtabview.Selection()].trnsl.Text()!="":
+				print "passo di qui"
+				BApplication.be_app.WindowAt(0).PostMessage(333111)
+				#self.listemsgstr[self.transtabview.Selection()].trnsl.CheckSpell()
 			return
 
 		elif msg.what == 305:
@@ -3242,6 +3291,10 @@ class PoWindow(BWindow):
 			self.SetFlags(B_AVOID_FOCUS)
 			return
 			
+		elif msg.what == 982757:
+			self.checkres.SetText("☒")
+		elif msg.what == 735157:
+			self.checkres.SetText("☑")
 		elif msg.what == 112118:
 			#launch a delayed check
 			oldtext=msg.FindString('oldtext')
