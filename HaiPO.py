@@ -33,7 +33,7 @@
 
 import os,sys,ConfigParser,struct,re,thread,datetime,time,threading,unicodedata
 
-version='HaiPO 0.8 beta'
+version='HaiPO 0.9 beta'
 (appname,ver,state)=version.split(' ')
 
 jes = False
@@ -159,10 +159,11 @@ try:
 	from BCheckBox import BCheckBox
 	from BView import BView
 	import BEntry
+	from BFont import BFont
 	from BFilePanel import BFilePanel
 	from BEntry import BEntry
 	from BScrollBar import BScrollBar
-	from InterfaceKit import B_PAGE_UP,B_PAGE_DOWN,B_TAB,B_ESCAPE,B_DOWN_ARROW,B_UP_ARROW,B_V_SCROLL_BAR_WIDTH,B_FULL_UPDATE_ON_RESIZE,B_VERTICAL,B_FOLLOW_ALL,B_FOLLOW_TOP,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_WIDTH_FROM_LABEL,B_TRIANGLE_THUMB,B_BLOCK_THUMB,B_FLOATING_WINDOW,B_DOCUMENT_WINDOW,B_TITLED_WINDOW,B_WILL_DRAW,B_NAVIGABLE,B_FRAME_EVENTS,B_ALIGN_CENTER,B_ALIGN_RIGHT,B_FOLLOW_ALL_SIDES,B_MODAL_WINDOW,B_FOLLOW_TOP_BOTTOM,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT_RIGHT,B_SINGLE_SELECTION_LIST,B_NOT_RESIZABLE,B_NOT_ZOOMABLE,B_PLAIN_BORDER,B_FANCY_BORDER,B_NO_BORDER,B_ITEMS_IN_COLUMN,B_AVOID_FOCUS
+	from InterfaceKit import B_PAGE_UP,B_PAGE_DOWN,B_TAB,B_ESCAPE,B_DOWN_ARROW,B_UP_ARROW,B_V_SCROLL_BAR_WIDTH,B_FULL_UPDATE_ON_RESIZE,B_VERTICAL,B_FOLLOW_ALL,B_FOLLOW_TOP,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_WIDTH_FROM_LABEL,B_TRIANGLE_THUMB,B_BLOCK_THUMB,B_FLOATING_WINDOW,B_DOCUMENT_WINDOW,B_TITLED_WINDOW,B_WILL_DRAW,B_NAVIGABLE,B_FRAME_EVENTS,B_ALIGN_CENTER,B_ALIGN_RIGHT,B_FOLLOW_ALL_SIDES,B_MODAL_WINDOW,B_FOLLOW_TOP_BOTTOM,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT_RIGHT,B_SINGLE_SELECTION_LIST,B_NOT_RESIZABLE,B_NOT_ZOOMABLE,B_PLAIN_BORDER,B_FANCY_BORDER,B_NO_BORDER,B_ITEMS_IN_COLUMN,B_AVOID_FOCUS,B_BOLD_FACE,B_ITALIC_FACE,B_UNDERSCORE_FACE,B_STRIKEOUT_FACE,B_FONT_ALL
 	from AppKit import B_QUIT_REQUESTED,B_KEY_UP,B_KEY_DOWN,B_MODIFIERS_CHANGED,B_UNMAPPED_KEY_DOWN,B_REFS_RECEIVED,B_SAVE_REQUESTED,B_CANCEL,B_WINDOW_RESIZED,B_CUT,B_PASTE
 	from StorageKit import B_SAVE_PANEL,B_OPEN_PANEL,B_FILE_NODE,B_READ_ONLY
 	from SupportKit import B_ERROR,B_ENTRY_NOT_FOUND,B_OK,B_ANY_TYPE
@@ -1008,7 +1009,7 @@ class AboutWindow(BWindow):
 		self.messagjio.SetStylable(1)
 		self.messagjio.MakeSelectable(0)
 		self.messagjio.MakeEditable(0)
-		stuff = '\n\t\t\t\t\t\t\t\t\t'+appname+'\n\n\t\t\t\t\t\t\t\t\t\t\t\tA simple PO editor\n\t\t\t\t\t\t\t\t\t\t\t\tfor Haiku, version '+ver+' '+state+'\n\t\t\t\t\t\t\t\t\t\t\t\tcodename "Ciduline"\n\n\t\t\t\t\t\t\t\t\t\t\t\tby Fabio Tomat\n\t\t\t\t\t\t\t\t\t\t\t\te-mail:\n\t\t\t\t\t\t\t\t\t\t\t\tf.t.public@gmail.com\n\n\n\n\n\n\nMIT LICENSE\nCopyright © 2021 Fabio Tomat\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.'
+		stuff = '\n\t\t\t\t\t\t\t\t\t'+appname+'\n\n\t\t\t\t\t\t\t\t\t\t\t\tA simple PO editor\n\t\t\t\t\t\t\t\t\t\t\t\tfor Haiku, version '+ver+' '+state+'\n\t\t\t\t\t\t\t\t\t\t\t\tcodename "Mandi Mandi"\n\n\t\t\t\t\t\t\t\t\t\t\t\tby Fabio Tomat\n\t\t\t\t\t\t\t\t\t\t\t\te-mail:\n\t\t\t\t\t\t\t\t\t\t\t\tf.t.public@gmail.com\n\n\n\n\n\n\nMIT LICENSE\nCopyright © 2021 Fabio Tomat\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.'
 		n = stuff.find(appname)
 		m = stuff.find('MIT LICENSE')
 		command=[(0, be_plain_font, (0, 0, 0, 0)), (n, be_bold_font, (0, 0, 0, 0)), (n + 5, be_plain_font, (100, 100, 100, 0)),(m,be_bold_font,(0,0,0,0)),(m+11,be_plain_font,(100,100,100,0))]
@@ -1750,6 +1751,7 @@ class EventTextView(BTextView):
 		self.tosave=False
 		
 	def CheckSpell(self):
+		################### todo : verificare se nei plurali fa lo spellcheck
 		print "controllo ortografia"
 		speller = Popen( comm, stdout=PIPE, stdin=PIPE, stderr=PIPE)
 		eltxt=self.Text() #re.sub(r'[^\w\s]',"",self.Text())
@@ -1876,15 +1878,19 @@ class EventTextView(BTextView):
 		#self.SetText(eltxt,stile) #zzzzzzzzz -<>>><<<<<-<<<<<<< perché crash?
 				
 def startinserting(stile,errors):
+	fontz=BFont()
+	fontz.SetFace(B_BOLD_FACE) #strikeout and underscore don't work
+	fontx=BFont()
+	fontx.SetFace(B_ITALIC_FACE)
 	for er in errors:
 		if len(er.sugg)>0:
 			#inizio
-			stile.append((er.pos, be_bold_font, (255,0,0,0)))
+			stile.append((er.pos, fontz, (255,0,0,0)))#be_bold_font
 			#fine
 			stile.append(((er.pos+len(er.word)), be_plain_font, (0,0,0,0))) #+1?
 		else:
 			#inizio
-			stile.append((er.pos, be_plain_font, (255,0,0,0)))
+			stile.append((er.pos, fontx, (255,0,0,0)))
 			#fine
 			stile.append(((er.pos+len(er.word)), be_plain_font, (0,0,0,0))) #+1?
 	return stile
@@ -2531,7 +2537,8 @@ class PoWindow(BWindow):
 		self.lubox.AddChild(self.valueln)
 		self.lubox.AddChild(self.infoforprogress)
 		self.lubox.AddChild(self.infoprogress)
-		self.tempbtn=BButton((4,jkl-hig*3-12,ghj-4,jkl-hig*2-8), "temp", "Test", BMessage(12343))
+		self.tempbtn=BButton((4,jkl-hig*3-12,ghj-4,jkl-hig*2-8), "temp", "Test", BMessage(12343)) ############## todo: associare un altro bmessage per aprire finestra dialogo analisi hunspell
+		################################### todo : aggiungere impostazioni avanzate per hunspell
 		self.lubox.AddChild(self.tempbtn)
 		self.event= threading.Event()
 		self.background.AddChild(self.lubox)
@@ -2615,7 +2622,17 @@ class PoWindow(BWindow):
 			thread.start_new_thread( self.speloop, () )
 			self.spellabel = BStringView((8,jkl-hig*3-80,ghj-8,jkl-hig*2-72),"spellabel","Spellcheck status: enabled")
 			self.spellresp = BStringView((8,jkl-hig*3-68,ghj-48,jkl-hig*2-56),"spellresp","Spellcheck reply:")
-			self.checkres = BStringView((ghj-16,jkl-hig*3-68,ghj-8,jkl-hig*2-56),"checkres","☐") #☑☒
+			self.checkres = BTextView((ghj-64,jkl-hig*3-64,ghj-8,jkl-hig*2-28),"checkres",(17.5,5,ghj-8-15,(jkl-hig*2-28)-15),B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM)#,be_plain_font,(0,0,0,0),B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM,0)#,"☐") #☑☒
+#			self.checkres.SetColorSpace(15)
+			self.checkres.SetStylable(True)
+			self.font=BFont()
+			self.font.PrintToStream()
+			self.font.SetSize(28.0)
+			#setshear 45-135
+			#setface(B_ITALIC_FACE)B_UNDERSCORE_FACE, B_STRIKEOUT_FACE OUTLINE
+			self.font.SetFace(B_BOLD_FACE)
+			self.checkres.SetFontAndColor(0,1,self.font)
+			self.checkres.SetText("☐")
 			self.lubox.AddChild(self.spellabel)
 			self.lubox.AddChild(self.spellresp)
 			self.lubox.AddChild(self.checkres)
@@ -3292,8 +3309,10 @@ class PoWindow(BWindow):
 			return
 			
 		elif msg.what == 982757:
+			self.checkres.SetFontAndColor(0,1,self.font,B_FONT_ALL,(150,0,0,0))
 			self.checkres.SetText("☒")
 		elif msg.what == 735157:
+			self.checkres.SetFontAndColor(0,1,self.font,B_FONT_ALL,(0,150,0,0))
 			self.checkres.SetText("☑")
 		elif msg.what == 112118:
 			#launch a delayed check
