@@ -32,17 +32,12 @@
 #******************************************************
 
 import os,sys,ConfigParser,struct,re,thread,datetime,time,threading,unicodedata
+from distutils.spawn import find_executable
 
 version='HaiPO 0.9 beta'
 (appname,ver,state)=version.split(' ')
 
 jes = False
-
-#try:
-#	import uptime
-#except:
-#	print "Your python environment has no uptime module"
-#	jes = True
 
 try:
 	import polib
@@ -93,10 +88,9 @@ if not firstrun:
 	if True:
 		Config.read(confile)
 		setspellcheck=ConfigSectionMap("Settings")['spellchecking']
-		print "Set spellcheck is:",setspellcheck
+		#print "Set spellcheck is:",setspellcheck
 		###### todo: impostazioni in configfile per eseguibile di spellchecker, percorso dizionario
 		try:
-			#Config.read(confile)
 			setencoding=Config.getboolean('Settings', 'customenc')
 			if setencoding:
 					try:
@@ -105,23 +99,30 @@ if not firstrun:
 						setencoding = False
 		except:
 				setencoding = False
-		if setencoding:
-			comm = ['hunspell-x86','-a','-i',encoding,'-d','/system/data/hunspell/fur_IT']
-		else:
-			comm = ['hunspell-x86','-a','-d','/system/data/hunspell/fur_IT']
+
 		if setspellcheck:
 			from subprocess import Popen,STDOUT,PIPE
 			showspell=True
-			#global processo
-			#processo = Popen( comm, stdout=PIPE, stdin=PIPE, stderr=PIPE)#,shell=False, universal_newlines=True)
-			###stdout_data = p.communicate(input='data_to_write'.encode(self.encoding))[0]
-			##global pin
-			##global pout
-			##pin,pout = os.popen2('hunspell-x86 -d /system/data/hunspell/fur_IT')
-			##showspell = True
-			#if processo:
-			#	print "spellcheck in esecuzione"
-			#	showspell = True
+			try:
+				global inclusion,esclusion
+				#Config.read(confile)
+				usero=ConfigSectionMap("Users")['default']
+				exe=ConfigSectionMap("Settings")['spell_path']
+				inctxt=ConfigSectionMap(usero)['spell_inclusion']
+				inclusion = inctxt.split(",")
+				esctxt=ConfigSectionMap(usero)['spell_esclusion']
+				esclusion=esctxt.split(",")
+				spelldict=ConfigSectionMap(usero)['spell_dictionary']
+			except:
+				exe = "hunspell-x86"
+				spelldict="/system/data/hunspell/en_US"
+				inclusion = []
+				esclusion = ["Pc","Pd","Pe","Pi","Po","Ps","Cc","Pf"]
+		
+			if setencoding:
+				comm = [exe,'-a','-i',encoding,'-d',spelldict]#['hunspell-x86','-a','-i',encoding,'-d','/system/data/hunspell/fur_IT']
+			else:
+				comm = [exe,'-a','-d',spelldict]
 	#except:
 	#	print "no spellchecking"
 	#	pass
@@ -245,7 +246,6 @@ class POmetadata(BWindow):
 			conta=self.underframe.CountChildren()
 			while conta > 0:
 				self.underframe.ChildAt(conta).RemoveSelf()
-				print "rimosso"
 				conta=conta-1
 
 			self.metadata = self.pofile.ordered_metadata()
@@ -281,7 +281,6 @@ class POmetadata(BWindow):
 
 
 			#entry = self.pofile.metadata_as_entry()
-			#print entry.msgstr
 #		self.po.metadata = {
  #           'Project-Id-Version': "%s %s" % (release.description, release.version),
   #          'Report-Msgid-Bugs-To': '',
@@ -501,6 +500,110 @@ class ImpostazionsUtent(BWindow):
 		BApplication.be_app.WindowAt(0).PostMessage(777)
 		self.Quit()
 		return 0
+
+class SpellcheckSettings(BWindow):
+	kWindowFrame = (250, 150, 755, 297)
+	kWindowName = "Spellchecking Settings"
+	def __init__(self):
+		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, B_FLOATING_WINDOW, B_NOT_RESIZABLE)
+		bounds=self.Bounds()
+		l,t,r,b = bounds
+		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		self.AddChild(self.underframe)
+		Config.read(confile)
+		self.enablecheck = BCheckBox((5,5,r-5,18),'enabcheck', 'Enable/Disable spellcheck', BMessage(222))
+		if showspell:
+			self.enablecheck.SetValue(1)
+		else:
+			self.enablecheck.SetValue(0)
+		try:
+			bret = ConfigSectionMap("Settings")['spell_path'] #it's ascii
+		except:
+			bret = ""
+		self.splchker = BTextControl((5,27,r-5,49),'spellchecker','Spellchecker command:',bret,BMessage(8080))
+		try:
+			usero = ConfigSectionMap("Users")['default']
+			bret = ConfigSectionMap(usero)['spell_dictionary'] #it's ascii
+		except:
+			bret = ""
+		self.diz = BTextControl((5,51,r-5,73),'dictionary','Dictionary path:',bret,BMessage(8086))
+		try:
+			usero = ConfigSectionMap("Users")['default']
+			bret = ConfigSectionMap(usero)['spell_inclusion']
+		except:
+			bret = ""
+		self.inclus = BTextControl((5,75,r-5,97),'inclusion','Chars included in words:',bret,BMessage(8087))
+		try:
+			usero = ConfigSectionMap("Users")['default']
+			bret = ConfigSectionMap(usero)['spell_esclusion']
+		except:
+			bret = ""
+		self.esclus = BTextControl((5,99,r-5,121),'inclusion','Chars-categories escluded in words:',bret,BMessage(8088))
+		self.underframe.AddChild(self.splchker)
+		self.underframe.AddChild(self.enablecheck)
+		self.underframe.AddChild(self.diz)
+		self.underframe.AddChild(self.inclus)
+		self.underframe.AddChild(self.esclus)
+		
+	def MessageReceived(self, msg):
+		if msg.what == 222:
+			cfgfile = open(confile,'w')
+			try:
+				if self.enablecheck.Value():
+					Config.set('Settings','spellchecking', "True")
+					Config.write(cfgfile)
+				else:
+					Config.set('Settings','spellchecking', "False")
+					Config.write(cfgfile)
+			except:
+				print "Error enabling spellcheck, missing config section?"
+			cfgfile.close()
+		elif msg.what == 8080:
+			if find_executable(self.splchker.Text()):
+				cfgfile = open(confile,'w')
+				try:
+					Config.set('Settings','spell_path',self.splchker.Text())
+					Config.write(cfgfile)
+				except:
+					print "Cannot save spellchecker path"
+				cfgfile.close()
+		elif msg.what == 8086:
+			if os.path.exists(self.diz.Text()):
+				Config.read(confile)
+				usero = ConfigSectionMap("Users")['default']
+				cfgfile = open(confile,'w')
+				try:
+					Config.set(usero,'spell_dictionary',self.diz.Text())
+					Config.write(cfgfile)
+				except:
+					print "Cannot save dictionary path"
+				cfgfile.close()
+		elif msg.what == 8087:
+				Config.read(confile)
+				usero = ConfigSectionMap("Users")['default']
+				cfgfile = open(confile,'w')
+				try:
+					Config.set(usero,'spell_inclusion',self.inclus.Text())
+					Config.write(cfgfile)
+				except:
+					print "Cannot save inclusion chars"
+				cfgfile.close()
+				Config.read(confile)
+				inctxt=ConfigSectionMap(usero)['spell_inclusion']
+				inclusion = inctxt.split(",")
+		elif msg.what == 8088:
+				Config.read(confile)
+				usero = ConfigSectionMap("Users")['default']
+				cfgfile = open(confile,'w')
+				try:
+					Config.set(usero,'spell_esclusion',self.esclus.Text())
+					Config.write(cfgfile)
+				except:
+					print "Cannot save esclusion chars"
+				cfgfile.close()
+				Config.read(confile)
+				esctxt=ConfigSectionMap(usero)['spell_esclusion']
+				esclusion=esctxt.split(",")
 
 class Findsource(BWindow):
 	kWindowFrame = (250, 150, 655, 226)
@@ -730,7 +833,6 @@ class FindRepTrans(BWindow):
 								for ident,items in enumerate(values):
 									ret = items.encode(self.encoding).lower().find(self.looktv.Text().lower())
 									if ret >-1:
-										#print ident,items
 										lista.Select(now)
 										epistola.AddInt8('plural',ident)
 										epistola.AddInt32('inizi',ret)
@@ -757,7 +859,6 @@ class FindRepTrans(BWindow):
 				if now == indaco:
 						partiali = True
 				if partial and partiali:
-						print "ma che succede"
 						loopa=False
 						say = BAlert('not_found', 'No matches found on listed entries', 'Ok',None, None, None, 3)
 						say.Go()
@@ -1070,7 +1171,7 @@ class TranslatorComment(BWindow):
 			BApplication.be_app.WindowAt(0).editorslist[self.indextab].list.lv.DeselectAll()
 			BApplication.be_app.WindowAt(0).editorslist[self.indextab].list.lv.Select(self.listindex)
 			self.Quit()
-		else:
+		else:	
 			return BWindow.MessageReceived(self, msg)
 			
 class MyListView(BListView):
@@ -1097,6 +1198,8 @@ class MyListView(BListView):
 				if itemtext.tosave:
 					if itemtext.Text()!= itemtext.oldtext:
 						itemtext.Save()
+			if showspell:
+				BApplication.be_app.WindowAt(0).PostMessage(333111)
 		return BListView.MouseDown(self,point)
 
 
@@ -1441,20 +1544,12 @@ class MsgStrItem(BListItem):
 	def SetTranslatorComment(self,tcomment):
 		self.tcomment=tcomment
 		
-################### eliminare ######################
-#	def Save(self,something):
-#		print "salvo senza passare attraverso postmessage"
-#		print something
-#####################################################
-		
 	def Text(self):
 		return self.text
 		
-class temporizedcheck:
+class temporizedcheck: ##### TODO: Viene usato? controllare
 	def run(self,oldtext):
 			self.event.wait(1)
-			#print "this is the old text",oldtext
-			#print "mando messaggio 112118"
 
 class EventTextView(BTextView):
 	def __init__(self,superself,frame,name,textRect,resizingMode,flags):
@@ -1469,6 +1564,7 @@ class EventTextView(BTextView):
 		self.event= threading.Event()
 		self.SetStylable(1)
 		self.evstile=[]
+		self.pop = BPopUpMenu('popup')
 		
 	def Save(self):
 		cursel=self.superself.editorslist[self.superself.postabview.Selection()]
@@ -1484,9 +1580,7 @@ class EventTextView(BTextView):
 			thisBlistitem.txttosave=self.Text()
 			thisBlistitem.msgstrs=self.Text().decode(self.superself.encoding)
 			bckpmsg.AddString('translation',thisBlistitem.txttosave)
-			#print "salvo solo singolare"
 		else:
-			#print "provo a salvare tutto"
 			thisBlistitem.txttosavepl=[]
 			thisBlistitem.txttosave=self.superself.listemsgstr[0].trnsl.Text()
 			thisBlistitem.msgstrs=[]
@@ -1522,8 +1616,60 @@ class EventTextView(BTextView):
 			self.dragndrop = False
 			self.superself.drop.release()
 			return
-		print "mouse up normale"
 		self.superself.drop.release()
+		if showspell:
+			ubi1,ubi2 = self.GetSelection()
+			if ubi1 == ubi2:
+				ubi1,ubi2=self.FindWord(ubi1)
+				perau = self.Text()[ubi1:ubi2]
+			if self.analyzetxt:
+				for item in self.analyzetxt:
+					print item.word, perau
+					if item.word == perau:
+						menus=[]
+						sut=len(item.sugg)
+						ru=0
+						while ru <sut:
+							menus.append((ru, item.sugg[ru]))
+							ru+=1
+						self.pop = BPopUpMenu('popup')
+						for aelem in menus:
+							msz = BMessage(9631)
+							msz.AddInt16('index',aelem[0])
+							msz.AddString('sugg',aelem[1])
+							msz.AddString('sorig',perau)
+							msz.AddInt32('indi',ubi1)
+							msz.AddInt32('indf',ubi2)
+							self.pop.AddItem(BMenuItem(aelem[1], msz))
+						point = self.ConvertToScreen(point)  #TODO: Mettere un point vicino alla parola
+						x = self.pop.Go(point, 1)
+						if x:
+							self.Looper().PostMessage(x.Message())
+					else:
+						fres= perau.find(item.word)
+						if fres>-1:
+							menus=[]
+							sut=len(item.sugg)
+							ru=0
+							while ru <sut:
+								menus.append((ru, item.sugg[ru]))
+								ru+=1
+							self.pop = BPopUpMenu('popup')
+							for aelem in menus:
+								msz = BMessage(9631)
+								msz.AddInt16('index',aelem[0])
+								msz.AddString('sugg',aelem[1])
+								msz.AddString('sorig',perau[:fres])
+								msz.AddInt32('indi',ubi1+fres)
+								msz.AddInt32('indf',ubi1+fres+len(item.word))
+								self.pop.AddItem(BMenuItem(aelem[1], msz))
+							point = self.ConvertToScreen(point)
+							x = self.pop.Go(point, 1)
+							if x:
+								self.Looper().PostMessage(x.Message())
+			else:
+				print "non esiste analyzetxt"
+
 		return BTextView.MouseUp(self,point)
 
 	def MessageReceived(self, msg):
@@ -1543,6 +1689,7 @@ class EventTextView(BTextView):
 				self.superself.listemsgstr[self.superself.transtabview.Selection()].trnsl.MakeFocus()
 			except:
 				pass
+
 		return BTextView.MessageReceived(self,msg)
 
 	def KeyDown(self,char,bytes):
@@ -1699,9 +1846,7 @@ class EventTextView(BTextView):
 							if tabs == 0:
 								thisBlistitem.txttosave=thisBlistitem.text.decode(self.superself.encoding)
 								bckpmsg.AddString('translation',thisBlistitem.txttosave)
-								print "salvo solo singolare"
 							else:
-								print "provo a salvare tutto"
 								thisBlistitem.txttosavepl=[]
 								thisBlistitem.txttosave=self.superself.listemsgid[0].src.Text()
 								bckpmsg.AddString('translation',thisBlistitem.txttosave)
@@ -1717,7 +1862,6 @@ class EventTextView(BTextView):
 							BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 							return
 
-					#print "carattere normale inserito"
 					BTextView.KeyDown(self,char,bytes)
 					if self.oldtext != self.Text():
 						thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
@@ -1737,7 +1881,6 @@ class EventTextView(BTextView):
 					return
 		except:
 			if self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()>-1:
-				print "carattere particolare inserito"
 				thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
 				thisBlistitem.tosave=True
 				thisBlistitem.txttosave=self.Text()
@@ -1752,30 +1895,25 @@ class EventTextView(BTextView):
 		
 	def CheckSpell(self):
 		################### todo : verificare se nei plurali fa lo spellcheck
-		print "controllo ortografia"
 		speller = Popen( comm, stdout=PIPE, stdin=PIPE, stderr=PIPE)
-		eltxt=self.Text() #re.sub(r'[^\w\s]',"",self.Text())
+		eltxt=self.Text()
 
 		l=[chr for chr in eltxt]
-		#print l
-		#lst = [x for x in eltxt]
 		sd=0
 		se=len(l)
-		inclusion=["û"]
-		esclusion=["Pc","Pd","Pe","Pi","Po","Ps","Cc","Pf"] # punctuation and special chars Pf needed for û
 		while sd<se:
 			print unicodedata.category(unichr(ord(l[sd]))),l[sd]
 			if sd==0:
 				if l[sd]+l[sd+1] in inclusion:
 					pass
 				else:
-					if unicodedata.category(unichr(ord(l[sd]))) in esclusion: #.startswith("P"):
+					if unicodedata.category(unichr(ord(l[sd]))) in esclusion:
 						l[sd]=" "
 			if sd==se-1:
 				if l[sd-1]+l[sd] in inclusion:
 					pass
 				else:
-					if unicodedata.category(unichr(ord(l[sd]))) in esclusion: #.startswith("P"):
+					if unicodedata.category(unichr(ord(l[sd]))) in esclusion:
 						l[sd]=" "
 			if sd>0 and sd<se-1:
 				if l[sd]+l[sd+1] in inclusion:
@@ -1783,20 +1921,16 @@ class EventTextView(BTextView):
 				elif l[sd-1]+l[sd] in inclusion:
 					pass
 				else:
-					if unicodedata.category(unichr(ord(l[sd]))) in esclusion: #.startswith("P"):
+					if unicodedata.category(unichr(ord(l[sd]))) in esclusion:
 						l[sd]=" "
 			sd+=1
 		print "############################################################" 
 		eltxt="".join(l)
-		#print "new eltxt",eltxt
-
 		diffeltxt=eltxt.decode(self.superself.encoding,errors='replace')
 		stdout_data = speller.communicate(input=eltxt)[0]
-		#print stdout_data
 		reallength=len(diffeltxt)
 		areltxt=eltxt.split(" ")
 		ardiffeltxt=diffeltxt.split(" ")
-		
 		whe=0
 		whd=0
 		cop=0
@@ -1809,50 +1943,42 @@ class EventTextView(BTextView):
 			whd=whd+len(ardiffeltxt[cop])+1
 			newareltxt.append(val)
 			cop+=1
-		
-		#print newareltxt
 		errors = []
-		############# elaborare stdout_data ####################
-		#print stdout_data
+		self.analyzetxt = []
 		stdout_data=stdout_data.split('\n')
-
 		for s in stdout_data:
 			if s != "":
 				words=s.split()
 				if s[0] == "&":
+					# there are suggestions
 					liw = s.find(words[3]) #string start-index that indicates the beginning of the number
 					lun = len(words[3])-1  #string lenght except ":"
 					iz = liw+len(words[3])+1 #string end of the number that indicates the beginning of solutions
 					solutions = s[iz:]
-					sugi = solutions.split(",")
+					sugi = solutions.split(", ")
 					outs = s[liw:liw+lun]   # <<<<------ number that hunspell indicates as where is the word to fix
 					# here you check where is the correct byte for that hunspell-index
 					for items in newareltxt:
 						if items[1][0] == int(outs):
 							realouts=items[2][0]
-					t=word2fix(words[1],realouts)
+					t=word2fix(words[1],int(outs),realouts)
 					x=0
 					while x < int(words[2]):
 						t.add(sugi[x])
 						x+=1
-					#print "soluzioni:",t.strings()
 					errors.append(t)
+					self.analyzetxt.append(t)
 
 				elif s[0] == "#":
-					#print "no solutions"
+					# no suggestions
 					liw=s.find(words[2])
 					lun=len(words[2])
-					#iz=liw+len(words[2])+1
 					outs=s[liw:liw+lun]
-					print outs
-					#print newareltxt
 					for items in newareltxt:
-						#print items
 						if items[1][0] == int(outs):
 							realouts=items[2][0]
-					t=word2fix(words[1],realouts)
+					t=word2fix(words[1],int(outs),realouts)
 					errors.append(t)
-
 		#### Ricreo stringa colorata ####
 		stile=[]
 		if len(errors)>0:
@@ -1875,7 +2001,6 @@ class EventTextView(BTextView):
 		mj.AddInt32("start",posizion[0])
 		mj.AddInt32("end",posizion[1])
 		BApplication.be_app.WindowAt(0).PostMessage(mj)
-		#self.SetText(eltxt,stile) #zzzzzzzzz -<>>><<<<<-<<<<<<< perché crash?
 				
 def startinserting(stile,errors):
 	fontz=BFont()
@@ -1896,10 +2021,11 @@ def startinserting(stile,errors):
 	return stile
 
 class word2fix():
-	def __init__(self,word,pos):
+	def __init__(self,word,opos,pos): # opos sarà da eliminare
 		self.word = word
 		self.sugg = []
 		self.pos = pos
+		self.opos = opos
 	def add(self,sugg):
 		self.sugg.append(sugg)
 	def many(self):
@@ -2404,7 +2530,7 @@ class PoWindow(BWindow):
 		('File', ((295485, 'Open'), (2, 'Save'), (1, 'Close'), (5, 'Save as...'),(None, None),(B_QUIT_REQUESTED, 'Quit'))),
 		('Translation', ((3, 'Copy from source (ctrl+shif+s)'), (4,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy'), (72, 'Previous w/o saving'),(73,'Next w/o saving'),(None, None), (6, 'Find source'), (7, 'Find/Replace translation'))),
 		('View', ((74,'Fuzzy'), (75, 'Untranslated'),(76,'Translated'),(77, 'Obsolete'))),
-		('Settings', ((41, 'User settings'), (42, 'Po properties'), (43, 'Po header'))),
+		('Settings', ((41, 'User settings'), (42, 'Po properties'), (43, 'Po header'), (44, 'Spellcheck'))),
 		('About', ((8, 'Help'),(None, None),(9, 'About')))
 		)
 	def __init__(self, frame):
@@ -2962,6 +3088,10 @@ class PoWindow(BWindow):
 				self.HeaderWindow.Show()
 			return
 
+		elif msg.what == 44:
+			#spelcheck settings
+			self.splchset = SpellcheckSettings()
+			self.splchset.Show()
 		elif msg.what == 70:
 			# Done and next
 			if len(self.editorslist)>0:
@@ -3308,6 +3438,19 @@ class PoWindow(BWindow):
 			self.SetFlags(B_AVOID_FOCUS)
 			return
 			
+		elif msg.what == 9631:
+			#ris=msg.FindInt16('index')
+			sugg=msg.FindString('sugg')
+			sorig=msg.FindString('sorig')
+			indi=msg.FindInt32('indi')
+			indf=msg.FindInt32('indf')
+			self.listemsgstr[self.transtabview.Selection()].trnsl.Delete(indi,indf)
+			self.listemsgstr[self.transtabview.Selection()].trnsl.Insert(indi,sugg)
+			self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
+			print sugg
+			BApplication.be_app.WindowAt(0).PostMessage(12343)#(333111)
+			return
+			
 		elif msg.what == 982757:
 			self.checkres.SetFontAndColor(0,1,self.font,B_FONT_ALL,(150,0,0,0))
 			self.checkres.SetText("☒")
@@ -3325,97 +3468,7 @@ class PoWindow(BWindow):
 				if indexBlistitem == tmp.list.lv.CurrentSelection():
 					if self.listemsgstr[self.transtabview.Selection()].trnsl.oldtext != self.listemsgstr[self.transtabview.Selection()].trnsl.Text():  ### o è meglio controllare nel caso di plurale tutti gli eventtextview?
 						self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
-						
-#		elif msg.what == 16892: #rewrited multiple occurrencies ACT! use 16893
-#			try:
-#				Config.read(confile)
-#				defname=ConfigSectionMap("Users")['default']
-#			except:
-#				defname=self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']
-#			now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
-#			bckppath = msg.FindString('bckppath')
-#			savetype = msg.FindInt8('savetype')
-#			if savetype == 0: #simple save used for fuzzy state and metadata change
-#				self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']=defname
-#				self.editorslist[self.postabview.Selection()].pofile.metadata['PO-Revision-Date']=now
-#				self.editorslist[self.postabview.Selection()].pofile.metadata['X-Editor']=version
-#				self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
-#				return
-#
-#			elif savetype == 2: ############ No need on multiple occurrencies
-#				#save of metadata
-#				indexroot=msg.FindInt8('indexroot')
-#				self.editorslist[indexroot].pofile.metadata['Last-Translator']=defname # metadata saved from po settings
-#				self.editorslist[indexroot].pofile.metadata['PO-Revision-Date']=now
-#				self.editorslist[indexroot].pofile.metadata['X-Editor']=version
-#				self.editorslist[indexroot].pofile.save(bckppath)
-#				return
-#
-#			elif savetype == 1:
-#				self.pofile=self.editorslist[self.postabview.Selection()].pofile
-#				tvindex=msg.FindInt32('tvindex')
-#				textsave=msg.FindString('translation')
-#				tabbi=msg.FindInt8('plurals')
-#				intscheda=msg.FindInt32('tabview')
-#				scheda=self.editorslist[intscheda]
-#				entry = scheda.list.lv.ItemAt(tvindex).entry 
-#				#print entry   ######TEST IT##################################################
-#				if entry and entry.msgid_plural:
-#						y=0
-#						textsavepl=[]
-#						entry.msgstr_plural[0] = textsave.decode(self.encoding)
-#						while y < tabbi:
-#							varname='translationpl'+str(y) ######################################### check! stry(y) or  y+1???????? plurale
-#							intended=msg.FindString(varname)
-#							textsavepl.append(intended) #useless???
-#							y+=1
-#							entry.msgstr_plural[y]=intended.decode(self.encoding)
-#						if 'fuzzy' in entry.flags:
-#							entry.flags.remove('fuzzy')
-#						if entry.previous_msgid:
-#							entry.previous_msgid=None
-#						if entry.previous_msgid_plural:
-#							entry.previous_msgid_plural=None
-#						if entry.previous_msgctxt:
-#							entry.previous_msgctxt=None
-#				elif entry and not entry.msgid_plural:
-#						entry.msgstr = textsave.decode(self.encoding)
-#						if 'fuzzy' in entry.flags:
-#							entry.flags.remove('fuzzy')
-#						if entry.previous_msgid:
-#							entry.previous_msgid=None
-#						if entry.previous_msgid_plural:
-#							entry.previous_msgid_plural=None
-#						if entry.previous_msgctxt:
-#							entry.previous_msgctxt=None
-#				scheda.pofile.metadata['Last-Translator']=defname
-#				scheda.pofile.metadata['PO-Revision-Date']=now
-#				scheda.pofile.metadata['X-Editor']=version
-#				scheda.pofile.save(bckppath)
-#				scheda.list.lv.ItemAt(tvindex).state=1
-#				scheda.list.lv.ItemAt(tvindex).tosave=False
-#				self.editorslist[intscheda].list.lv.ItemAt(tvindex).txttosave=""
-#				self.editorslist[intscheda].list.lv.ItemAt(tvindex).txttosavepl=[]
-#				return
-#				
-#			elif savetype == 3:
-#				self.pofile=self.editorslist[self.postabview.Selection()].pofile
-#				tvindex=msg.FindInt32('tvindex')
-#				textsave=msg.FindString('tcomment')
-#				intscheda=msg.FindInt32('tabview')
-#				scheda=self.editorslist[intscheda]
-#				entry = self.editorslist[self.postabview.Selection()].list.lv.ItemAt(tvindex).entry
-#				entry.tcomment=textsave
-#				scheda.pofile.metadata['Last-Translator']=defname
-#				scheda.pofile.metadata['PO-Revision-Date']=now
-#				scheda.pofile.metadata['X-Editor']=version
-#				scheda.pofile.save(bckppath)
-#				self.postabview.Select(intscheda)
-#				scheda.list.lv.DeselectAll()
-#				scheda.list.lv.Select(tvindex)
-#				return
-#			self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated()))
-#			return
+			self.intime=time.time()
 
 		elif msg.what == 16893:
 			try:
@@ -3662,39 +3715,8 @@ class PoWindow(BWindow):
 
 		elif msg.what == 12343:
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
-				#asd=self.listemsgstr[self.transtabview.Selection()].trnsl.Text()#self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
-				#self.listemsgstr[self.transtabview.Selection()].trnsl.Highlight(0,5)
-				#stringus = asd.decode("shift_jis")
-				#print stringus
-				#FindWord()
-				#Highlight()
-				#asd=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).entry
-				#print asd
-				#if self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).hasplural:
-				#	t=self.listemsgstr[self.transtabview.Selection()].trnsl.Text()
-				#else:
-				#	t=self.listemsgstr[0].trnsl.Text()
 				self.listemsgstr[self.transtabview.Selection()].trnsl.CheckSpell()
-				
-				#eltexto=self.listemsgstr[self.transtabview.Selection()].trnsl.Text()
-				#lungolungo=value=self.listemsgstr[self.transtabview.Selection()].trnsl.TextLength()
-				#x=0
-				#while x<lungolungo+1:
-				#	value=self.listemsgstr[self.transtabview.Selection()].trnsl.FindWord(x)
-				#	#print value
-				#	if value[1]-value[0]>1:
-				#		x=value[1]+1
-				#		if eltexto[value[0]:value[1]] == "memoria":
-				#			print "parola trovata"
-				#	else:
-				#		x+=1
-				
-				
-					#eltexto
-				#value=self.listemsgstr[self.transtabview.Selection()].trnsl.FindWord(4)
-				#print value
-				
-				#provare a modificare l'entry e mandare il postmessage per salvare il pofile
+
 		elif msg.what == 54173:
 			#Save as 
 			txt=self.editorslist[self.postabview.Selection()].fp.GetPanelDirectory()
@@ -3916,14 +3938,10 @@ class PoWindow(BWindow):
 			return
 		elif msg.what == 222888:
 			# stylize eventtextview for checkspell
-			#curlin=self.listemsgstr[self.transtabview.Selection()].trnsl.CurrentLine()
-			#print "current line",curlin
-			#print "current offset",self.listemsgstr[self.transtabview.Selection()].trnsl.OffsetAt(curlin)
 			evstyle.acquire()
 			self.listemsgstr[self.transtabview.Selection()].trnsl.SetText(self.listemsgstr[self.transtabview.Selection()].trnsl.Text(),self.listemsgstr[self.transtabview.Selection()].trnsl.evstile)
 			evstyle.release()
 			self.listemsgstr[self.transtabview.Selection()].trnsl.Select(msg.FindInt32("start"),msg.FindInt32("end"))
-			#self.listemsgstr[self.transtabview.Selection()].trnsl.GoToLine(curlin+1)
 			self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
 		elif msg.what == 963741:
 			schplur = msg.FindInt8('plural')
@@ -3945,8 +3963,7 @@ class PoWindow(BWindow):
 			fin = msg.FindInt32("fin")
 			schede =  msg.FindInt8("schede")
 			self.listemsgid[schede].src.MakeFocus(True)
-			asdomar=self.listemsgid[schede].src.Text()
-			print asdomar[:inizi]
+			#asdomar=self.listemsgid[schede].src.Text() # todo: controllare se serve asdomar
 			self.listemsgid[schede].src.Highlight(inizi,fin)
 		elif msg.what == 852631:
 			#highlight translation text
@@ -3966,7 +3983,6 @@ class PoWindow(BWindow):
 
 	
 	def speloop(self):
-		print "avvio di speloop"
 		ev = threading.Event()
 		global quitter
 		quitter = True
@@ -4016,21 +4032,21 @@ class PoWindow(BWindow):
 					say = BAlert('Backup exist', 'There\'s a recent temporary backup file, open it instead?', 'Yes','No', None, None , 3)
 					out=say.Go()
 					if out == 0:
-#						print "apro il backup"
+#						apro il backup
 						temppathtofile=backupfile
 						temppofile = polib.pofile(backupfile,encoding=self.encoding)
 						self.editorslist.append(POEditorBBox(bounds,tail,temppathtofile,temppofile,self.poview,self.encoding,True))
 					else:
-#						print "apro il file originale"
+#						apro il file originale
 						self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile,self.poview,self.encoding,False))
 				else:
-#					print "apro il file originale"
+#					apro il file originale
 					self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile,self.poview,self.encoding,False))
 			else:
-#				print "apro il file originale"
+#				apro il file originale
 				self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile,self.poview,self.encoding,False))
 			executionTime = (time.time() - startTime)
-			print('Execution time in seconds: ' + str(executionTime))
+			print('Load-time in seconds: ' + str(executionTime))
 			self.tabslabels.append(BTab())
 			x=len(self.editorslist)-1
 			self.postabview.AddTab(self.editorslist[x], self.tabslabels[x])
