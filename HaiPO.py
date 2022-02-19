@@ -74,18 +74,19 @@ else:
 	firstrun = True
 		
 if not firstrun:
-		global showspell
-		showspell = False
-	#try:
+	global showspell
+	showspell = False
+	try:
 #	if True:
 		Config.read(confile)
 		try:
 			setspellcheck=ConfigSectionMap("Settings")['spellchecking']
 		except:
 			cfgfile = open(confile,'w')
-			Config.set('Settings','spellchecking', 'True')
+			Config.set('Settings','spellchecking', 'False')
 			Config.write(cfgfile)
 			cfgfile.close()
+			setspellcheck=False
 		try:
 			setencoding=Config.getboolean('Settings', 'customenc')
 			if setencoding:
@@ -118,7 +119,8 @@ if not firstrun:
 				comm = [exe,'-a','-i',encoding,'-d',spelldict]#['hunspell-x86','-a','-i',encoding,'-d','/system/data/hunspell/fur_IT']
 			else:
 				comm = [exe,'-a','-d',spelldict]
-	#except:
+	except:
+		setspellcheck = False
 	#	print "no spellchecking"
 	#	pass
 
