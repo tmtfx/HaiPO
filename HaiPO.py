@@ -491,6 +491,72 @@ class ImpostazionsUtent(BWindow):
 		self.Quit()
 		return 0
 
+
+class GeneralSettings(BWindow):
+	kWindowFrame = (250, 150, 755, 297)
+	kWindowName = "General Settings"
+	def __init__(self):
+		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, B_FLOATING_WINDOW, B_NOT_RESIZABLE)
+		bounds=self.Bounds()
+		l,t,r,b = bounds
+		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		self.AddChild(self.underframe)
+		self.langcheck = BCheckBox((5,79,r-15,104),'langcheck', 'Check language compliance between pofile and user', BMessage(242))
+		self.mimecheck = BCheckBox((5,109,r-15,134),'mimecheck', 'Check mimetype of file', BMessage(262))
+		self.underframe.AddChild(self.langcheck)
+		self.underframe.AddChild(self.mimecheck)
+		Config.read(confile)
+		try:
+			langcheck = Config.getboolean('Settings','checklang')#ConfigSectionMap("Settings")['checklang']
+			if checklang:
+				self.langcheck.SetValue(1)
+			else:
+				self.langcheck.SetValue(0)
+		except:
+			cfgfile = open(confile,'w')
+			Config.set('Settings','checklang', "True")
+			Config.write(cfgfile)
+			self.langcheck.SetValue(1)
+			cfgfile.close()
+		try:
+			mimecheck = Config.getboolean('Settings','mimecheck')
+			if mimecheck:
+				self.mimecheck.SetValue(1)
+			else:
+				self.mimecheck.SetValue(0)
+		except:
+			cfgfile = open(confile,'w')
+			Config.set('Settings','mimecheck', "True")
+			Config.write(cfgfile)
+			self.mimecheck.SetValue(1)
+			cfgfile.close()
+
+	def MessageReceived(self, msg):
+		if msg.what == 242:
+			cfgfile = open(confile,'w')
+			try:
+				if self.langcheck.Value():
+					Config.set('Settings','checklang', "True")
+					Config.write(cfgfile)
+				else:
+					Config.set('Settings','checklang', "False")
+					Config.write(cfgfile)
+			except:
+				print "Error enabling language compliance check, missing config section?"
+			cfgfile.close()
+		elif msg.what == 262:
+			cfgfile = open(confile,'w')
+			try:
+				if self.mimecheck.Value():
+					Config.set('Settings','mimecheck', "True")
+					Config.write(cfgfile)
+				else:
+					Config.set('Settings','mimecheck', "False")
+					Config.write(cfgfile)
+			except:
+				print "Error enabling mimechecking, missing config section?"
+			cfgfile.close()
+
 class SpellcheckSettings(BWindow):
 	kWindowFrame = (250, 150, 755, 297)
 	kWindowName = "Spellchecking Settings"
@@ -1439,7 +1505,30 @@ class ScrollView:
 	def listview(self):
 		return self.lv
 
+class MyListItem(BListItem):
+	nocolor = (0, 0, 0, 0)
+	frame=[0,0,0,0]
 
+	def __init__(self, txt):
+		self.text = txt
+		BListItem.__init__(self)
+	
+	def DrawItem(self, owner, frame,complete):
+		self.frame = frame
+		#complete = True
+		if self.IsSelected() or complete: # 
+			color = (200,200,200,255)
+			owner.SetHighColor(color)
+			owner.SetLowColor(color)
+			owner.FillRect(frame)
+		self.color = self.nocolor
+		owner.SetHighColor(self.color)
+		owner.MovePenTo(frame[0],frame[3]-2)
+		owner.DrawString(self.text)
+		owner.SetLowColor((255,255,255,255))
+
+	def Text(self):
+		return self.text
 		
 class MsgStrItem(BListItem):
 	nocolor = (0, 0, 0, 0)
@@ -1456,7 +1545,6 @@ class MsgStrItem(BListItem):
 	dragcheck=False
 	comments=""
 	context=""
-
 	
 	def __init__(self, msgids,msgstrs,entry,comments,context,state,encoding,plural):
 		if plural:
@@ -1549,7 +1637,8 @@ class EventTextView(BTextView):
 		self.dragndrop = False
 		self.event= threading.Event()
 		self.SetStylable(1)
-		#self.evstile=[]
+		self.evstile=[]
+		self.analisi=[]
 		#self.analyzetxt=[]
 		self.pop = BPopUpMenu('popup')
 		
@@ -1878,6 +1967,9 @@ class EventTextView(BTextView):
 		self.oldtextloaded=True
 		self.SetText(text)
 		self.tosave=False
+	
+	def Analisi(self):
+		return self.analisi
 		
 	def CheckSpell(self):
 		speller = Popen( comm, stdout=PIPE, stdin=PIPE, stderr=PIPE)
@@ -2510,8 +2602,85 @@ class postabview(BTabView):
 		
 		return BTabView.MouseDown(self,point)
 
-		
+#class BDoubleScrollBar(BScrollBar):
+#	def __init__(self,rect,name,bview1,bview2,min,max,orientation):
+#		self.bview2=bview2
+#		BScrollBar.__init__(self,rect,name,bview1,float(min),float(max),orientation)
+#		
+#	def ValueChanged(self,newvalue):
+#		self.bview2.Select(self.bview1.CurrentSelection)
+#		return BScrollBar.ValueChanged(newvalue)
+	
+class pairedListView(BListView):
+	def __init__(self, rect, name,paired):
+		BListView.__init__(self,rect, name, B_SINGLE_SELECTION_LIST,B_FOLLOW_ALL_SIDES,B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_FRAME_EVENTS)
+		self.pairedlv=paired
+	def SelectionChanged(self):
+		self.pairedlv.Select(self.CurrentSelection())
+		self.pairedlv.ScrollToSelection()
+		#return BListView.SelectionChanged(self)
+class AnalyScrllVw1:
+	HiWhat = 83 #Doubleclick
+	Selmsgstr = 7755
 
+	def __init__(self, rect, name,paired):
+		self.lv = pairedListView(rect, name, paired)
+		msg=BMessage(self.Selmsgstr)
+		self.lv.SetSelectionMessage(msg)
+		msg = BMessage(self.HiWhat)
+		self.lv.SetInvocationMessage(msg)
+		self.sv = BScrollView('AnalysisScrollView', self.lv, B_FOLLOW_ALL_SIDES, B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_NAVIGABLE|B_FRAME_EVENTS, 0, 1, B_FANCY_BORDER)
+
+class AnalyScrllVw2:
+	HiWhat = 83 #Doubleclick
+	Selmsgstr = 7755
+
+	def __init__(self, rect, name):
+		self.lv = BListView(rect, name, B_SINGLE_SELECTION_LIST,B_FOLLOW_ALL_SIDES,B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_FRAME_EVENTS)
+		msg=BMessage(self.Selmsgstr)
+		self.lv.SetSelectionMessage(msg)
+		msg = BMessage(self.HiWhat)
+		self.lv.SetInvocationMessage(msg)
+		self.sv = BScrollView('AnalysisScrollView', self.lv, B_FOLLOW_ALL_SIDES, B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_NAVIGABLE|B_FRAME_EVENTS, 0, 0, B_FANCY_BORDER)
+
+class Analysis(BWindow):
+	def __init__(self):
+		kWindowFrame = (250, 150, 755, 497)
+		kWindowName = "String analysis"
+		BWindow.__init__(self, kWindowFrame, kWindowName, B_FLOATING_WINDOW, B_NOT_RESIZABLE)
+		bounds=self.Bounds()
+		l,t,r,b = bounds
+		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		self.AddChild(self.underframe)
+		self.achrin=[]
+		self.orig=AnalyScrllVw2((50,5,75,342),"Original-text")
+		self.ansv=AnalyScrllVw1((5,5,30,342),"Analysis-text",self.orig.lv)
+		self.underframe.AddChild(self.ansv.sv)
+		self.underframe.AddChild(self.orig.sv)
+		#self.scrbr = BDoubleScrollBar((34,5,46,342),"GScrollBar",self.ansv.sv,self.orig.sv,0,1,B_VERTICAL)
+		#self.underframe.AddChild(self.scrbr)
+		
+#	def elaborate(self,inpu):
+#		self.ansv.sv.Hide()
+#		self.achrin=inpu
+#		print inpu
+#		for item in self.achrin:
+#			elemento=MyListItem(item.word)
+#			#self.ansv.lv.AddItem(elemento)
+#		self.ansv.sv.Show()
+		
+	def MessageReceived(self, msg):
+		if msg.what == 43285:
+			stringa=msg.FindString('word')
+			elemento=MyListItem(stringa)
+			self.ansv.lv.AddItem(elemento)
+		elif msg.what == 43250:
+			stringa=msg.FindString('word')
+			elemento=MyListItem(stringa)
+			self.orig.lv.AddItem(elemento)
+		
+		return BWindow.MessageReceived(self, msg)
+		
 class PoWindow(BWindow):
 	Menus = (
 		('File', ((295485, 'Open'), (2, 'Save'), (1, 'Close'), (5, 'Save as...'),(None, None),(B_QUIT_REQUESTED, 'Quit'))),
@@ -2520,10 +2689,6 @@ class PoWindow(BWindow):
 		('Settings', ((40, 'General'),(41, 'User settings'), (42, 'Po properties'), (43, 'Po header'), (44, 'Spellcheck'))),
 		('About', ((8, 'Help'),(None, None),(9, 'About')))
 		)
-		### TODO: General Settings window 40
-		### General: --> Enable/Disable check lang compliance
-		###				 mimecheck
-		###
 		
 	def __init__(self, frame):
 		selectionmenu=0
@@ -2655,7 +2820,7 @@ class PoWindow(BWindow):
 		self.lubox.AddChild(self.valueln)
 		self.lubox.AddChild(self.infoforprogress)
 		self.lubox.AddChild(self.infoprogress)
-		self.tempbtn=BButton((4,jkl-hig*3-12,ghj-4,jkl-hig*2-8), "temp", "Test", BMessage(12343)) ############## todo: associare un altro bmessage per aprire finestra dialogo analisi hunspell
+		self.tempbtn=BButton((4,jkl-hig*3-12,ghj-4,jkl-hig*2-8), "txtanal", "Test", BMessage(8384)) ############## todo: associare un altro bmessage per aprire finestra dialogo analisi hunspell
 		self.lubox.AddChild(self.tempbtn)
 		self.event= threading.Event()
 		self.background.AddChild(self.lubox)
@@ -2740,10 +2905,9 @@ class PoWindow(BWindow):
 			self.spellabel = BStringView((8,jkl-hig*3-80,ghj-8,jkl-hig*2-72),"spellabel","Spellcheck status: enabled")
 			self.spellresp = BStringView((8,jkl-hig*3-68,ghj-48,jkl-hig*2-56),"spellresp","Spellcheck reply:")
 			self.checkres = BTextView((ghj-64,jkl-hig*3-64,ghj-8,jkl-hig*2-28),"checkres",(17.5,5,ghj-8-15,(jkl-hig*2-28)-15),B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM)#,be_plain_font,(0,0,0,0),B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM,0)#,"☐") #☑☒
-#			self.checkres.SetColorSpace(15)
 			self.checkres.SetStylable(True)
 			self.font=BFont()
-			self.font.PrintToStream()
+			#self.font.PrintToStream()
 			self.font.SetSize(28.0)
 			#setshear 45-135
 			#setface(B_ITALIC_FACE)B_UNDERSCORE_FACE, B_STRIKEOUT_FACE OUTLINE
@@ -2755,8 +2919,6 @@ class PoWindow(BWindow):
 			self.lubox.AddChild(self.checkres)
 			# lancia finestra spellcheck
 			# aggiungere BStringview (nascosta) per notificare errori di ortografia + PButton per aprire finestra di spellcheck
-			# lancia polling per controllo ortografia <--- NO
-			#thread.start_new_thread( self.pollspellcheck, ("polling-spellcheck",) )  <--- NO
 		else:
 			self.spellabel= BStringView((8,jkl-hig*3-80,ghj-8,jkl-hig*2-72),"spellabel","Spellcheck status: disabled")
 			self.lubox.AddChild(self.spellabel)
@@ -2829,7 +2991,6 @@ class PoWindow(BWindow):
 		if msg.what == B_MODIFIERS_CHANGED: #quando modificatore ctrl cambia stato
 			value=msg.FindInt32("modifiers")
 			self.sem.acquire()
-			print value
 			if value==self.modifiervalue or value==self.modifiervalue+8 or value ==self.modifiervalue+32 or value ==self.modifiervalue+40:
 				#print "ctrl premuto self.modifier diventa true"
 				self.modifier=True
@@ -2839,7 +3000,6 @@ class PoWindow(BWindow):
 				self.shortcut = True
 				self.modifier = False
 			else:
-				#print "self.modifier e self.shortcut diventano false"
 				self.modifier=False
 				self.shortcut=False
 			self.sem.release()
@@ -2864,13 +3024,11 @@ class PoWindow(BWindow):
 			elif key == 61: # s key
 				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
 					self.sem.acquire()
-					print "ok mando messaggio"
 					if self.shortcut:
 						BApplication.be_app.WindowAt(0).PostMessage(3)
 					else:
 						pass
 					self.sem.release()
-			print key
 			return
 
 		elif msg.what == 295485:
@@ -3023,6 +3181,11 @@ class PoWindow(BWindow):
 			self.About.Show()
 			return
 		
+		elif msg.what == 40:
+			self.gensettings=GeneralSettings()
+			self.gensettings.Show()
+			return
+
 		elif msg.what == 41:
 			#USER SETTINGS
 			try:
@@ -3715,6 +3878,30 @@ class PoWindow(BWindow):
 					BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
 					#self.editorslist[self.postabview.Selection()].list.reload(self.poview,self.editorslist[self.postabview.Selection()].pofile,self.encoding)
 			return
+		
+		elif msg.what == 8384:
+			self.analysisW=Analysis()
+			self.analysisW.Show()
+			i = 1
+			w = BApplication.be_app.CountWindows()
+			while w > i:
+				if BApplication.be_app.WindowAt(i).Title()=="String analysis":
+					thiswindow=i
+				i+=1
+			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
+				caratars=self.listemsgstr[self.transtabview.Selection()].trnsl.Analisi()
+				print caratars
+				print "elementi",len(caratars)
+				#self.analysisW.scrbr.SetRange(0.0,float(len(caratars)))
+				for items in caratars:
+					pmsg=BMessage(43285)
+					pmsg.AddString('word',items[0])
+					BApplication.be_app.WindowAt(thiswindow).PostMessage(pmsg)
+					pmsg=BMessage(43250)
+					pmsg.AddString('word',items[1])
+					BApplication.be_app.WindowAt(thiswindow).PostMessage(pmsg)
+				
+					#self.analysisW.elaborate(caratars) # Postmessage(messaggio)
 
 		elif msg.what == 12343:
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
