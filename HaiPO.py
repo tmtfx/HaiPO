@@ -23,14 +23,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-
-#******************************************************
-#
-# Notes: implementare X-generator
-# TODO check posettings vs user settings
-#
-#******************************************************
-
 import os,sys,ConfigParser,struct,re,thread,datetime,time,threading,unicodedata
 from distutils.spawn import find_executable
 
@@ -88,8 +80,6 @@ if not firstrun:
 	if True:
 		Config.read(confile)
 		setspellcheck=ConfigSectionMap("Settings")['spellchecking']
-		#print "Set spellcheck is:",setspellcheck
-		###### todo: impostazioni in configfile per eseguibile di spellchecker, percorso dizionario
 		try:
 			setencoding=Config.getboolean('Settings', 'customenc')
 			if setencoding:
@@ -1546,10 +1536,6 @@ class MsgStrItem(BListItem):
 		
 	def Text(self):
 		return self.text
-		
-class temporizedcheck: ##### TODO: Viene usato? controllare
-	def run(self,oldtext):
-			self.event.wait(1)
 
 class EventTextView(BTextView):
 	def __init__(self,superself,frame,name,textRect,resizingMode,flags):
@@ -1563,7 +1549,8 @@ class EventTextView(BTextView):
 		self.dragndrop = False
 		self.event= threading.Event()
 		self.SetStylable(1)
-		self.evstile=[]
+		#self.evstile=[]
+		#self.analyzetxt=[]
 		self.pop = BPopUpMenu('popup')
 		
 	def Save(self):
@@ -1624,7 +1611,6 @@ class EventTextView(BTextView):
 				perau = self.Text()[ubi1:ubi2]
 			if self.analyzetxt:
 				for item in self.analyzetxt:
-					print item.word, perau
 					if item.word == perau:
 						menus=[]
 						sut=len(item.sugg)
@@ -1641,7 +1627,8 @@ class EventTextView(BTextView):
 							msz.AddInt32('indi',ubi1)
 							msz.AddInt32('indf',ubi2)
 							self.pop.AddItem(BMenuItem(aelem[1], msz))
-						point = self.ConvertToScreen(point)  #TODO: Mettere un point vicino alla parola
+						pointo=self.PointAt(ubi2)
+						point = self.ConvertToScreen(pointo[0])
 						x = self.pop.Go(point, 1)
 						if x:
 							self.Looper().PostMessage(x.Message())
@@ -1662,8 +1649,9 @@ class EventTextView(BTextView):
 								msz.AddString('sorig',perau[:fres])
 								msz.AddInt32('indi',ubi1+fres)
 								msz.AddInt32('indf',ubi1+fres+len(item.word))
-								self.pop.AddItem(BMenuItem(aelem[1], msz))
-							point = self.ConvertToScreen(point)
+								self.pop.AddItem(BMenuItem(aelem[1], msz))	
+							pointo=self.PointAt(ubi1+fres+len(item.word))
+							point = self.ConvertToScreen(pointo[0])
 							x = self.pop.Go(point, 1)
 							if x:
 								self.Looper().PostMessage(x.Message())
@@ -1693,8 +1681,6 @@ class EventTextView(BTextView):
 		return BTextView.MessageReceived(self,msg)
 
 	def KeyDown(self,char,bytes):
-		
-		####################### TODO   controllo ortografia ##############################
 		try:
 			ochar=ord(char)
 			if ochar in (B_DOWN_ARROW,B_UP_ARROW,B_TAB,B_PAGE_UP,B_PAGE_DOWN):
@@ -1894,15 +1880,14 @@ class EventTextView(BTextView):
 		self.tosave=False
 		
 	def CheckSpell(self):
-		################### todo : verificare se nei plurali fa lo spellcheck
 		speller = Popen( comm, stdout=PIPE, stdin=PIPE, stderr=PIPE)
 		eltxt=self.Text()
-
 		l=[chr for chr in eltxt]
+		self.analisi=[]
 		sd=0
 		se=len(l)
 		while sd<se:
-			print unicodedata.category(unichr(ord(l[sd]))),l[sd]
+			self.analisi.append((unicodedata.category(unichr(ord(l[sd]))),l[sd]))  # char by char examination category print
 			if sd==0:
 				if l[sd]+l[sd+1] in inclusion:
 					pass
@@ -1924,8 +1909,8 @@ class EventTextView(BTextView):
 					if unicodedata.category(unichr(ord(l[sd]))) in esclusion:
 						l[sd]=" "
 			sd+=1
-		print "############################################################" 
 		eltxt="".join(l)
+		
 		diffeltxt=eltxt.decode(self.superself.encoding,errors='replace')
 		stdout_data = speller.communicate(input=eltxt)[0]
 		reallength=len(diffeltxt)
@@ -1980,11 +1965,12 @@ class EventTextView(BTextView):
 					t=word2fix(words[1],int(outs),realouts)
 					errors.append(t)
 		#### Ricreo stringa colorata ####
-		stile=[]
+		#global stile
+		stile=[(0, be_plain_font, (0, 0, 0, 0))]
 		if len(errors)>0:
 			BApplication.be_app.WindowAt(0).PostMessage(982757)
 			#self.superself.checkres.SetText("☒")
-			if errors[0].pos>0:
+			if errors[0].pos>0 or errors == []:
 				stile.append((0, be_plain_font, (0, 0, 0, 0)))
 				stile=startinserting(stile,errors)
 			else:
@@ -2370,6 +2356,7 @@ class translationtabview(BTabView):
 			if (point[0]>=self.TabFrame(gg)[0]) and (point[0]<=self.TabFrame(gg)[2]) and (point[1]>=self.TabFrame(gg)[1]) and (point[1]<=self.TabFrame(gg)[3]):
 				self.superself.srctabview.Select(gg)
 			gg=gg+1
+		BApplication.be_app.WindowAt(0).PostMessage(12343) ### ero qui333111
 		return BTabView.MouseDown(self,point)
 
 class sourcetabview(BTabView):
@@ -2458,9 +2445,9 @@ class postabview(BTabView):
 							if tabs == 0:
 								thisBlistitem.txttosave=self.superself.listemsgstr[self.superself.transtabview.Selection()].trnsl.Text()
 								bckpmsg.AddString('translation',thisBlistitem.txttosave)
-								print "salvo solo singolare"
+								#save singular
 							else:
-								print "provo a salvare tutto"
+								#save all
 								thisBlistitem.txttosavepl=[]
 								thisBlistitem.txttosave=self.superself.listemsgstr[0].trnsl.Text()
 								bckpmsg.AddString('translation',thisBlistitem.txttosave)
@@ -2530,9 +2517,14 @@ class PoWindow(BWindow):
 		('File', ((295485, 'Open'), (2, 'Save'), (1, 'Close'), (5, 'Save as...'),(None, None),(B_QUIT_REQUESTED, 'Quit'))),
 		('Translation', ((3, 'Copy from source (ctrl+shif+s)'), (4,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy'), (72, 'Previous w/o saving'),(73,'Next w/o saving'),(None, None), (6, 'Find source'), (7, 'Find/Replace translation'))),
 		('View', ((74,'Fuzzy'), (75, 'Untranslated'),(76,'Translated'),(77, 'Obsolete'))),
-		('Settings', ((41, 'User settings'), (42, 'Po properties'), (43, 'Po header'), (44, 'Spellcheck'))),
+		('Settings', ((40, 'General'),(41, 'User settings'), (42, 'Po properties'), (43, 'Po header'), (44, 'Spellcheck'))),
 		('About', ((8, 'Help'),(None, None),(9, 'About')))
 		)
+		### TODO: General Settings window 40
+		### General: --> Enable/Disable check lang compliance
+		###				 mimecheck
+		###
+		
 	def __init__(self, frame):
 		selectionmenu=0
 		BWindow.__init__(self, frame, 'Simple PO editor for Haiku!', B_TITLED_WINDOW,0)
@@ -2664,7 +2656,6 @@ class PoWindow(BWindow):
 		self.lubox.AddChild(self.infoforprogress)
 		self.lubox.AddChild(self.infoprogress)
 		self.tempbtn=BButton((4,jkl-hig*3-12,ghj-4,jkl-hig*2-8), "temp", "Test", BMessage(12343)) ############## todo: associare un altro bmessage per aprire finestra dialogo analisi hunspell
-		################################### todo : aggiungere impostazioni avanzate per hunspell
 		self.lubox.AddChild(self.tempbtn)
 		self.event= threading.Event()
 		self.background.AddChild(self.lubox)
@@ -3418,7 +3409,6 @@ class PoWindow(BWindow):
 					if tt==max:
 						tt=0
 				#self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated())) # reinsert if not working properly
-				###
 			thisBlistitem=self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection())
 			try:
 				if thisBlistitem.tosave: #it happens when something SOMEHOW has not been saved
@@ -3428,7 +3418,6 @@ class PoWindow(BWindow):
 			if self.listemsgstr[self.transtabview.Selection()].trnsl.Text()!="":
 				print "passo di qui"
 				BApplication.be_app.WindowAt(0).PostMessage(333111)
-				#self.listemsgstr[self.transtabview.Selection()].trnsl.CheckSpell()
 			return
 
 		elif msg.what == 305:
@@ -3447,7 +3436,6 @@ class PoWindow(BWindow):
 			self.listemsgstr[self.transtabview.Selection()].trnsl.Delete(indi,indf)
 			self.listemsgstr[self.transtabview.Selection()].trnsl.Insert(indi,sugg)
 			self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
-			print sugg
 			BApplication.be_app.WindowAt(0).PostMessage(12343)#(333111)
 			return
 			
@@ -3653,6 +3641,11 @@ class PoWindow(BWindow):
 								say.Go()
 								tfr = self.postabview.Bounds()
 								trc = (0.0, 0.0, tfr[2] - tfr[0], tfr[3] - tfr[1])
+							ordmdata=self.pof.ordered_metadata()
+							a,b = checklang(ordmdata)
+							if a and not b:
+								say = BAlert('oops', "User language differs from po language", 'Go on',None, None, None, 3)
+								say.Go()
 							self.loadPOfile(txtpath,trc,self.pof)
 						except:
 							test = compiletest(mimesuptbool,mimesubtbool,extbool)
@@ -3668,6 +3661,11 @@ class PoWindow(BWindow):
 								say.Go()
 							tfr = self.postabview.Bounds()
 							trc = (0.0, 0.0, tfr[2] - tfr[0], tfr[3] - tfr[1])
+							ordmdata=self.pof.ordered_metadata()
+							a,b = checklang(ordmdata)
+							if a and not b:
+								say = BAlert('oops', "User language differs from po language", 'Go on',None, None, None, 3)
+								say.Go()
 							self.loadPOfile(txtpath,trc,self.pof)
 			else:
 					if self.setencoding:
@@ -3677,6 +3675,11 @@ class PoWindow(BWindow):
 					self.pof = polib.pofile(txtpath,encoding=self.encoding)
 					tfr = self.postabview.Bounds()
 					trc = (0.0, 0.0, tfr[2] - tfr[0], tfr[3] - tfr[1])
+					ordmdata=self.pof.ordered_metadata()
+					a,b = checklang(ordmdata)
+					if a and not b:
+						say = BAlert('oops', "User language differs from po language", 'Go on',None, None, None, 3)
+						say.Go()
 					self.loadPOfile(txtpath,trc,self.pof)
 				
 			#except:
@@ -3963,7 +3966,6 @@ class PoWindow(BWindow):
 			fin = msg.FindInt32("fin")
 			schede =  msg.FindInt8("schede")
 			self.listemsgid[schede].src.MakeFocus(True)
-			#asdomar=self.listemsgid[schede].src.Text() # todo: controllare se serve asdomar
 			self.listemsgid[schede].src.Highlight(inizi,fin)
 		elif msg.what == 852631:
 			#highlight translation text
@@ -4018,10 +4020,6 @@ class PoWindow(BWindow):
 		
 			
 	def  loadPOfile(self,pathtofile,bounds,pofile):
-			########################## TODO ####################################
-			##### check if .name.temp.po file exists and is more recent than name.po
-			##### check for po compliance with user lang
-			
 			# add a tab in the editor's tabview
 			head, tail = os.path.split(pathtofile)
 			startTime = time.time()
@@ -4059,6 +4057,30 @@ class PoWindow(BWindow):
 		print "So long and thanks for all the fish"
 		BApplication.be_app.PostMessage(B_QUIT_REQUESTED)
 		return 1
+		
+def checklang(orderedata):
+	Config.read(confile)
+	try:
+		usero = ConfigSectionMap("Users")['default']
+		cfgchklng=Config.getboolean('Settings', 'checklang')
+		if cfgchklng:
+			retu=False
+			for e in orderedata:
+				if e[0]=='Language':
+					if e[1] == ConfigSectionMap(usero)['lang']:
+						retu = True
+			return (cfgchklng,retu) 
+		else:
+			return (cfgchklng,False)
+	except:
+		try:
+			cfgfile = open(confile,'w')
+			Config.set('Settings','checklang','False')
+			Config.write(cfgfile)
+			cfgfile.close()
+		except:
+			pass
+		return (False,False)
 
 class HaiPOApp(BApplication.BApplication):
 #	global quitter
