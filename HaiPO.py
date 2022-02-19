@@ -74,12 +74,18 @@ else:
 	firstrun = True
 		
 if not firstrun:
-	global showspell
-	showspell = False
+		global showspell
+		showspell = False
 	#try:
-	if True:
+#	if True:
 		Config.read(confile)
-		setspellcheck=ConfigSectionMap("Settings")['spellchecking']
+		try:
+			setspellcheck=ConfigSectionMap("Settings")['spellchecking']
+		except:
+			cfgfile = open(confile,'w')
+			Config.set('Settings','spellchecking', 'True')
+			Config.write(cfgfile)
+			cfgfile.close()
 		try:
 			setencoding=Config.getboolean('Settings', 'customenc')
 			if setencoding:
@@ -95,7 +101,6 @@ if not firstrun:
 			showspell=True
 			try:
 				global inclusion,esclusion
-				#Config.read(confile)
 				usero=ConfigSectionMap("Users")['default']
 				exe=ConfigSectionMap("Settings")['spell_path']
 				inctxt=ConfigSectionMap(usero)['spell_inclusion']
@@ -119,6 +124,7 @@ if not firstrun:
 
 else:
 	showspell = False
+	setspellcheck = False
 try:
 	import BApplication
 	from BStringItem import BStringItem
