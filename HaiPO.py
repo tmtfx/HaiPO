@@ -2726,7 +2726,7 @@ class Analysis(BWindow):
 class PoWindow(BWindow):
 	Menus = (
 		('File', ((295485, 'Open'), (2, 'Save'), (1, 'Close'), (5, 'Save as...'),(None, None),(B_QUIT_REQUESTED, 'Quit'))),
-		('Translation', ((3, 'Copy from source (ctrl+shif+s)'), (4,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy'), (72, 'Previous w/o saving'),(73,'Next w/o saving'),(None, None), (6, 'Find source'), (7, 'Find/Replace translation'))),
+		('Translation', ((3, 'Copy from source (ctrl+shif+s)'), (32,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy'), (72, 'Previous w/o saving'),(73,'Next w/o saving'),(None, None), (6, 'Find source'), (7, 'Find/Replace translation'))),
 		('View', ((74,'Fuzzy'), (75, 'Untranslated'),(76,'Translated'),(77, 'Obsolete'))),
 		('Settings', ((40, 'General'),(41, 'User settings'), (42, 'Po properties'), (43, 'Po header'), (44, 'Spellcheck'))),
 		('About', ((8, 'Help'),(None, None),(9, 'About')))
@@ -3081,7 +3081,7 @@ class PoWindow(BWindow):
 			
 		elif msg.what == 1:
 			# Close opened file
-			if len(self.editorslist)>0:
+			if len(self.editorslist)>1:
 				whichrem=self.postabview.Selection()
 				if whichrem>0:
 					actualselection=self.editorslist[whichrem-1].list.lv.CurrentSelection()
@@ -3134,6 +3134,34 @@ class PoWindow(BWindow):
 				self.postabview.RemoveTab(whichrem)
 				self.tabslabels.pop(whichrem)
 				self.editorslist.pop(whichrem)
+			elif len(self.editorslist) == 1:
+				whichrem=self.postabview.Selection()
+				print "whichrem",whichrem
+				self.Nichilize()
+				bounds = self.Bounds()
+				l, t, r, b = bounds
+				binds = self.background.Bounds()
+				luwidth=self.lubox.Bounds()[2]-self.lubox.Bounds()[0]
+				c,p,d,s = binds
+				plygrnd2 = (5, b-142,r -luwidth-5, s-2)
+				altece = self.srctabview.TabHeight()
+				tabrc2 = (3, 3, plygrnd2[2] - plygrnd2[0], plygrnd2[3] - plygrnd2[1]-altece)
+				self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
+				self.transtablabels.append(BTab())
+				self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
+				################### BUG? ###################
+				self.transtabview.Select(1)									###### bug fix
+				self.transtabview.Select(0)
+				self.listemsgid[0].src.SetText("")
+				self.srctabview.Select(1)
+				self.srctabview.Select(0)
+				self.postabview.RemoveTab(whichrem)
+				self.postabview.Hide()     # <----- Bug fix
+				self.postabview.Show()	   # <----- Bug fix
+				print "prima del pop",len(self.tabslabels)
+				self.tabslabels.pop(whichrem)
+				print "dopo il pop",len(self.tabslabels)
+				self.editorslist.pop(whichrem)
 			return
 			
 		elif msg.what == 2:
@@ -3172,18 +3200,19 @@ class PoWindow(BWindow):
 					if tabs == 0:   #->      if not thisBlistitem.hasplural:                         <-------------------------- or this?
 						thisBlistitem.txttosave=thisBlistitem.text.decode(self.encoding)
 						thisBlistitem.msgstrs=thisBlistitem.txttosave
-						bckpmsg.AddString('translation',thisBlistitem.txttosave)
+						print thisBlistitem.txttosave
+						bckpmsg.AddString('translation',thisBlistitem.txttosave.encode(self.encoding)) # <------------ check if encode in self.encoding or utf-8
 					else:
 						thisBlistitem.txttosavepl=[]
 						thisBlistitem.txttosave=self.listemsgid[0].src.Text().decode(self.encoding)
 						thisBlistitem.msgstrs=[]
 						thisBlistitem.msgstrs.append(thisBlistitem.txttosave)
-						bckpmsg.AddString('translation',thisBlistitem.txttosave)
+						bckpmsg.AddString('translation',thisBlistitem.txttosave.encode(self.encoding)) # <------------ check if encode in self.encoding or utf-8
 						cox=1
 						while cox < tabs+1:
 							thisBlistitem.msgstrs.append(self.listemsgid[1].src.Text().decode(self.encoding))
 							thisBlistitem.txttosavepl.append(self.listemsgid[1].src.Text().decode(self.encoding))
-							bckpmsg.AddString('translationpl'+str(cox-1),self.listemsgid[1].src.Text())    #<------- check for decode(self.encoding)
+							bckpmsg.AddString('translationpl'+str(cox-1),self.listemsgid[1].src.Text().encode(self.encoding))    #<------- check for encode(self.encoding)
 							cox+=1
 					bckpmsg.AddString('bckppath',cursel.backupfile)
 					BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
@@ -3253,13 +3282,14 @@ class PoWindow(BWindow):
 		
 		elif msg.what == 32:
 			#Double clic = translator comment
-			indextab=self.postabview.Selection()
-			cursel=self.editorslist[indextab]
-			listsel=cursel.list.lv.CurrentSelection()
-			
-			thisBlistitem=cursel.list.lv.ItemAt(listsel)
-			self.tcommentdialog=TranslatorComment(listsel,indextab,thisBlistitem,self.encoding)
-			self.tcommentdialog.Show()
+			if len(self.editorslist)>0:
+				indextab=self.postabview.Selection()
+				cursel=self.editorslist[indextab]
+				listsel=cursel.list.lv.CurrentSelection()
+				if listsel>-1:
+					thisBlistitem=cursel.list.lv.ItemAt(listsel)
+					self.tcommentdialog=TranslatorComment(listsel,indextab,thisBlistitem,self.encoding)
+					self.tcommentdialog.Show()
 			
 		elif msg.what == 42:
 			# PO metadata
