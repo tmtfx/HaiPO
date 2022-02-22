@@ -1681,7 +1681,7 @@ class EventTextView(BTextView):
 		self.SetStylable(1)
 		self.evstile=[]
 		self.analisi=[]
-		#self.analyzetxt=[]
+		self.analyzetxt=[]
 		self.pop = BPopUpMenu('popup')
 		
 	def Save(self):
@@ -1739,8 +1739,8 @@ class EventTextView(BTextView):
 			ubi1,ubi2 = self.GetSelection()
 			if ubi1 == ubi2:
 				ubi1,ubi2=self.FindWord(ubi1)
-				perau = self.Text()[ubi1:ubi2]
-			if self.analyzetxt:
+			perau = self.Text()[ubi1:ubi2]
+			if len(self.analyzetxt)>0:
 				for item in self.analyzetxt:
 					if item.word == perau:
 						menus=[]
@@ -2023,25 +2023,34 @@ class EventTextView(BTextView):
 		while sd<se:
 			self.analisi.append((unicodedata.category(unichr(ord(l[sd]))),l[sd]))  # char by char examination category print
 			if sd==0:
-				if l[sd]+l[sd+1] in inclusion:
+				try:
+					if l[sd]+l[sd+1] in inclusion:
+						pass
+					else:
+						if unicodedata.category(unichr(ord(l[sd]))) in esclusion:
+							l[sd]=" "
+				except:
 					pass
-				else:
-					if unicodedata.category(unichr(ord(l[sd]))) in esclusion:
-						l[sd]=" "
 			if sd==se-1:
-				if l[sd-1]+l[sd] in inclusion:
+				try:
+					if l[sd-1]+l[sd] in inclusion:
+						pass
+					else:
+						if unicodedata.category(unichr(ord(l[sd]))) in esclusion:
+							l[sd]=" "
+				except:
 					pass
-				else:
-					if unicodedata.category(unichr(ord(l[sd]))) in esclusion:
-						l[sd]=" "
 			if sd>0 and sd<se-1:
-				if l[sd]+l[sd+1] in inclusion:
+				try:
+					if l[sd]+l[sd+1] in inclusion:
+						pass
+					elif l[sd-1]+l[sd] in inclusion:
+						pass
+					else:
+						if unicodedata.category(unichr(ord(l[sd]))) in esclusion:
+							l[sd]=" "
+				except:
 					pass
-				elif l[sd-1]+l[sd] in inclusion:
-					pass
-				else:
-					if unicodedata.category(unichr(ord(l[sd]))) in esclusion:
-						l[sd]=" "
 			sd+=1
 		eltxt="".join(l)
 		
