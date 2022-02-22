@@ -103,18 +103,40 @@ if not firstrun:
 			try:
 				global inclusion,esclusion
 				usero=ConfigSectionMap("Users")['default']
-				exe=ConfigSectionMap("Settings")['spell_path']
-				inctxt=ConfigSectionMap(usero)['spell_inclusion']
-				inclusion = inctxt.split(",")
-				esctxt=ConfigSectionMap(usero)['spell_esclusion']
-				esclusion=esctxt.split(",")
-				spelldict=ConfigSectionMap(usero)['spell_dictionary']
+				try:
+					inctxt=ConfigSectionMap(usero)['spell_inclusion']
+					inclusion = inctxt.split(",")
+				except:
+					cfgfile = open(confile,'w')
+					Config.set(usero,'spell_inclusion', '')
+					Config.write(cfgfile)
+					cfgfile.close()
+					inclusion = []
+				try:
+					esctxt=ConfigSectionMap(usero)['spell_esclusion']
+					esclusion=esctxt.split(",")
+				except:
+					cfgfile = open(confile,'w')
+					Config.set(usero,'spell_esclusion', 'Pc,Pd,Pe,Pi,Po,Ps,Cc,Pf')
+					Config.write(cfgfile)
+					cfgfile.close()
+					esclusion = ["Pc","Pd","Pe","Pi","Po","Ps","Cc","Pf"]
+				try:
+					spelldict=ConfigSectionMap(usero)['spell_dictionary']
+				except:
+					cfgfile = open(confile,'w')
+					Config.set(usero,'spell_dictionary', '/system/data/hunspell/en_US')
+					Config.write(cfgfile)
+					cfgfile.close()
+					spelldict="/system/data/hunspell/en_US"
 			except:
-				exe = "hunspell-x86"
 				spelldict="/system/data/hunspell/en_US"
 				inclusion = []
 				esclusion = ["Pc","Pd","Pe","Pi","Po","Ps","Cc","Pf"]
-		
+			try:
+				exe=ConfigSectionMap("Settings")['spell_path']
+			except:
+				exe = "hunspell-x86"
 			if setencoding:
 				comm = [exe,'-a','-i',encoding,'-d',spelldict]#['hunspell-x86','-a','-i',encoding,'-d','/system/data/hunspell/fur_IT']
 			else:
@@ -586,13 +608,14 @@ class SpellcheckSettings(BWindow):
 		try:
 			bret = ConfigSectionMap("Settings")['spell_path'] #it's ascii
 		except:
-			bret = ""
+			bret = "hunspell-x86"
 		self.splchker = BTextControl((5,27,r-5,49),'spellchecker','Spellchecker command:',bret,BMessage(8080))
 		try:
 			usero = ConfigSectionMap("Users")['default']
 			bret = ConfigSectionMap(usero)['spell_dictionary'] #it's ascii
 		except:
-			bret = ""
+			bret = "/boot/system/data/hunspell/en_US"
+			
 		self.diz = BTextControl((5,51,r-5,73),'dictionary','Dictionary path:',bret,BMessage(8086))
 		try:
 			usero = ConfigSectionMap("Users")['default']
@@ -606,6 +629,7 @@ class SpellcheckSettings(BWindow):
 		except:
 			bret = ""
 		self.esclus = BTextControl((5,99,r-5,121),'inclusion','Chars-categories escluded in words:',bret,BMessage(8088))
+		self.esclus.SetText("Pc,Pd,Pe,Pi,Po,Ps,Cc,Pf")
 		self.underframe.AddChild(self.splchker)
 		self.underframe.AddChild(self.enablecheck)
 		self.underframe.AddChild(self.diz)
@@ -2838,8 +2862,10 @@ class PoWindow(BWindow):
 		self.lubox.AddChild(self.valueln)
 		self.lubox.AddChild(self.infoforprogress)
 		self.lubox.AddChild(self.infoprogress)
-		self.tempbtn=BButton((4,jkl-hig*3-12,ghj-4,jkl-hig*2-8), "txtanal", "Test", BMessage(8384)) ############## todo: associare un altro bmessage per aprire finestra dialogo analisi hunspell
+		self.tempbtn=BButton((4,jkl-hig*3-12,ghj-4,jkl-hig*2-8), "txtanal", "Analyze", BMessage(8384)) ############## todo: associare un altro bmessage per aprire finestra dialogo analisi hunspell
 		self.lubox.AddChild(self.tempbtn)
+		if not showspell:
+			self.tempbtn.Hide()
 		self.event= threading.Event()
 		self.background.AddChild(self.lubox)
 		self.postabview = postabview(self,(5.0, 5.0, d*3/4-5, b-barheight-245), 'postabview',B_WIDTH_FROM_LABEL)
