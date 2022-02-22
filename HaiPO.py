@@ -119,6 +119,8 @@ if not firstrun:
 				comm = [exe,'-a','-i',encoding,'-d',spelldict]#['hunspell-x86','-a','-i',encoding,'-d','/system/data/hunspell/fur_IT']
 			else:
 				comm = [exe,'-a','-d',spelldict]
+		else:
+			showspell=False
 	except:
 		setspellcheck = False
 	#	print "no spellchecking"
@@ -541,6 +543,7 @@ class GeneralSettings(BWindow):
 
 	def MessageReceived(self, msg):
 		if msg.what == 242:
+			Config.read(confile)
 			cfgfile = open(confile,'w')
 			try:
 				if self.langcheck.Value():
@@ -614,9 +617,11 @@ class SpellcheckSettings(BWindow):
 			cfgfile = open(confile,'w')
 			try:
 				if self.enablecheck.Value():
+					print "enablecheck True"
 					Config.set('Settings','spellchecking', "True")
 					Config.write(cfgfile)
 				else:
+					print "enablecheck False"
 					Config.set('Settings','spellchecking', "False")
 					Config.write(cfgfile)
 			except:
@@ -632,16 +637,21 @@ class SpellcheckSettings(BWindow):
 					print "Cannot save spellchecker path"
 				cfgfile.close()
 		elif msg.what == 8086:
-			if os.path.exists(self.diz.Text()):
+			if os.path.exists(self.diz.Text()+".dic"):
 				Config.read(confile)
-				usero = ConfigSectionMap("Users")['default']
-				cfgfile = open(confile,'w')
 				try:
-					Config.set(usero,'spell_dictionary',self.diz.Text())
-					Config.write(cfgfile)
+					usero = ConfigSectionMap("Users")['default']
+					cfgfile = open(confile,'w')
+					try:
+						Config.set(usero,'spell_dictionary',self.diz.Text())
+						Config.write(cfgfile)
+					except:
+						print "Cannot save dictionary path"
+					cfgfile.close()
 				except:
-					print "Cannot save dictionary path"
-				cfgfile.close()
+					print "there's no users saved"
+			else:
+				print "wrong path"
 		elif msg.what == 8087:
 				Config.read(confile)
 				usero = ConfigSectionMap("Users")['default']
@@ -993,7 +1003,7 @@ class MaacUtent(BWindow):
 			self.introtxt2.Hide()
 			self.ProceedButton.Hide()
 			self.CloseButton.Hide()
-			self.ResizeBy(0.0,300.0)
+			self.ResizeBy(0.0,100.0)
 			h=round(self.underframe.GetFontHeight()[0])
 			self.introtxt.SetText('Fill the fields below')
 			self.name = BTextControl((l + 20, t + 16, r - 50, t + h + 18 ), 'name', 'Profile name:', '', BMessage(1))#b - 16
@@ -3898,9 +3908,6 @@ class PoWindow(BWindow):
 				i+=1
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
 				caratars=self.listemsgstr[self.transtabview.Selection()].trnsl.Analisi()
-				print caratars
-				print "elementi",len(caratars)
-				#self.analysisW.scrbr.SetRange(0.0,float(len(caratars)))
 				for items in caratars:
 					pmsg=BMessage(43285)
 					pmsg.AddString('word',items[0])
@@ -3908,8 +3915,6 @@ class PoWindow(BWindow):
 					pmsg=BMessage(43250)
 					pmsg.AddString('word',items[1])
 					BApplication.be_app.WindowAt(thiswindow).PostMessage(pmsg)
-				
-					#self.analysisW.elaborate(caratars) # Postmessage(messaggio)
 
 		elif msg.what == 12343:
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
