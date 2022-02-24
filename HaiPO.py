@@ -145,8 +145,7 @@ if not firstrun:
 			showspell=False
 	except:
 		setspellcheck = False
-	#	print "no spellchecking"
-	#	pass
+		showspell = False
 
 else:
 	showspell = False
@@ -641,11 +640,9 @@ class SpellcheckSettings(BWindow):
 			cfgfile = open(confile,'w')
 			try:
 				if self.enablecheck.Value():
-					print "enablecheck True"
 					Config.set('Settings','spellchecking', "True")
 					Config.write(cfgfile)
 				else:
-					print "enablecheck False"
 					Config.set('Settings','spellchecking', "False")
 					Config.write(cfgfile)
 			except:
@@ -1786,8 +1783,8 @@ class EventTextView(BTextView):
 							x = self.pop.Go(point, 1)
 							if x:
 								self.Looper().PostMessage(x.Message())
-			else:
-				print "non esiste analyzetxt"
+			#else:
+				#print "there's no analyzetxt"
 
 		return BTextView.MouseUp(self,point)
 
@@ -1814,7 +1811,8 @@ class EventTextView(BTextView):
 	def KeyDown(self,char,bytes):
 		try:
 			ochar=ord(char)
-			if ochar in (B_DOWN_ARROW,B_UP_ARROW,B_TAB,B_PAGE_UP,B_PAGE_DOWN):
+			print ochar
+			if ochar in (B_DOWN_ARROW,B_UP_ARROW,10,B_PAGE_UP,B_PAGE_DOWN): #B_ENTER =10?
 				self.superself.sem.acquire()
 				value=self.superself.modifier #CTRL pressed
 				self.superself.sem.release()
@@ -1901,8 +1899,9 @@ class EventTextView(BTextView):
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 						return
 					return BTextView.KeyDown(self,char,bytes)
-				elif ochar == B_TAB:
-					if not value:
+				elif ochar == 10: #ENTER
+					#CTRL + enter
+					if value:
 						# next string needing work
 						if hasplural:
 							lung=len(self.superself.listemsgstr)
@@ -1920,9 +1919,13 @@ class EventTextView(BTextView):
 						kmesg.AddInt8('movekind',4)
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 						return
-					return BTextView.KeyDown(self,char,bytes)
-				if ochar != B_TAB: # needed to pass up/down keys to textview	
-					return BTextView.KeyDown(self,char,bytes)
+					else:
+						if self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()>-1:
+							self.tosave=True
+							return BTextView.KeyDown(self,char,bytes)
+# commented out because already included?
+#				if ochar != B_ENTER: # needed to pass up/down keys to textview	
+#					return BTextView.KeyDown(self,char,bytes)
 					
 			elif ochar == 2 or ochar == 98:				# ctrl+B or ctrl+b key to mark/umark as fuzzy
 				self.superself.sem.acquire()
@@ -2226,7 +2229,6 @@ class HeaderWindow(BWindow):
 class POEditorBBox(BBox):
 	def __init__(self,frame,name,percors,pofileloaded,arrayview,encoding,loadtempfile):
 		self.pofile = pofileloaded
-#		print self.pofile.header
 		self.name = name
 		self.encoding=encoding
 		self.filen, self.file_ext = os.path.splitext(percors)
@@ -2480,7 +2482,7 @@ class POEditorBBox(BBox):
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
 					item.SetLineNum(entry.linenum)
-				self.list.lv.AddItem(item)
+				self.list.lv.AddItem(item)		
 
 	def Save(self,path):
 		self.pofile.save(path)
@@ -2708,17 +2710,6 @@ class Analysis(BWindow):
 		self.ansv=AnalyScrllVw1((5,5,30,342),"Analysis-text",self.orig.lv)
 		self.underframe.AddChild(self.ansv.sv)
 		self.underframe.AddChild(self.orig.sv)
-		#self.scrbr = BDoubleScrollBar((34,5,46,342),"GScrollBar",self.ansv.sv,self.orig.sv,0,1,B_VERTICAL)
-		#self.underframe.AddChild(self.scrbr)
-		
-#	def elaborate(self,inpu):
-#		self.ansv.sv.Hide()
-#		self.achrin=inpu
-#		print inpu
-#		for item in self.achrin:
-#			elemento=MyListItem(item.word)
-#			#self.ansv.lv.AddItem(elemento)
-#		self.ansv.sv.Show()
 		
 	def MessageReceived(self, msg):
 		if msg.what == 43285:
@@ -2967,6 +2958,7 @@ class PoWindow(BWindow):
 			self.font.SetFace(B_BOLD_FACE)
 			self.checkres.SetFontAndColor(0,1,self.font)
 			self.checkres.SetText("☐")
+			self.checkres.MakeEditable(False)
 			self.lubox.AddChild(self.spellabel)
 			self.lubox.AddChild(self.spellresp)
 			self.lubox.AddChild(self.checkres)
@@ -3036,20 +3028,16 @@ class PoWindow(BWindow):
 					self.listemsgstr.pop(0)
 					self.transtablabels.pop(0)
 
-####### TOODO: send a B_END(value 4) keypress when itemselected on listview
-
 
 	def MessageReceived(self, msg):
-#		print "This is a system message?", msg.IsSystem()
-		if msg.what == B_MODIFIERS_CHANGED: #quando modificatore ctrl cambia stato
+#		print "Is this a system message?", msg.IsSystem()
+		if msg.what == B_MODIFIERS_CHANGED:
 			value=msg.FindInt32("modifiers")
 			self.sem.acquire()
 			if value==self.modifiervalue or value==self.modifiervalue+8 or value ==self.modifiervalue+32 or value ==self.modifiervalue+40:
-				#print "ctrl premuto self.modifier diventa true"
 				self.modifier=True
 				self.shortcut = False
 			elif value == self.modifiervalue+4357 or value==self.modifiervalue+265 or value==self.modifiervalue+289 or value == self.modifiervalue+297:
-				#print "ctrl maiusc premuto self.shortcut diventa true"
 				self.shortcut = True
 				self.modifier = False
 			else:
@@ -3065,11 +3053,11 @@ class PoWindow(BWindow):
 				lung = len(self.editorslist)
 				if lung > 0:
 					if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
-						self.listemsgstr[self.transtabview.Selection()].trnsl.MakeFocus()
+						self.listemsgstr[self.transtabview.Selection()].trnsl.MakeFocus() ###########à LOOK HERE 
 					else:
 						self.editorslist[self.postabview.Selection()].list.lv.Select(0)
 						self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
-			elif key in (98,87,54,33):#== 98 or key == 87 or key == 54 or key == 33:
+			elif key in (98,87,54,33):
 				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection() < 0:
 					self.editorslist[self.postabview.Selection()].list.lv.Select(0)
 					self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
@@ -3145,7 +3133,6 @@ class PoWindow(BWindow):
 				self.editorslist.pop(whichrem)
 			elif len(self.editorslist) == 1:
 				whichrem=self.postabview.Selection()
-				print "whichrem",whichrem
 				self.Nichilize()
 				bounds = self.Bounds()
 				l, t, r, b = bounds
@@ -3167,9 +3154,7 @@ class PoWindow(BWindow):
 				self.postabview.RemoveTab(whichrem)
 				self.postabview.Hide()     # <----- Bug fix
 				self.postabview.Show()	   # <----- Bug fix
-				print "prima del pop",len(self.tabslabels)
 				self.tabslabels.pop(whichrem)
-				print "dopo il pop",len(self.tabslabels)
 				self.editorslist.pop(whichrem)
 			return
 			
@@ -3188,9 +3173,6 @@ class PoWindow(BWindow):
 				self.editorslist[self.postabview.Selection()].pofile.metadata['PO-Revision-Date']=now
 				self.editorslist[self.postabview.Selection()].pofile.metadata['X-Editor']=version
 				thread.start_new_thread( self.editorslist[self.postabview.Selection()].Save, (savepath,) )
-				#which has these two code-rows:
-				#self.editorslist[self.postabview.Selection()].pofile.save(savepath)
-				#self.editorslist[self.postabview.Selection()].writter.release()
 			return
 
 		elif msg.what == 3:
@@ -3209,7 +3191,6 @@ class PoWindow(BWindow):
 					if tabs == 0:   #->      if not thisBlistitem.hasplural:                         <-------------------------- or this?
 						thisBlistitem.txttosave=thisBlistitem.text.decode(self.encoding)
 						thisBlistitem.msgstrs=thisBlistitem.txttosave
-						print thisBlistitem.txttosave
 						bckpmsg.AddString('translation',thisBlistitem.txttosave.encode(self.encoding)) # <------------ check if encode in self.encoding or utf-8
 					else:
 						thisBlistitem.txttosavepl=[]
@@ -3662,7 +3643,6 @@ class PoWindow(BWindow):
 			except:
 				pass
 			if self.listemsgstr[self.transtabview.Selection()].trnsl.Text()!="":
-				print "passo di qui"
 				BApplication.be_app.WindowAt(0).PostMessage(333111)
 			return
 
@@ -3927,6 +3907,11 @@ class PoWindow(BWindow):
 						say = BAlert('oops', "User language differs from po language", 'Go on',None, None, None, 3)
 						say.Go()
 					self.loadPOfile(txtpath,trc,self.pof)
+
+#			self.postabview.Hide()
+			self.editorslist[self.postabview.Selection()].list.lv.Hide()
+			self.editorslist[self.postabview.Selection()].list.lv.Show()
+#			self.postabview.Show()
 				
 			#except:
 			#	e = None
