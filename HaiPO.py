@@ -185,7 +185,7 @@ try:
 	from BFilePanel import BFilePanel
 	from BEntry import BEntry
 	from BScrollBar import BScrollBar
-	from InterfaceKit import B_PAGE_UP,B_PAGE_DOWN,B_TAB,B_ESCAPE,B_DOWN_ARROW,B_UP_ARROW,B_V_SCROLL_BAR_WIDTH,B_FULL_UPDATE_ON_RESIZE,B_VERTICAL,B_FOLLOW_ALL,B_FOLLOW_TOP,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_WIDTH_FROM_LABEL,B_TRIANGLE_THUMB,B_BLOCK_THUMB,B_FLOATING_WINDOW,B_DOCUMENT_WINDOW,B_TITLED_WINDOW,B_WILL_DRAW,B_NAVIGABLE,B_FRAME_EVENTS,B_ALIGN_CENTER,B_ALIGN_RIGHT,B_FOLLOW_ALL_SIDES,B_MODAL_WINDOW,B_FOLLOW_TOP_BOTTOM,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT_RIGHT,B_SINGLE_SELECTION_LIST,B_NOT_RESIZABLE,B_NOT_ZOOMABLE,B_PLAIN_BORDER,B_FANCY_BORDER,B_NO_BORDER,B_ITEMS_IN_COLUMN,B_AVOID_FOCUS,B_BOLD_FACE,B_ITALIC_FACE,B_UNDERSCORE_FACE,B_STRIKEOUT_FACE,B_FONT_ALL
+	from InterfaceKit import B_PAGE_UP,B_PAGE_DOWN,B_TAB,B_ESCAPE,B_DOWN_ARROW,B_UP_ARROW,B_V_SCROLL_BAR_WIDTH,B_FULL_UPDATE_ON_RESIZE,B_VERTICAL,B_FOLLOW_ALL,B_FOLLOW_TOP,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_WIDTH_FROM_LABEL,B_TRIANGLE_THUMB,B_BLOCK_THUMB,B_FLOATING_WINDOW,B_DOCUMENT_WINDOW,B_TITLED_WINDOW,B_WILL_DRAW,B_NAVIGABLE,B_FRAME_EVENTS,B_ALIGN_CENTER,B_ALIGN_RIGHT,B_FOLLOW_ALL_SIDES,B_MODAL_WINDOW,B_FOLLOW_TOP_BOTTOM,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT_RIGHT,B_SINGLE_SELECTION_LIST,B_NOT_RESIZABLE,B_NOT_ZOOMABLE,B_PLAIN_BORDER,B_FANCY_BORDER,B_NO_BORDER,B_ITEMS_IN_COLUMN,B_AVOID_FOCUS,B_BOLD_FACE,B_ITALIC_FACE,B_UNDERSCORE_FACE,B_STRIKEOUT_FACE,B_FONT_ALL,B_NAVIGABLE,B_NAVIGABLE_JUMP
 	from AppKit import B_QUIT_REQUESTED,B_KEY_UP,B_KEY_DOWN,B_MODIFIERS_CHANGED,B_UNMAPPED_KEY_DOWN,B_REFS_RECEIVED,B_SAVE_REQUESTED,B_CANCEL,B_WINDOW_RESIZED,B_CUT,B_PASTE
 	from StorageKit import B_SAVE_PANEL,B_OPEN_PANEL,B_FILE_NODE,B_READ_ONLY
 	from SupportKit import B_ERROR,B_ENTRY_NOT_FOUND,B_OK,B_ANY_TYPE
@@ -2501,7 +2501,7 @@ class translationtabview(BTabView):
 			if (point[0]>=self.TabFrame(gg)[0]) and (point[0]<=self.TabFrame(gg)[2]) and (point[1]>=self.TabFrame(gg)[1]) and (point[1]<=self.TabFrame(gg)[3]):
 				self.superself.srctabview.Select(gg)
 			gg=gg+1
-		BApplication.be_app.WindowAt(0).PostMessage(12343) ### ero qui333111
+		BApplication.be_app.WindowAt(0).PostMessage(12343)
 		return BTabView.MouseDown(self,point)
 
 class sourcetabview(BTabView):
@@ -2948,7 +2948,7 @@ class PoWindow(BWindow):
 			thread.start_new_thread( self.speloop, () )
 			self.spellabel = BStringView((8,jkl-hig*3-80,ghj-8,jkl-hig*2-72),"spellabel","Spellcheck status: enabled")
 			self.spellresp = BStringView((8,jkl-hig*3-68,ghj-48,jkl-hig*2-56),"spellresp","Spellcheck reply:")
-			self.checkres = BTextView((ghj-64,jkl-hig*3-64,ghj-8,jkl-hig*2-28),"checkres",(17.5,5,ghj-8-15,(jkl-hig*2-28)-15),B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM)#,be_plain_font,(0,0,0,0),B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM,0)#,"☐") #☑☒
+			self.checkres = BTextView((ghj-64,jkl-hig*3-64,ghj-8,jkl-hig*2-28),"checkres",(17.5,5,ghj-8-15,(jkl-hig*2-28)-15),B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM) # ☐ ☑ ☒
 			self.checkres.SetStylable(True)
 			self.font=BFont()
 			#self.font.PrintToStream()
@@ -2962,8 +2962,6 @@ class PoWindow(BWindow):
 			self.lubox.AddChild(self.spellabel)
 			self.lubox.AddChild(self.spellresp)
 			self.lubox.AddChild(self.checkres)
-			# lancia finestra spellcheck
-			# aggiungere BStringview (nascosta) per notificare errori di ortografia + PButton per aprire finestra di spellcheck
 		else:
 			self.spellabel= BStringView((8,jkl-hig*3-80,ghj-8,jkl-hig*2-72),"spellabel","Spellcheck status: disabled")
 			self.lubox.AddChild(self.spellabel)
@@ -3908,10 +3906,9 @@ class PoWindow(BWindow):
 						say.Go()
 					self.loadPOfile(txtpath,trc,self.pof)
 
-#			self.postabview.Hide()
-			self.editorslist[self.postabview.Selection()].list.lv.Hide()
-			self.editorslist[self.postabview.Selection()].list.lv.Show()
-#			self.postabview.Show()
+			if len(self.editorslist) == 1:
+				self.postabview.Select(1) # bug fix closing last one file and opening a new one
+				self.postabview.Select(0) # bug fix
 				
 			#except:
 			#	e = None
@@ -4301,6 +4298,8 @@ class PoWindow(BWindow):
 			self.postabview.SetFocusTab(x,True)
 			self.postabview.Select(x)
 			self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated()))
+			self.postabview.Hide()
+			self.postabview.Show()
 			
 			
 	def QuitRequested(self):
