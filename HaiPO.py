@@ -138,9 +138,9 @@ if not firstrun:
 			except:
 				exe = "hunspell-x86"
 			if setencoding:
-				comm = [exe,'-a','-i',encoding,'-d',spelldict]#['hunspell-x86','-a','-i',encoding,'-d','/system/data/hunspell/fur_IT']
+				comm = [exe,'-i',encoding,'-d',spelldict]#['hunspell-x86','-a','-i',encoding,'-d','/system/data/hunspell/fur_IT'] # '-a',
 			else:
-				comm = [exe,'-a','-d',spelldict]
+				comm = [exe,'-d',spelldict]#'-a',
 		else:
 			showspell=False
 	except:
@@ -1568,6 +1568,26 @@ class MyListItem(BListItem):
 
 	def Text(self):
 		return self.text
+
+#class StringBListItem(BListItem):
+#	def __init__(self,text):
+#		self.text=text
+#		BListItem.__init__(self)
+		
+#	def DrawItem(self, owner, frame,complete):
+#		self.frame = frame
+#		#complete = True
+#		if self.IsSelected() or complete: # 
+#			color = (200,200,200,255)
+#			owner.SetHighColor(color)
+#			owner.SetLowColor(color)
+#			owner.FillRect(frame)
+#			self.color = (0,0,0,0)
+#		owner.SetHighColor(self.color)
+#		self.font = be_plain_font
+#		owner.SetFont(self.font)
+#		owner.MovePenTo(frame[0]+30,frame[3]-2)
+#		owner.DrawString(self.text)
 		
 class MsgStrItem(BListItem):
 	nocolor = (0, 0, 0, 0)
@@ -2099,7 +2119,6 @@ class EventTextView(BTextView):
 						x+=1
 					errors.append(t)
 					self.analyzetxt.append(t)
-
 				elif s[0] == "#":
 					# no suggestions
 					liw=s.find(words[2])
@@ -2111,7 +2130,6 @@ class EventTextView(BTextView):
 					t=word2fix(words[1],int(outs),realouts)
 					errors.append(t)
 		#### Ricreo stringa colorata ####
-		#global stile
 		stile=[(0, be_plain_font, (0, 0, 0, 0))]
 		if len(errors)>0:
 			BApplication.be_app.WindowAt(0).PostMessage(982757)
@@ -2146,6 +2164,7 @@ def startinserting(stile,errors):
 			#fine
 			stile.append(((er.pos+len(er.word)), be_plain_font, (0,0,0,0))) #+1?
 		else:
+			#type 1 no suggestions
 			#inizio
 			stile.append((er.pos, fontx, (255,0,0,0)))
 			#fine
@@ -2694,23 +2713,43 @@ class AnalyScrllVw2:
 		self.lv.SetSelectionMessage(msg)
 		msg = BMessage(self.HiWhat)
 		self.lv.SetInvocationMessage(msg)
-		self.sv = BScrollView('AnalysisScrollView', self.lv, B_FOLLOW_ALL_SIDES, B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_NAVIGABLE|B_FRAME_EVENTS, 0, 0, B_FANCY_BORDER)
+		self.sv = BScrollView('AnalysisScrollView', self.lv, B_FOLLOW_ALL_SIDES, B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_NAVIGABLE|B_FRAME_EVENTS, 0, 1, B_FANCY_BORDER)
 
 class Analysis(BWindow):
-	def __init__(self):
+	Selmsgstr = 320
+	HiWhat =  684
+	def __init__(self,encoding):
 		kWindowFrame = (250, 150, 755, 497)
 		kWindowName = "String analysis"
 		BWindow.__init__(self, kWindowFrame, kWindowName, B_FLOATING_WINDOW, B_NOT_RESIZABLE)
+		self.encoding = encoding
 		bounds=self.Bounds()
 		l,t,r,b = bounds
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(self.underframe)
 		self.achrin=[]
-		self.orig=AnalyScrllVw2((50,5,75,342),"Original-text")
+		self.orig=AnalyScrllVw2((50,5,67,342),"Original-text")
 		self.ansv=AnalyScrllVw1((5,5,30,342),"Analysis-text",self.orig.lv)
 		self.underframe.AddChild(self.ansv.sv)
 		self.underframe.AddChild(self.orig.sv)
-		
+		rect = (85,5,r-5,150)
+		self.undertextview = BBox(rect, 'undertextview', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_FANCY_BORDER)
+		self.underframe.AddChild(self.undertextview)
+		self.cpytrnsl = BTextView((2,2,r-5-85-2,150-5-2),"copytext",(4,4,rect[2]-rect[0]-4,rect[3]-rect[0]-4),B_FOLLOW_ALL)
+		self.undertextview.AddChild(self.cpytrnsl)
+		rect = (87,155,185,328)
+		self.plv = BListView(rect, 'PeraulisListView', B_SINGLE_SELECTION_LIST,B_FOLLOW_ALL_SIDES,B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_FRAME_EVENTS)
+		self.psv = BScrollView('PeraulisScrollView', self.plv, B_FOLLOW_ALL_SIDES, B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_NAVIGABLE|B_FRAME_EVENTS, 1, 1, B_FANCY_BORDER)
+		msg=BMessage(self.Selmsgstr)
+		self.plv.SetSelectionMessage(msg)
+		msg = BMessage(self.HiWhat)
+		self.plv.SetInvocationMessage(msg)
+		self.underframe.AddChild(self.psv)
+		rect = (205,155,r-7,342)
+		self.swres = BTextView(rect,"SingleWordAnalysis",(4,4,rect[2]-rect[0]-4,rect[3]-rect[0]-4),B_FOLLOW_ALL)
+		self.swres.MakeEditable(0)
+		self.underframe.AddChild(self.swres)
+
 	def MessageReceived(self, msg):
 		if msg.what == 43285:
 			stringa=msg.FindString('word')
@@ -2720,6 +2759,35 @@ class Analysis(BWindow):
 			stringa=msg.FindString('word')
 			elemento=MyListItem(stringa)
 			self.orig.lv.AddItem(elemento)
+		elif msg.what == 43288:
+			self.plv.MakeEmpty()
+			stringa=msg.FindString('text')
+			self.cpytrnsl.SetText(stringa)
+			lungjece=self.cpytrnsl.TextLength()
+			i = 0
+			peraulis=[]
+			while i<lungjece:
+				p=self.cpytrnsl.FindWord(i)
+				peraule=self.cpytrnsl.Text()[p[0]:p[1]]
+				if peraule !=" ":
+					if peraule in peraulis:
+						pass
+					else:
+						element=MyListItem(peraule)
+						self.plv.AddItem(element)
+						peraulis.append(peraule)
+					i=p[1]
+				i+=1
+		elif msg.what == 320:
+			if showspell:
+				if self.swres.Text()!="":
+					self.swres.SelectAll()
+					self.swres.Clear()
+				txt=self.plv.ItemAt(self.plv.CurrentSelection()).Text()
+				speller = Popen( comm, stdout=PIPE, stdin=PIPE, stderr=PIPE)
+				stdout_data = speller.communicate(input=txt)[0]
+				self.swres.SetText(stdout_data)				
+			
 		
 		return BWindow.MessageReceived(self, msg)
 		
@@ -2862,7 +2930,7 @@ class PoWindow(BWindow):
 		self.lubox.AddChild(self.valueln)
 		self.lubox.AddChild(self.infoforprogress)
 		self.lubox.AddChild(self.infoprogress)
-		self.tempbtn=BButton((4,jkl-hig*3-12,ghj-4,jkl-hig*2-8), "txtanal", "Analyze", BMessage(8384)) ############## todo: associare un altro bmessage per aprire finestra dialogo analisi hunspell
+		self.tempbtn=BButton((4,jkl-hig*3-12,ghj-4,jkl-hig*2-8), "txtanal", "Analyze", BMessage(8384))
 		self.lubox.AddChild(self.tempbtn)
 		if not showspell:
 			self.tempbtn.Hide()
@@ -3945,7 +4013,7 @@ class PoWindow(BWindow):
 			return
 		
 		elif msg.what == 8384:
-			self.analysisW=Analysis()
+			self.analysisW=Analysis(self.encoding)
 			self.analysisW.Show()
 			i = 1
 			w = BApplication.be_app.CountWindows()
@@ -3962,6 +4030,10 @@ class PoWindow(BWindow):
 					pmsg=BMessage(43250)
 					pmsg.AddString('word',items[1])
 					BApplication.be_app.WindowAt(thiswindow).PostMessage(pmsg)
+				copytxt = self.listemsgstr[self.transtabview.Selection()].trnsl.Text()
+				pmsg=BMessage(43288)
+				pmsg.AddString('text',copytxt)
+				BApplication.be_app.WindowAt(thiswindow).PostMessage(pmsg)
 
 		elif msg.what == 12343:
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
