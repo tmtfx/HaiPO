@@ -1831,7 +1831,6 @@ class EventTextView(BTextView):
 	def KeyDown(self,char,bytes):
 		try:
 			ochar=ord(char)
-			print ochar
 			if ochar in (B_DOWN_ARROW,B_UP_ARROW,10,B_PAGE_UP,B_PAGE_DOWN): #B_ENTER =10?
 				self.superself.sem.acquire()
 				value=self.superself.modifier #CTRL pressed
