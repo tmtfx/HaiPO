@@ -2930,7 +2930,7 @@ class PoWindow(BWindow):
 		self.lubox.AddChild(self.valueln)
 		self.lubox.AddChild(self.infoforprogress)
 		self.lubox.AddChild(self.infoprogress)
-		self.tempbtn=BButton((4,jkl-hig*3-12,ghj-4,jkl-hig*2-8), "txtanal", "Analyze", BMessage(8384))
+		self.tempbtn=BButton((4,jkl-hig*3-33,ghj-68,jkl-hig*2-29), "txtanal", "Analyze", BMessage(8384),B_FOLLOW_BOTTOM)
 		self.lubox.AddChild(self.tempbtn)
 		if not showspell:
 			self.tempbtn.Hide()
@@ -2948,11 +2948,7 @@ class PoWindow(BWindow):
 		self.background.AddChild(self.postabview)
 
 		self.speloc = threading.Semaphore()
-		#self.boolspell = False
 		self.intime=time.time()
-		#self.hap = threading.Event()
-		#self.hap1 = threading.Event()
-		#self.delayed=False
 
 		playground1 = (5,b-268,r - d*1/4-5, s-120)
 		self.srctabview = sourcetabview(playground1, 'sourcetabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS,self)
@@ -3014,9 +3010,9 @@ class PoWindow(BWindow):
 
 		if showspell:
 			thread.start_new_thread( self.speloop, () )
-			self.spellabel = BStringView((8,jkl-hig*3-80,ghj-8,jkl-hig*2-72),"spellabel","Spellcheck status: enabled")
-			self.spellresp = BStringView((8,jkl-hig*3-68,ghj-48,jkl-hig*2-56),"spellresp","Spellcheck reply:")
-			self.checkres = BTextView((ghj-64,jkl-hig*3-64,ghj-8,jkl-hig*2-28),"checkres",(17.5,5,ghj-8-15,(jkl-hig*2-28)-15),B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM) # ☐ ☑ ☒
+			self.spellabel = BStringView((8,jkl-hig*3-70,ghj-8,jkl-hig*2-62),"spellabel","Spellcheck status: enabled",B_FOLLOW_BOTTOM)
+			self.spellresp = BStringView((8,jkl-hig*3-58,ghj-48,jkl-hig*2-46),"spellresp","Spellcheck reply:",B_FOLLOW_BOTTOM)
+			self.checkres = BTextView((ghj-64,jkl-hig*3-54,ghj-8,jkl-hig*2-18),"checkres",(17.5,5,ghj-8-15,(jkl-hig*2-28)-15),B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM) # ☐ ☑ ☒
 			self.checkres.SetStylable(True)
 			self.font=BFont()
 			#self.font.PrintToStream()
