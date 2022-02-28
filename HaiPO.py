@@ -1688,6 +1688,7 @@ class EventTextView(BTextView):
 	def __init__(self,superself,frame,name,textRect,resizingMode,flags):
 		self.superself=superself
 		self.oldtext=""
+#		self.telptst=self.oldtext
 		self.oldtextloaded=False
 		self.tosave=False
 		BTextView.__init__(self,frame,name,textRect,resizingMode,flags)
@@ -1830,6 +1831,7 @@ class EventTextView(BTextView):
 
 	def KeyDown(self,char,bytes):
 		try:
+			#self.posticipate = True
 			ochar=ord(char)
 			if ochar in (B_DOWN_ARROW,B_UP_ARROW,10,B_PAGE_UP,B_PAGE_DOWN): #B_ENTER =10?
 				self.superself.sem.acquire()
@@ -2000,22 +2002,38 @@ class EventTextView(BTextView):
 							kmesg.AddInt8('movekind',0)
 							BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 							return
-
+#					if ochar in (B_DOWN_ARROW,B_UP_ARROW,10,B_PAGE_UP,B_PAGE_DOWN):
+#						pass
+#					else:
+#						print "aggiungo quassù intime con ochar:", ochar
+#						BApplication.be_app.WindowAt(0).PostMessage(333111)
 					BTextView.KeyDown(self,char,bytes)
 					if self.oldtext != self.Text():
-						thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
+#						if self.telptst != self.Text():
+#							print self.telptst
+#							self.telptst = self.Text()
+#							print "aggiungo quassù intime con ochar:", ochar
+#							BApplication.be_app.WindowAt(0).PostMessage(333111)
+						thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self	.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
 						thisBlistitem.tosave=True
 						tabs=len(self.superself.listemsgstr)-1
 						if tabs == 0:
+#							if thisBlistitem.txttosave != self.Text():
+#								BApplication.be_app.WindowAt(0).PostMessage(333111)
 							thisBlistitem.txttosave=self.Text()
-						if tabs == 0:
+						if tabs != 0: ######################################## <--- check why it was ==0 and not !=0
 							thisBlistitem.txttosavepl=[]
+#							if thisBlistitem.txttosave != self.superself.listemsgstr[0].trnsl.Text():
+#								BApplication.be_app.WindowAt(0).PostMessage(333111)
 							thisBlistitem.txttosave=self.superself.listemsgstr[0].trnsl.Text()
 							cox=1
 							while cox < tabs+1:
 								thisBlistitem.txttosavepl.append(self.superself.listemsgstr[cox].trnsl.Text())
 								cox+=1
 						self.tosave=True  # This says you should save the string before proceeding the same for blistitem.tosave doublecheck
+						
+						#print "aggiungo quassù intime"
+#						thread.start_new_thread( self.delayedcheckspell, () )
 						BApplication.be_app.WindowAt(0).PostMessage(333111)
 					return
 		except:
@@ -2024,9 +2042,11 @@ class EventTextView(BTextView):
 				thisBlistitem.tosave=True
 				thisBlistitem.txttosave=self.Text()
 				self.tosave=True   # This says you should save the string before proceeding
+				print "got this"
 				return BTextView.KeyDown(self,char,bytes)
 		
 	def SetPOReadText(self,text):
+#		self.telptst = text
 		self.oldtext=text
 		self.oldtextloaded=True
 		self.SetText(text)
@@ -2034,6 +2054,12 @@ class EventTextView(BTextView):
 	
 	def Analisi(self):
 		return self.analisi
+	
+#	def delayedcheckspell(self):
+#		ev=threading.Event()
+#		ev.wait(0.5)
+#		print "delayed check spell"
+#		BApplication.be_app.WindowAt(0).PostMessage(333111)
 		
 	def CheckSpell(self):
 		speller = Popen( comm, stdout=PIPE, stdin=PIPE, stderr=PIPE)
@@ -3704,6 +3730,7 @@ class PoWindow(BWindow):
 			except:
 				pass
 			if self.listemsgstr[self.transtabview.Selection()].trnsl.Text()!="":
+				print "checkspell da cambio selezione"
 				BApplication.be_app.WindowAt(0).PostMessage(333111)
 			return
 
@@ -4296,27 +4323,47 @@ class PoWindow(BWindow):
 
 		else:
 			BWindow.MessageReceived(self, msg)
-
 	
-	def speloop(self):
+	def	speloop(self):
 		ev = threading.Event()
 		global quitter
 		quitter = True
 		t1 = time.time()
 		while quitter:
+			self.speloc.acquire()
+			tbef = self.intime
+			self.speloc.release()
 			ev.wait(1.5)
 			self.speloc.acquire()
-			torig = self.intime
+			taft = self.intime
 			self.speloc.release()
-			if self.intime > t1:
-				t1 = self.intime
-				if len(self.listemsgstr)>0:
-					traduzion=self.listemsgstr[self.transtabview.Selection()].trnsl.Text()
-					if traduzion != "":
-						self.listemsgstr[self.transtabview.Selection()].trnsl.CheckSpell()
-			else:
-				pass
-			t1 = time.time()
+			if tbef == taft:
+				if taft > t1:
+					if len(self.listemsgstr)>0:
+						traduzion=self.listemsgstr[self.transtabview.Selection()].trnsl.Text()
+						if traduzion != "":
+							self.listemsgstr[self.transtabview.Selection()].trnsl.CheckSpell()
+				t1 = time.time()
+
+#	def speloop_old(self):
+#		ev = threading.Event()
+#		global quitter
+#		quitter = True
+#		t1 = time.time()
+#		while quitter:
+#			ev.wait(1.5)
+#			print "loop"
+#			self.speloc.acquire()
+#			torig = self.intime
+#			self.speloc.release()
+#			if self.intime > t1:
+#				print "checkspell"
+#				t1 = self.intime
+#				if len(self.listemsgstr)>0:
+#					traduzion=self.listemsgstr[self.transtabview.Selection()].trnsl.Text()
+#					if traduzion != "":
+#						self.listemsgstr[self.transtabview.Selection()].trnsl.CheckSpell()
+#			t1 = time.time()
 			
 			
 		
