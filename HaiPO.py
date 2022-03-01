@@ -26,7 +26,7 @@
 import os,sys,ConfigParser,struct,re,thread,datetime,time,threading,unicodedata
 from distutils.spawn import find_executable
 
-version='HaiPO 1.0'
+version='HaiPO 1.0 Release'
 (appname,ver,state)=version.split(' ')
 
 jes = False
