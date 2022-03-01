@@ -2042,7 +2042,6 @@ class EventTextView(BTextView):
 				thisBlistitem.tosave=True
 				thisBlistitem.txttosave=self.Text()
 				self.tosave=True   # This says you should save the string before proceeding
-				print "got this"
 				return BTextView.KeyDown(self,char,bytes)
 		
 	def SetPOReadText(self,text):
@@ -3730,7 +3729,6 @@ class PoWindow(BWindow):
 			except:
 				pass
 			if self.listemsgstr[self.transtabview.Selection()].trnsl.Text()!="":
-				print "checkspell da cambio selezione"
 				BApplication.be_app.WindowAt(0).PostMessage(333111)
 			return
 
