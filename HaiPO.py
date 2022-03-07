@@ -1975,65 +1975,54 @@ class EventTextView(BTextView):
 						value=self.superself.shortcut #CTRL SHIFT pressed
 						self.superself.sem.release()
 						if value:
-							cursel=self.superself.editorslist[self.superself.postabview.Selection()]
-							thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
-							thisBlistitem.tosave=True
-							tabs=len(self.superself.listemsgstr)-1
-							bckpmsg=BMessage(16893)
-							bckpmsg.AddInt8('savetype',1)
-							bckpmsg.AddInt32('tvindex',cursel.list.lv.CurrentSelection())
-							bckpmsg.AddInt8('plurals',tabs)
-							bckpmsg.AddInt32('tabview',self.superself.postabview.Selection())
-							if tabs == 0:
-								thisBlistitem.txttosave=thisBlistitem.text.decode(self.superself.encoding)
-								bckpmsg.AddString('translation',thisBlistitem.txttosave)
-							else:
-								thisBlistitem.txttosavepl=[]
-								thisBlistitem.txttosave=self.superself.listemsgid[0].src.Text()
-								bckpmsg.AddString('translation',thisBlistitem.txttosave)
-								cox=1
-								while cox < tabs+1:
-									thisBlistitem.txttosavepl.append(self.superself.listemsgid[1].src.Text())
-									bckpmsg.AddString('translationpl'+str(cox-1),self.superself.listemsgid[1].src.Text())
-									cox+=1
-							bckpmsg.AddString('bckppath',cursel.backupfile)
-							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
-							kmesg=BMessage(130550)
-							kmesg.AddInt8('movekind',0)
-							BApplication.be_app.WindowAt(0).PostMessage(kmesg)
-							return
-#					if ochar in (B_DOWN_ARROW,B_UP_ARROW,10,B_PAGE_UP,B_PAGE_DOWN):
-#						pass
-#					else:
-#						print "aggiungo quassù intime con ochar:", ochar
-#						BApplication.be_app.WindowAt(0).PostMessage(333111)
+							BApplication.be_app.WindowAt(0).PostMessage(3)
+#							cursel=self.superself.editorslist[self.superself.postabview.Selection()]
+#							thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
+#							thisBlistitem.tosave=True
+#							tabs=len(self.superself.listemsgstr)-1
+#							bckpmsg=BMessage(16893)
+#							bckpmsg.AddInt8('savetype',1)
+#							bckpmsg.AddInt32('tvindex',cursel.list.lv.CurrentSelection())
+#							bckpmsg.AddInt8('plurals',tabs)
+#							bckpmsg.AddInt32('tabview',self.superself.postabview.Selection())
+#							if tabs == 0:
+#								thisBlistitem.txttosave=thisBlistitem.text.decode(self.superself.encoding)
+#								bckpmsg.AddString('translation',thisBlistitem.txttosave)
+#							else:
+#								thisBlistitem.txttosavepl=[]
+#								thisBlistitem.txttosave=self.superself.listemsgid[0].src.Text()
+#								bckpmsg.AddString('translation',thisBlistitem.txttosave)
+#								cox=1
+#								while cox < tabs+1:
+#									thisBlistitem.txttosavepl.append(self.superself.listemsgid[1].src.Text())
+#									bckpmsg.AddString('translationpl'+str(cox-1),self.superself.listemsgid[1].src.Text())
+#									cox+=1
+#							bckpmsg.AddString('bckppath',cursel.backupfile)
+#							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
+#							kmesg=BMessage(130550)
+#							kmesg.AddInt8('movekind',0)
+#							BApplication.be_app.WindowAt(0).PostMessage(kmesg)
+#							return
+
+
+
 					BTextView.KeyDown(self,char,bytes)
 					if self.oldtext != self.Text():
-#						if self.telptst != self.Text():
-#							print self.telptst
-#							self.telptst = self.Text()
-#							print "aggiungo quassù intime con ochar:", ochar
-#							BApplication.be_app.WindowAt(0).PostMessage(333111)
 						thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self	.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
 						thisBlistitem.tosave=True
 						tabs=len(self.superself.listemsgstr)-1
 						if tabs == 0:
-#							if thisBlistitem.txttosave != self.Text():
-#								BApplication.be_app.WindowAt(0).PostMessage(333111)
 							thisBlistitem.txttosave=self.Text()
-						if tabs != 0: ######################################## <--- check why it was ==0 and not !=0
+						#if tabs != 0: ######################################## <--- check why it was ==0 and not !=0
+						else:
 							thisBlistitem.txttosavepl=[]
-#							if thisBlistitem.txttosave != self.superself.listemsgstr[0].trnsl.Text():
-#								BApplication.be_app.WindowAt(0).PostMessage(333111)
 							thisBlistitem.txttosave=self.superself.listemsgstr[0].trnsl.Text()
 							cox=1
 							while cox < tabs+1:
 								thisBlistitem.txttosavepl.append(self.superself.listemsgstr[cox].trnsl.Text())
 								cox+=1
 						self.tosave=True  # This says you should save the string before proceeding the same for blistitem.tosave doublecheck
-						
-						#print "aggiungo quassù intime"
-#						thread.start_new_thread( self.delayedcheckspell, () )
+
 						BApplication.be_app.WindowAt(0).PostMessage(333111)
 					return
 		except:
@@ -2045,7 +2034,6 @@ class EventTextView(BTextView):
 				return BTextView.KeyDown(self,char,bytes)
 		
 	def SetPOReadText(self,text):
-#		self.telptst = text
 		self.oldtext=text
 		self.oldtextloaded=True
 		self.SetText(text)
@@ -2053,12 +2041,6 @@ class EventTextView(BTextView):
 	
 	def Analisi(self):
 		return self.analisi
-	
-#	def delayedcheckspell(self):
-#		ev=threading.Event()
-#		ev.wait(0.5)
-#		print "delayed check spell"
-#		BApplication.be_app.WindowAt(0).PostMessage(333111)
 		
 	def CheckSpell(self):
 		speller = Popen( comm, stdout=PIPE, stdin=PIPE, stderr=PIPE)
@@ -2274,11 +2256,12 @@ class POEditorBBox(BBox):
 		self.pofile = pofileloaded
 		self.name = name
 		self.encoding=encoding
-		self.filen, self.file_ext = os.path.splitext(percors)
 		if loadtempfile:
 			self.backupfile = percors
 			percors = percors.replace('.temp','')
-		else:	
+			self.filen, self.file_ext = os.path.splitext(percors)
+		else:
+			self.filen, self.file_ext = os.path.splitext(percors)	
 			self.backupfile= self.filen+".temp"+self.file_ext
 		self.orderedmetadata=self.pofile.ordered_metadata()
 		self.fp=BFilePanel(B_SAVE_PANEL)
@@ -3035,7 +3018,8 @@ class PoWindow(BWindow):
 		if showspell:
 			thread.start_new_thread( self.speloop, () )
 			self.spellabel = BStringView((8,jkl-hig*3-70,ghj-8,jkl-hig*2-62),"spellabel","Spellcheck status: enabled",B_FOLLOW_BOTTOM)
-			self.spellresp = BStringView((8,jkl-hig*3-58,ghj-48,jkl-hig*2-46),"spellresp","Spellcheck reply:",B_FOLLOW_BOTTOM)
+			self.spellresp = BStringView((8,jkl-hig*3-58,ghj-88,jkl-hig*2-46),"spellresp","Spellcheck reply:",B_FOLLOW_BOTTOM)
+			self.spellcount = BStringView((ghj-88,jkl-hig*3-58,ghj-68,jkl-hig*2-46),"spellresp","C",B_FOLLOW_BOTTOM)
 			self.checkres = BTextView((ghj-64,jkl-hig*3-54,ghj-8,jkl-hig*2-18),"checkres",(17.5,5,ghj-8-15,(jkl-hig*2-28)-15),B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM) # ☐ ☑ ☒
 			self.checkres.SetStylable(True)
 			self.font=BFont()
@@ -3050,6 +3034,7 @@ class PoWindow(BWindow):
 			self.lubox.AddChild(self.spellabel)
 			self.lubox.AddChild(self.spellresp)
 			self.lubox.AddChild(self.checkres)
+			self.lubox.AddChild(self.spellcount)
 		else:
 			self.spellabel= BStringView((8,jkl-hig*3-80,ghj-8,jkl-hig*2-72),"spellabel","Spellcheck status: disabled")
 			self.lubox.AddChild(self.spellabel)
@@ -3249,13 +3234,17 @@ class PoWindow(BWindow):
 			if len(self.editorslist)>0:
 				try:
 					Config.read(confile)
-					defname=ConfigSectionMap("Users")['default']
+					namo=ConfigSectionMap("Users")['default']
+					defname=namo+' <'+ConfigSectionMap(namo)['pe-mail']+'>'
+					grp=ConfigSectionMap(namo)['team']+' <'+ConfigSectionMap(namo)['te-mail']+'>'
 				except:
 					defname=self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']
+					grp=self.editorslist[self.postabview.Selection()].pofile.metadata['Language-Team']
 				now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
 				savepath=self.editorslist[self.postabview.Selection()].filen+self.editorslist[self.postabview.Selection()].file_ext
 				self.editorslist[self.postabview.Selection()].writter.acquire()
 				self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']=defname
+				self.editorslist[self.postabview.Selection()].pofile.metadata['Language-Team']=grp
 				self.editorslist[self.postabview.Selection()].pofile.metadata['PO-Revision-Date']=now
 				self.editorslist[self.postabview.Selection()].pofile.metadata['X-Editor']=version
 				thread.start_new_thread( self.editorslist[self.postabview.Selection()].Save, (savepath,) )
@@ -4319,7 +4308,8 @@ class PoWindow(BWindow):
 			self.speloc.acquire()
 			self.intime=time.time()
 			self.speloc.release()
-
+		elif msg.what == 7484:
+			self.spellcount.SetText(msg.FindString('graph'))
 		else:
 			BWindow.MessageReceived(self, msg)
 	
@@ -4328,11 +4318,16 @@ class PoWindow(BWindow):
 		global quitter
 		quitter = True
 		t1 = time.time()
+		steps=['˹','  ˺','  ˼','˻']
+		y=0
 		while quitter:
 			self.speloc.acquire()
 			tbef = self.intime
 			self.speloc.release()
-			ev.wait(1.5)
+			ev.wait(1)
+			mux=BMessage(7484)
+			mux.AddString('graph',str(steps[y]))
+			BApplication.be_app.WindowAt(0).PostMessage(mux)
 			self.speloc.acquire()
 			taft = self.intime
 			self.speloc.release()
@@ -4341,29 +4336,11 @@ class PoWindow(BWindow):
 					if len(self.listemsgstr)>0:
 						traduzion=self.listemsgstr[self.transtabview.Selection()].trnsl.Text()
 						if traduzion != "":
-							self.listemsgstr[self.transtabview.Selection()].trnsl.CheckSpell()
+							BApplication.be_app.WindowAt(0).PostMessage(12343)
 				t1 = time.time()
-
-#	def speloop_old(self):
-#		ev = threading.Event()
-#		global quitter
-#		quitter = True
-#		t1 = time.time()
-#		while quitter:
-#			ev.wait(1.5)
-#			print "loop"
-#			self.speloc.acquire()
-#			torig = self.intime
-#			self.speloc.release()
-#			if self.intime > t1:
-#				print "checkspell"
-#				t1 = self.intime
-#				if len(self.listemsgstr)>0:
-#					traduzion=self.listemsgstr[self.transtabview.Selection()].trnsl.Text()
-#					if traduzion != "":
-#						self.listemsgstr[self.transtabview.Selection()].trnsl.CheckSpell()
-#			t1 = time.time()
-			
+			y+=1
+			if y == len(steps):
+				y=0			
 			
 		
 	def highlightlater(self,name,inizi,fin,schede,srctrnsl): #why name?     <--------------------
