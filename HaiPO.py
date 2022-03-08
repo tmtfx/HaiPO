@@ -2564,6 +2564,7 @@ class sourcetabview(BTabView):
 			if (point[0]>=self.TabFrame(gg)[0]) and (point[0]<=self.TabFrame(gg)[2]) and (point[1]>=self.TabFrame(gg)[1]) and (point[1]<=self.TabFrame(gg)[3]):
 				self.superself.transtabview.Select(gg)
 			gg=gg+1
+		BApplication.be_app.WindowAt(0).PostMessage(12343)
 		return BTabView.MouseDown(self,point)
 
 class postabview(BTabView):
@@ -3338,7 +3339,6 @@ class PoWindow(BWindow):
 							cox+=1
 					bckpmsg.AddString('bckppath',cursel.backupfile)
 					BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
-					print tabs
 					if tabs == 0:
 						self.listemsgstr[self.transtabview.Selection()].trnsl.SetText(self.listemsgid[self.srctabview.Selection()].src.Text())
 					else:
@@ -3352,6 +3352,7 @@ class PoWindow(BWindow):
 							pi+=1
 					self.editorslist[self.postabview.Selection()].Hide()
 					self.editorslist[self.postabview.Selection()].Show() #Updates the MsgStrItem
+					BApplication.be_app.WindowAt(0).PostMessage(12343)
 		elif msg.what == 5:
 			# Save as
 			if len(self.editorslist)>0:
