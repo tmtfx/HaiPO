@@ -732,6 +732,28 @@ class Findsource(BWindow):
 				lista=BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].list.lv
 				total=lista.CountItems()
 				indaco=lista.CurrentSelection()
+				if indaco>-1:
+					savin=False
+					object=lista.ItemAt(indaco)
+					if object.hasplural:
+						if object.tosave:
+							savin = True
+						if not savin:
+							listar=BApplication.be_app.WindowAt(0).listemsgstr
+							t=len(listar)
+							x=0
+							while x<t:
+								if listar[x].trnsl.tosave:
+									savin = True
+									break
+								x+=1
+					else:
+						if object.tosave:
+							savin = True
+						if BApplication.be_app.WindowAt(0).listemsgstr[0].trnsl.tosave:
+							savin = True
+					if savin:
+						BApplication.be_app.WindowAt(0).listemsgstr[0].trnsl.Save()
 				tl = len(self.looktv.Text())
 				max = total
 				now = indaco
@@ -875,9 +897,30 @@ class FindRepTrans(BWindow):
 			self.pof=BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].pofile
 			lista=BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].list.lv
 			indaco=lista.CurrentSelection()
+			if indaco>-1:
+					savin=False
+					object=lista.ItemAt(indaco)
+					if object.hasplural:
+						if object.tosave:
+							savin = True
+						if not savin:
+							listar=BApplication.be_app.WindowAt(0).listemsgstr
+							t=len(listar)
+							x=0
+							while x<t:
+								if listar[x].trnsl.tosave:
+									savin = True
+									break
+								x+=1
+					else:
+						if object.tosave:
+							savin = True
+						if BApplication.be_app.WindowAt(0).listemsgstr[0].trnsl.tosave:
+							savin = True
+					if savin:
+						BApplication.be_app.WindowAt(0).listemsgstr[0].trnsl.Save()
 			self.arrayview=BApplication.be_app.WindowAt(0).poview
 			total=lista.CountItems()
-			#indaco=lista.CurrentSelection()
 			applydelta=float(indaco-self.pb.CurrentValue())
 			deltamsg=BMessage(7047)
 			deltamsg.AddFloat('delta',applydelta)
@@ -1975,34 +2018,9 @@ class EventTextView(BTextView):
 						value=self.superself.shortcut #CTRL SHIFT pressed
 						self.superself.sem.release()
 						if value:
-							BApplication.be_app.WindowAt(0).PostMessage(3)
-#							cursel=self.superself.editorslist[self.superself.postabview.Selection()]
-#							thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
-#							thisBlistitem.tosave=True
-#							tabs=len(self.superself.listemsgstr)-1
-#							bckpmsg=BMessage(16893)
-#							bckpmsg.AddInt8('savetype',1)
-#							bckpmsg.AddInt32('tvindex',cursel.list.lv.CurrentSelection())
-#							bckpmsg.AddInt8('plurals',tabs)
-#							bckpmsg.AddInt32('tabview',self.superself.postabview.Selection())
-#							if tabs == 0:
-#								thisBlistitem.txttosave=thisBlistitem.text.decode(self.superself.encoding)
-#								bckpmsg.AddString('translation',thisBlistitem.txttosave)
-#							else:
-#								thisBlistitem.txttosavepl=[]
-#								thisBlistitem.txttosave=self.superself.listemsgid[0].src.Text()
-#								bckpmsg.AddString('translation',thisBlistitem.txttosave)
-#								cox=1
-#								while cox < tabs+1:
-#									thisBlistitem.txttosavepl.append(self.superself.listemsgid[1].src.Text())
-#									bckpmsg.AddString('translationpl'+str(cox-1),self.superself.listemsgid[1].src.Text())
-#									cox+=1
-#							bckpmsg.AddString('bckppath',cursel.backupfile)
-#							BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
-#							kmesg=BMessage(130550)
-#							kmesg.AddInt8('movekind',0)
-#							BApplication.be_app.WindowAt(0).PostMessage(kmesg)
-#							return
+							BApplication.be_app.WindowAt(0).PostMessage(33)
+							return
+
 
 
 
@@ -3136,11 +3154,11 @@ class PoWindow(BWindow):
 					self.editorslist[self.postabview.Selection()].list.lv.Select(0)
 					self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
 					
-			elif key == 61: # s key
+			elif key == 61: # s key      ######## TODO: what? why?
 				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
 					self.sem.acquire()
 					if self.shortcut:
-						BApplication.be_app.WindowAt(0).PostMessage(3)
+						BApplication.be_app.WindowAt(0).PostMessage(33)
 					else:
 						pass
 					self.sem.release()
@@ -3254,7 +3272,7 @@ class PoWindow(BWindow):
 			return
 
 		elif msg.what == 3:
-			#copy from source
+			#copy from source from menù
 			if len(self.editorslist)>0:
 				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
 					cursel=self.editorslist[self.postabview.Selection()]
@@ -3280,7 +3298,7 @@ class PoWindow(BWindow):
 						while cox < tabs+1:
 							thisBlistitem.msgstrs.append(self.listemsgid[1].src.Text().decode(self.encoding))
 							thisBlistitem.txttosavepl.append(self.listemsgid[1].src.Text().decode(self.encoding))
-							bckpmsg.AddString('translationpl'+str(cox-1),self.listemsgid[1].src.Text().encode(self.encoding))    #<------- check for encode(self.encoding)
+							bckpmsg.AddString('translationpl'+str(cox-1),self.listemsgid[1].src.Text())    #<------- check removed encode(self.encoding)
 							cox+=1
 					bckpmsg.AddString('bckppath',cursel.backupfile)
 					BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
@@ -3289,7 +3307,51 @@ class PoWindow(BWindow):
 					kmesg.AddInt8('movekind',0)
 					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 			return
-		
+		elif msg.what == 33:
+			#copy from source from keyboard
+			if len(self.editorslist)>0:
+				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
+					cursel=self.editorslist[self.postabview.Selection()]
+					thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
+					thisBlistitem.tosave=True
+					tabs=len(self.listemsgstr)-1
+					bckpmsg=BMessage(16893)
+					bckpmsg.AddInt8('savetype',1)
+					bckpmsg.AddInt32('tvindex',cursel.list.lv.CurrentSelection())
+					bckpmsg.AddInt8('plurals',tabs)
+					bckpmsg.AddInt32('tabview',self.postabview.Selection())
+					if tabs == 0:   #->      if not thisBlistitem.hasplural:                         <-------------------------- or this?
+						thisBlistitem.txttosave=thisBlistitem.text.decode(self.encoding)
+						thisBlistitem.msgstrs=thisBlistitem.txttosave
+						bckpmsg.AddString('translation',thisBlistitem.txttosave.encode(self.encoding)) # <------------ check if encode in self.encoding or utf-8
+					else:
+						thisBlistitem.txttosavepl=[]
+						thisBlistitem.txttosave=self.listemsgid[0].src.Text().decode(self.encoding)
+						thisBlistitem.msgstrs=[]
+						thisBlistitem.msgstrs.append(thisBlistitem.txttosave)
+						bckpmsg.AddString('translation',thisBlistitem.txttosave.encode(self.encoding)) # <------------ check if encode in self.encoding or utf-8
+						cox=1
+						while cox < tabs+1:
+							thisBlistitem.msgstrs.append(self.listemsgid[1].src.Text().decode(self.encoding))
+							thisBlistitem.txttosavepl.append(self.listemsgid[1].src.Text().decode(self.encoding))
+							bckpmsg.AddString('translationpl'+str(cox-1),self.listemsgid[1].src.Text())    #<------- check removed encode(self.encoding)
+							cox+=1
+					bckpmsg.AddString('bckppath',cursel.backupfile)
+					BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
+					print tabs
+					if tabs == 0:
+						self.listemsgstr[self.transtabview.Selection()].trnsl.SetText(self.listemsgid[self.srctabview.Selection()].src.Text())
+					else:
+						p=len(self.listemsgstr)
+						pi=0
+						while pi<p:
+							if pi==0:
+								self.listemsgstr[0].trnsl.SetText(self.listemsgid[0].src.Text())
+							else:
+								self.listemsgstr[pi].trnsl.SetText(self.listemsgid[1].src.Text())
+							pi+=1
+					self.editorslist[self.postabview.Selection()].Hide()
+					self.editorslist[self.postabview.Selection()].Show() #Updates the MsgStrItem
 		elif msg.what == 5:
 			# Save as
 			if len(self.editorslist)>0:
@@ -4327,7 +4389,7 @@ class PoWindow(BWindow):
 			self.speloc.acquire()
 			tbef = self.intime
 			self.speloc.release()
-			ev.wait(1)
+			ev.wait(0.5)
 			mux=BMessage(7484)
 			mux.AddString('graph',str(steps[y]))
 			BApplication.be_app.WindowAt(0).PostMessage(mux)
