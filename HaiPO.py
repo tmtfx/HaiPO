@@ -2197,9 +2197,12 @@ class srctabbox(BBox):
 		self.name = name
 		BBox.__init__(self,(0,0,playground1[2]-playground1[0],playground1[3]-playground1[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
 		self.hsrc = playground1[3] - playground1[1] - altece 
-		self.src = BTextView((playground1[0],playground1[1],playground1[2]-playground1[0],playground1[3]-playground1[1]),name+'_source_BTextView',(5.0,5.0,playground1[2]-15,playground1[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)
+		self.src = BTextView((playground1[0],playground1[1],playground1[2]-playground1[0]-20,playground1[3]-playground1[1]),name+'_source_BTextView',(5.0,5.0,playground1[2]-30,playground1[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)#-15
 		self.src.MakeEditable(False)
 		self.AddChild(self.src)
+		bi,bu,bo,ba = playground1
+		self.scrollbsrc=BScrollBar((bo -21,1,bo-5,ba-5),name+'_ScrollBar',self.src,0.0,0.0,B_VERTICAL)
+		self.AddChild(self.scrollbsrc)
 class trnsltabbox(BBox):
 	def __init__(self,playground2,name,altece,superself):
 		self.name = name
