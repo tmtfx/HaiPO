@@ -968,7 +968,7 @@ class FindRepTrans(BWindow):
 									break
 						else:
 							if blister.hasplural:
-								for ident,items in enumerate(values):
+								for ident,items in enumerate(blister.msgstrs):
 									ret = items.encode(self.encoding).lower().find(self.looktv.Text().lower())
 									if ret >-1:
 										lista.Select(now)
@@ -980,7 +980,7 @@ class FindRepTrans(BWindow):
 										loopa = False
 										break
 							else:
-								ret = values[0].encode(self.encoding).lower().find(self.looktv.Text().lower())
+								ret = blister.msgstrs.encode(self.encoding).lower().find(self.looktv.Text().lower())
 								if ret >-1:
 									lista.Select(now)
 									epistola.AddInt8('plural',0)
