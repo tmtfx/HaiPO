@@ -2209,13 +2209,66 @@ class word2fix():
 		return self.pos
 	def strings(self):
 		return self.sugg
+
+class srcTextView(BTextView):
+	def __init__(self,frame,name,textRect,resizingMode,flags):
+		BTextView.__init__(self,frame,name,textRect,resizingMode,flags)
+		self.SetStylable(1)
+	def Draw(self,suaze):
+		BTextView.Draw(self,suaze)
+		hrdwrk= self.Text()
+		ii=0
+		decor=[]
+		while ii<len(hrdwrk):
+			
+	 		if hrdwrk[ii] == ' ':
+	 			if ii+1==len(hrdwrk):
+	 				asd=self.PointAt(ii)
+	 				color = (200,200,200,0)
+	 				self.SetHighColor(color)
+	 				self.MovePenTo((asd[0][0],asd[0][1]+asd[1]))
+	 				self.DrawString(' ᪶ ')
+	 				color = (0,0,0,0)
+	 				self.SetHighColor(color)
+	 				print "disegna ondine 1"
+	 			else:
+	 				if hrdwrk[ii+1]=='\n':
+	 					asd=self.PointAt(ii)
+	 					color = (200,200,200,0)
+	 					self.SetHighColor(color)
+	 					self.MovePenTo((asd[0][0],asd[0][1]+asd[1]))
+	 					self.DrawString(' ᪶ ')
+	 					color = (255,0,0,0)
+						self.SetHighColor(color)
+						self.MovePenTo((asd[0][0]+8,asd[0][1]+asd[1]))
+						self.DrawString('⏎')
+	 					color = (0,0,0,0)
+	 					self.SetHighColor(color)
+	 					ii+=1
+	 					print "disegna ondine 2"
+	 		else:
+	 			if hrdwrk[ii] == '\n':
+	 			#print "trovato un acapo alla posizione,",ii
+		 			asd=self.PointAt(ii)
+		 			color = (255,0,0,0)
+					self.SetHighColor(color)
+	 				self.MovePenTo((asd[0][0],asd[0][1]+asd[1]))
+	 				self.DrawString('⏎')
+		 			color = (0,0,0,0)
+		 			self.SetHighColor(color)
+			ii+=1
+#		for chr in hrdwrk:
+#			if chr == '\n':
+
+		return 
 		
 class srctabbox(BBox):
 	def __init__(self,playground1,name,altece):
 		self.name = name
 		BBox.__init__(self,(0,0,playground1[2]-playground1[0],playground1[3]-playground1[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
 		self.hsrc = playground1[3] - playground1[1] - altece 
-		self.src = BTextView((playground1[0],playground1[1],playground1[2]-playground1[0]-20,playground1[3]-playground1[1]),name+'_source_BTextView',(5.0,5.0,playground1[2]-30,playground1[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)#-15
+		#self.src = BTextView((playground1[0],playground1[1],playground1[2]-playground1[0]-20,playground1[3]-playground1[1]),name+'_source_BTextView',(5.0,5.0,playground1[2]-30,playground1[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)#-15
+		self.src = srcTextView((playground1[0],playground1[1],playground1[2]-playground1[0]-20,playground1[3]-playground1[1]),name+'_source_BTextView',(5.0,5.0,playground1[2]-30,playground1[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.src.MakeEditable(False)
 		self.AddChild(self.src)
 		bi,bu,bo,ba = playground1
