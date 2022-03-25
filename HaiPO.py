@@ -891,7 +891,6 @@ class FindRepTrans(BWindow):
 			i=i+1
 
 	def MessageReceived(self, msg):
-	
 		if msg.what == 5348:
 		  if self.looktv.Text() != "":
 			self.pof=BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].pofile
@@ -1000,10 +999,17 @@ class FindRepTrans(BWindow):
 						loopa=False
 						say = BAlert('not_found', 'No matches found on listed entries', 'Ok',None, None, None, 3)
 						say.Go()
+			return
 
 		elif msg.what == 7047:
 			addfloat=msg.FindFloat('delta')
 			self.pb.Update(addfloat)
+			return
+		elif msg.what == 1010:
+#			lftxt=
+			self.looktv.SetText(msg.FindString('txt'))
+			return
+		return
 		
 class MaacUtent(BWindow):
 	kWindowFrame = (250, 150, 555, 290)
@@ -2601,12 +2607,47 @@ class POEditorBBox(BBox):
 			txttoshow=""
 			x=0
 			while x<len(svdlns)-2:
+				if x==0:
+					posuno= svdlns[x].find(':')
+					if posuno>-1:
+						posuno+=1
+						str1=svdlns[x][posuno:]
+						posdue=str1.find(':')
+						if posdue>-1:
+							str2=str1[:posdue]
+							rnwt=int(str2)
+							polines = []
+							with open (path, 'rt') as pf:
+								for rie in pf:
+									polines.append(rie)
+							strtosrc = polines[rnwt-1]
 				txttoshow=txttoshow+svdlns[x]
+				say = BAlert(svdlns[len(svdlns)-2], txttoshow+"\n\nGo to this error?", 'Yes',"Skip", None, None , 4)
+				out=say.Go()
+				if out==0:
+					#inserire la ricerca per la parola interessata
+					self.frtrans = FindRepTrans()
+					self.frtrans.Show()
+					i = 1
+					w = BApplication.be_app.CountWindows()
+					while w > i:
+						title=BApplication.be_app.WindowAt(i).Title()
+						if title=="Find/Replace translation":
+							mxg=BMessage(1010)
+							strtosrc=strtosrc[8:]
+							o=-1
+							lockloop=True
+							while lockloop:
+								if strtosrc[o]=="\"":
+									strtosrc=strtosrc[:o]
+									lockloop=False
+								else:
+									o-=1
+							mxg.AddString('txt',strtosrc)
+							BApplication.be_app.WindowAt(i).PostMessage(mxg)
+						i+=1
+					
 				x+=1
-			print "testo da mostrare",txttoshow
-			say = BAlert(svdlns[len(svdlns)-2], txttoshow, 'Ok',None, None, None , 4)
-			out=say.Go()
-		# check with "msgfmt-x86 -c" the file and open a dialog
 		self.writter.release()
 		
 class translationtabview(BTabView):
