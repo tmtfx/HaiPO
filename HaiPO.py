@@ -25,6 +25,7 @@
 
 import os,sys,ConfigParser,struct,re,thread,datetime,time,threading,unicodedata
 from distutils.spawn import find_executable
+from subprocess import Popen,STDOUT,PIPE
 
 version='HaiPO 1.0 Release'
 (appname,ver,state)=version.split(' ')
@@ -98,7 +99,6 @@ if not firstrun:
 				setencoding = False
 
 		if setspellcheck:
-			from subprocess import Popen,STDOUT,PIPE
 			showspell=True
 			try:
 				global inclusion,esclusion
@@ -2586,6 +2586,27 @@ class POEditorBBox(BBox):
 
 	def Save(self,path):
 		self.pofile.save(path)
+		execpath = find_executable("msgfmt-x86")
+		comtwo = execpath+" -c "+path
+		#print comtwo
+		checker = Popen( comtwo.split(' '), stdout=PIPE,stderr=PIPE)
+		jessude,err= checker.communicate()
+		#print jessude,err
+		svdlns=[]
+		for ries in err.split('\n'):
+			svdlns.append(ries)
+		if len(svdlns)>1:
+			#last row (len(x)-1) is always blank
+			#print svdlns[len(svdlns)-2]
+			txttoshow=""
+			x=0
+			while x<len(svdlns)-2:
+				txttoshow=txttoshow+svdlns[x]
+				x+=1
+			print "testo da mostrare",txttoshow
+			say = BAlert(svdlns[len(svdlns)-2], txttoshow, 'Ok',None, None, None , 4)
+			out=say.Go()
+		# check with "msgfmt-x86 -c" the file and open a dialog
 		self.writter.release()
 		
 class translationtabview(BTabView):
