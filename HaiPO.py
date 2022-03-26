@@ -27,7 +27,7 @@ import os,sys,ConfigParser,struct,re,thread,datetime,time,threading,unicodedata
 from distutils.spawn import find_executable
 from subprocess import Popen,STDOUT,PIPE
 
-version='HaiPO 1.0 Release'
+version='HaiPO 1.1 RC2'
 (appname,ver,state)=version.split(' ')
 
 jes = False
@@ -2594,13 +2594,11 @@ class POEditorBBox(BBox):
 		self.pofile.save(path)
 		execpath = find_executable("msgfmt-x86")
 		comtwo = execpath+" -c "+path
-		#print comtwo
 		checker = Popen( comtwo.split(' '), stdout=PIPE,stderr=PIPE)
 		jessude,err= checker.communicate()
 		svdlns=[]
 		for ries in err.split('\n'):
 			svdlns.append(ries)
-		#print "svdlns è:",svdlns
 		guut = []
 		if len(svdlns)>1:
 			#last row (len(x)-1) is always blank
