@@ -2633,21 +2633,22 @@ class POEditorBBox(BBox):
 						title=BApplication.be_app.WindowAt(i).Title()
 						if title=="Find/Replace "+str(len(guut)-1):
 							mxg=BMessage(1010)
-							strtosrc=strtosrc[8:]
-							o=len(strtosrc)-2
+							print "prima di [8:]",strtosrc
+							diciri=strtosrc[8:]
+							o=len(diciri)-2
 							lockloop=True
 							while lockloop:
 								print o
-								if strtosrc[o]=="\"":
-									strtosrc=strtosrc[:o]
+								if diciri[o]=="\"":
+									diciri=diciri[:o]
 									lockloop=False
 								else:
 									if o>0:
 										o-=1
 									else:
 										break
-							print strtosrc
-							mxg.AddString('txt',strtosrc)
+							print diciri
+							mxg.AddString('txt',diciri)
 							BApplication.be_app.WindowAt(i).PostMessage(mxg)
 						i+=1
 				x+=1
