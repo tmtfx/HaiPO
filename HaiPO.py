@@ -2597,17 +2597,17 @@ class POEditorBBox(BBox):
 		#print comtwo
 		checker = Popen( comtwo.split(' '), stdout=PIPE,stderr=PIPE)
 		jessude,err= checker.communicate()
-		#print jessude,err
 		svdlns=[]
 		for ries in err.split('\n'):
 			svdlns.append(ries)
+		#print "svdlns è:",svdlns
+		guut = []
 		if len(svdlns)>1:
 			#last row (len(x)-1) is always blank
-			#print svdlns[len(svdlns)-2]
 			txttoshow=""
 			x=0
 			while x<len(svdlns)-2:
-				if x==0:
+				if True:#x==0:
 					posuno= svdlns[x].find(':')
 					if posuno>-1:
 						posuno+=1
@@ -2621,32 +2621,37 @@ class POEditorBBox(BBox):
 								for rie in pf:
 									polines.append(rie)
 							strtosrc = polines[rnwt-1]
-				txttoshow=txttoshow+svdlns[x]
+				txttoshow=svdlns[x]#txttoshow+
 				say = BAlert(svdlns[len(svdlns)-2], txttoshow+"\n\nGo to this error?", 'Yes',"Skip", None, None , 4)
 				out=say.Go()
 				if out==0:
 					#inserire la ricerca per la parola interessata
-					self.frtrans = FindRepTrans()
-					self.frtrans.Show()
+					guut.append(FindRepTrans())
+					guut[len(guut)-1].SetTitle("Find/Replace "+str(len(guut)-1))
+					guut[len(guut)-1].Show()
 					i = 1
 					w = BApplication.be_app.CountWindows()
 					while w > i:
 						title=BApplication.be_app.WindowAt(i).Title()
-						if title=="Find/Replace translation":
+						if title=="Find/Replace "+str(len(guut)-1):
 							mxg=BMessage(1010)
 							strtosrc=strtosrc[8:]
-							o=-1
+							o=len(strtosrc)-2
 							lockloop=True
 							while lockloop:
+								print o
 								if strtosrc[o]=="\"":
 									strtosrc=strtosrc[:o]
 									lockloop=False
 								else:
-									o-=1
+									if o>0:
+										o-=1
+									else:
+										break
+							print strtosrc
 							mxg.AddString('txt',strtosrc)
 							BApplication.be_app.WindowAt(i).PostMessage(mxg)
 						i+=1
-					
 				x+=1
 		self.writter.release()
 		
