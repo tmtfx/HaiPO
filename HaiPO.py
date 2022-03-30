@@ -2603,7 +2603,6 @@ class POEditorBBox(BBox):
 		if len(svdlns)>1:
 			try:
 				#last row (len(x)-1) is always blank
-				raise # di gjavâ
 				txttoshow=""
 				x=0
 				while x<len(svdlns)-2:
