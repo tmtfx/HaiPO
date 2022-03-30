@@ -2016,6 +2016,9 @@ class EventTextView(BTextView):
 				thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
 				thisBlistitem.tosave=False
 				thisBlistitem.txttosave=""
+				print "Seleziono la fine?"
+				fine=len(self.oldtext)
+				self.Select(fine,fine)
 				return
 			else:
 				if self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()>-1:
@@ -2026,8 +2029,6 @@ class EventTextView(BTextView):
 						if value:
 							BApplication.be_app.WindowAt(0).PostMessage(33)
 							return
-
-
 
 
 					BTextView.KeyDown(self,char,bytes)
@@ -2236,7 +2237,6 @@ class srcTextView(BTextView):
 	 				self.DrawString(' ᪶ ')
 	 				color = (0,0,0,0)
 	 				self.SetHighColor(color)
-	 				print "disegna ondine 1"
 	 			else:
 	 				if hrdwrk[ii+1]=='\n':
 	 					asd=self.PointAt(ii)
@@ -2251,10 +2251,8 @@ class srcTextView(BTextView):
 	 					color = (0,0,0,0)
 	 					self.SetHighColor(color)
 	 					ii+=1
-	 					print "disegna ondine 2"
 	 		else:
 	 			if hrdwrk[ii] == '\n':
-	 			#print "trovato un acapo alla posizione,",ii
 		 			asd=self.PointAt(ii)
 		 			color = (255,0,0,0)
 					self.SetHighColor(color)
@@ -3266,27 +3264,26 @@ class PoWindow(BWindow):
 #			msg.PrintToStream()
 		elif msg.what == B_KEY_DOWN:	#on tab key pressed, focus on translation or translation of first item list of translations
 			key=msg.FindInt32('key')
-			if key==38: #tab key
-				lung = len(self.editorslist)
-				if lung > 0:
+			lung = len(self.editorslist)
+			if lung > 0:
+				if key==38: #tab key
 					if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
 						self.listemsgstr[self.transtabview.Selection()].trnsl.MakeFocus() ###########à LOOK HERE 
 					else:
 						self.editorslist[self.postabview.Selection()].list.lv.Select(0)
 						self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
-			elif key in (98,87,54,33):
-				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection() < 0:
-					self.editorslist[self.postabview.Selection()].list.lv.Select(0)
-					self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
-					
-			elif key == 61: # s key      ######## TODO: what? why?
-				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
-					self.sem.acquire()
-					if self.shortcut:
-						BApplication.be_app.WindowAt(0).PostMessage(33)
-					else:
-						pass
-					self.sem.release()
+				elif key in (98,87,54,33):
+					if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection() < 0:
+						self.editorslist[self.postabview.Selection()].list.lv.Select(0)
+						self.editorslist[self.postabview.Selection()].list.lv.ScrollToSelection()
+#				elif key == 61: # s key      ######## TODO: check, because it seems useless
+#					if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
+#						self.sem.acquire()
+#						if self.shortcut:
+#							BApplication.be_app.WindowAt(0).PostMessage(33)
+#						else:
+#							pass
+#						self.sem.release()
 			return
 
 		elif msg.what == 295485:
