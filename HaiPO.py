@@ -2601,57 +2601,64 @@ class POEditorBBox(BBox):
 			svdlns.append(ries)
 		guut = []
 		if len(svdlns)>1:
-			#last row (len(x)-1) is always blank
-			txttoshow=""
-			x=0
-			while x<len(svdlns)-2:
-				if True:#x==0:
-					posuno= svdlns[x].find(':')
-					if posuno>-1:
-						posuno+=1
-						str1=svdlns[x][posuno:]
-						posdue=str1.find(':')
-						if posdue>-1:
-							str2=str1[:posdue]
-							rnwt=int(str2)
-							polines = []
-							with open (path, 'rt') as pf:
-								for rie in pf:
-									polines.append(rie)
-							strtosrc = polines[rnwt-1]
-				txttoshow=svdlns[x]#txttoshow+
-				say = BAlert(svdlns[len(svdlns)-2], txttoshow+"\n\nGo to this error?", 'Yes',"Skip", None, None , 4)
-				out=say.Go()
-				if out==0:
-					#inserire la ricerca per la parola interessata
-					guut.append(FindRepTrans())
-					guut[len(guut)-1].SetTitle("Find/Replace "+str(len(guut)-1))
-					guut[len(guut)-1].Show()
-					i = 1
-					w = BApplication.be_app.CountWindows()
-					while w > i:
-						title=BApplication.be_app.WindowAt(i).Title()
-						if title=="Find/Replace "+str(len(guut)-1):
-							mxg=BMessage(1010)
-							print "prima di [8:]",strtosrc
-							diciri=strtosrc[8:]
-							o=len(diciri)-2
-							lockloop=True
-							while lockloop:
-								print o
-								if diciri[o]=="\"":
-									diciri=diciri[:o]
-									lockloop=False
-								else:
-									if o>0:
-										o-=1
+			try:
+				#last row (len(x)-1) is always blank
+				raise # di gjavâ
+				txttoshow=""
+				x=0
+				while x<len(svdlns)-2:
+					if True:#x==0:
+						posuno= svdlns[x].find(':')
+						if posuno>-1:
+							posuno+=1
+							str1=svdlns[x][posuno:]
+							posdue=str1.find(':')
+							if posdue>-1:
+								str2=str1[:posdue]
+								rnwt=int(str2)
+								polines = []
+								with open (path, 'rt') as pf:
+									for rie in pf:
+										polines.append(rie)
+								strtosrc = polines[rnwt-1]
+					txttoshow=svdlns[x]#txttoshow+
+					say = BAlert(svdlns[len(svdlns)-2], txttoshow+"\n\nGo to this error?", 'Yes',"Skip", None, None , 4)
+					out=say.Go()
+					if out==0:
+						#inserire la ricerca per la parola interessata
+						guut.append(FindRepTrans())
+						guut[len(guut)-1].SetTitle("Find/Replace "+str(len(guut)-1))
+						guut[len(guut)-1].Show()
+						i = 1
+						w = BApplication.be_app.CountWindows()
+						while w > i:
+							title=BApplication.be_app.WindowAt(i).Title()
+							if title=="Find/Replace "+str(len(guut)-1):
+								mxg=BMessage(1010)
+								diciri=strtosrc[8:]
+								o=len(diciri)-2
+								lockloop=True
+								while lockloop:
+									if diciri[o]=="\"":
+										diciri=diciri[:o]
+										lockloop=False
 									else:
-										break
-							print diciri
-							mxg.AddString('txt',diciri)
-							BApplication.be_app.WindowAt(i).PostMessage(mxg)
-						i+=1
-				x+=1
+										if o>0:
+											o-=1
+										else:
+											break
+								mxg.AddString('txt',diciri)
+								BApplication.be_app.WindowAt(i).PostMessage(mxg)
+							i+=1
+					x+=1
+			except:
+				erout = ""
+				for it in svdlns:
+					erout=erout + it
+				ermsg=BMessage(202202)
+				ermsg.AddString('error',erout)
+				self.Looper().PostMessage(ermsg)
+				#BApplication.be_app.WindowAt(0).PostMessage(ermsg)
 		self.writter.release()
 		
 class translationtabview(BTabView):
@@ -4495,6 +4502,10 @@ class PoWindow(BWindow):
 			self.speloc.release()
 		elif msg.what == 7484:
 			self.spellcount.SetText(msg.FindString('graph'))
+		elif msg.what == 202202:
+			erout=msg.FindString('error')
+			say = BAlert("Generic error",erout, 'OK',None, None, None , 4)
+			out=say.Go()
 		else:
 			BWindow.MessageReceived(self, msg)
 	
