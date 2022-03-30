@@ -2654,10 +2654,9 @@ class POEditorBBox(BBox):
 				erout = ""
 				for it in svdlns:
 					erout=erout + it
-				ermsg=BMessage(202202)
-				ermsg.AddString('error',erout)
-				self.Looper().PostMessage(ermsg)
-				#BApplication.be_app.WindowAt(0).PostMessage(ermsg)
+				say = BAlert("Generic error",erout, 'OK',None, None, None , 4)
+				out=say.Go()
+				#self.Looper().PostMessage(ermsg)
 		self.writter.release()
 		
 class translationtabview(BTabView):
@@ -4494,17 +4493,12 @@ class PoWindow(BWindow):
 			schede =  msg.FindInt8("schede")
 			self.listemsgstr[schede].trnsl.MakeFocus(True)
 			self.listemsgstr[schede].trnsl.Highlight(inizi,fin)
-			
 		elif msg.what == 333111:
 			self.speloc.acquire()
 			self.intime=time.time()
 			self.speloc.release()
 		elif msg.what == 7484:
 			self.spellcount.SetText(msg.FindString('graph'))
-		elif msg.what == 202202:
-			erout=msg.FindString('error')
-			say = BAlert("Generic error",erout, 'OK',None, None, None , 4)
-			out=say.Go()
 		else:
 			BWindow.MessageReceived(self, msg)
 	
