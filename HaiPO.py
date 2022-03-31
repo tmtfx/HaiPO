@@ -2594,6 +2594,10 @@ class POEditorBBox(BBox):
 		comtwo = execpath+" -c "+path
 		checker = Popen( comtwo.split(' '), stdout=PIPE,stderr=PIPE)
 		jessude,err= checker.communicate()
+		msgdigj=str(os.getcwd())+'/messages.mo'
+		if os.path.exists(msgdigj):
+			cmdrm="rm -f "+msgdigj
+			os.system(cmdrm)
 		svdlns=[]
 		for ries in err.split('\n'):
 			svdlns.append(ries)
