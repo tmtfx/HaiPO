@@ -2597,8 +2597,6 @@ class POEditorBBox(BBox):
 		msgdigj=str(os.getcwd())+'/messages.mo'
 		if os.path.exists(msgdigj):
 			os.remove(msgdigj)
-			#cmdrm="rm -f "+msgdigj
-			#os.system(cmdrm)
 		svdlns=[]
 		for ries in err.split('\n'):
 			svdlns.append(ries)
@@ -4127,7 +4125,6 @@ class PoWindow(BWindow):
 				if letsgo:
 					if self.setencoding:
 						try:
-							######## ZONTE ACHI ##############
 							self.pof = polib.pofile(txtpath,encoding=self.encoding)
 							if mimeinstalled:
 								say = BAlert('oops', "The file is ok, but there's no gettext mimetype installed in your system", 'Ok',None, None, None, 3)
@@ -4140,6 +4137,25 @@ class PoWindow(BWindow):
 								say = BAlert('oops', "User language differs from po language", 'Go on',None, None, None, 3)
 								say.Go()
 							self.loadPOfile(txtpath,trc,self.pof)
+							self.Nichilize()
+							bounds = self.Bounds()
+							l, t, r, b = bounds
+							binds = self.background.Bounds()
+							luwidth=self.lubox.Bounds()[2]-self.lubox.Bounds()[0]
+							c,p,d,s = binds
+							plygrnd2 = (5, b-142,r -luwidth-5, s-2)
+							altece = self.srctabview.TabHeight()
+							tabrc2 = (3, 3, plygrnd2[2] - plygrnd2[0], plygrnd2[3] - plygrnd2[1]-altece)
+							self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
+							self.transtablabels.append(BTab())
+							self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
+							################### BUG? ###################
+							self.transtabview.Select(1)									###### bug fix
+							self.transtabview.Select(0)
+							self.listemsgid[0].src.SetText("")
+							self.srctabview.Select(1)
+							self.srctabview.Select(0)
+							##### zonte achì ####
 						except:
 							test = compiletest(mimesuptbool,mimesubtbool,extbool)
 							say = BAlert('oops', 'Failed to load: '+test, 'Ok',None, None, None, 3)
@@ -4160,6 +4176,25 @@ class PoWindow(BWindow):
 								say = BAlert('oops', "User language differs from po language", 'Go on',None, None, None, 3)
 								say.Go()
 							self.loadPOfile(txtpath,trc,self.pof)
+							self.Nichilize()
+							bounds = self.Bounds()
+							l, t, r, b = bounds
+							binds = self.background.Bounds()
+							luwidth=self.lubox.Bounds()[2]-self.lubox.Bounds()[0]
+							c,p,d,s = binds
+							plygrnd2 = (5, b-142,r -luwidth-5, s-2)
+							altece = self.srctabview.TabHeight()
+							tabrc2 = (3, 3, plygrnd2[2] - plygrnd2[0], plygrnd2[3] - plygrnd2[1]-altece)
+							self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
+							self.transtablabels.append(BTab())
+							self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
+							################### BUG? ###################
+							self.transtabview.Select(1)									###### bug fix
+							self.transtabview.Select(0)
+							self.listemsgid[0].src.SetText("")
+							self.srctabview.Select(1)
+							self.srctabview.Select(0)
+							##### zonte achì ####
 			else:
 					if self.setencoding:
 						pass
@@ -4662,7 +4697,6 @@ class HaiPOApp(BApplication.BApplication):
 					mime = static.GuessMimeType(self.txtpath)
 					mimetype = repr(mime.Type()).replace('\'','')
 					supertype,subtype = mimetype.split('/')
-					
 					smesg=BMessage(445380)
 					smesg.AddString("path",self.txtpath)
 					smesg.AddString("extension",file_extension)
