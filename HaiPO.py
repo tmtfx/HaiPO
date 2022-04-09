@@ -27,7 +27,7 @@ import os,sys,ConfigParser,struct,re,thread,datetime,time,threading,unicodedata
 from distutils.spawn import find_executable
 from subprocess import Popen,STDOUT,PIPE
 
-version='HaiPO 1.1 RC2'
+version='HaiPO 1.1 RC3'
 (appname,ver,state)=version.split(' ')
 
 jes = False
@@ -82,7 +82,6 @@ if not firstrun:
 		Config.read(confile)
 		try:
 			setspellcheck=ConfigSectionMap("Settings")['spellchecking']
-			#print setspellcheck,"setspellcheck"
 		except:
 			cfgfile = open(confile,'w')
 			Config.set('Settings','spellchecking', 'False')
@@ -94,10 +93,16 @@ if not firstrun:
 			#print setencoding,"setencoding all'avvio"
 			if setencoding:
 					try:
-						encoding = "utf-8" # REMOVE and set user setting
+						usero=ConfigSectionMap("Users")['default']
+						try:
+							encoding = ConfigSectionMap(usero)['encoding']
+						except:
+							print "setencoding true but no encoding property in user settings"
+							encoding = "utf-8" # REMOVE and set user setting
 						#encoding = ConfigSectionMap("Settings")['encoding'] #TO FIX, user setting
 						pass
 					except (ConfigParser.NoSectionError):
+						encoding = "utf-8"
 						setencoding = False
 		except:
 				setencoding = False
