@@ -55,7 +55,7 @@ def ConfigSectionMap(section):
 firstrun=False
 global evstyle
 evstyle=threading.Semaphore()
-global confile
+global confile,setencoding
 confile=os.path.join(sys.path[0],'config.ini')
 if os.path.isfile(confile):
 	try:
@@ -82,6 +82,7 @@ if not firstrun:
 		Config.read(confile)
 		try:
 			setspellcheck=ConfigSectionMap("Settings")['spellchecking']
+			#print setspellcheck,"setspellcheck"
 		except:
 			cfgfile = open(confile,'w')
 			Config.set('Settings','spellchecking', 'False')
@@ -90,9 +91,12 @@ if not firstrun:
 			setspellcheck=False
 		try:
 			setencoding=Config.getboolean('Settings', 'customenc')
+			#print setencoding,"setencoding all'avvio"
 			if setencoding:
 					try:
-						encoding = ConfigSectionMap("Settings")['encoding']
+						encoding = "utf-8" # REMOVE and set user setting
+						#encoding = ConfigSectionMap("Settings")['encoding'] #TO FIX, user setting
+						pass
 					except (ConfigParser.NoSectionError):
 						setencoding = False
 		except:
@@ -139,8 +143,10 @@ if not firstrun:
 				exe = "hunspell-x86"
 			if setencoding:
 				comm = [exe,'-i',encoding,'-d',spelldict]#['hunspell-x86','-a','-i',encoding,'-d','/system/data/hunspell/fur_IT'] # '-a',
+				#print comm
 			else:
 				comm = [exe,'-d',spelldict]#'-a',
+				#print comm
 		else:
 			showspell=False
 	except:
@@ -226,7 +232,7 @@ class PBoolView(BView):
 			self.DrawBitmap(self.imagjinF,rect)
 			
 class PeopleBView(BBox):
-	def __init__(self,frame,name,lang,team,pemail,temail,default):
+	def __init__(self,frame,name,lang,team,pemail,temail,default,encod):
 		self.frame=frame
 		self.name=name
 		BBox.__init__(self,self.frame,name,B_FOLLOW_LEFT | B_FOLLOW_TOP,B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
@@ -238,7 +244,8 @@ class PeopleBView(BBox):
 		self.team = BTextControl((20, 48 + 2*h, r - 50, 3*h + 66), 'team', 'Team name:', team, BMessage(8))
 		self.pemail = BTextControl((20, 64 + 3*h, r - 50, 4*h + 82), 'pemail', 'Personal e-mail:', pemail, BMessage(9))
 		self.temail = BTextControl((20, 80 + 4*h, r - 50, 5*h + 98), 'temail', 'Team e-mail:', temail, BMessage(10))
-		self.default = BCheckBox((20, 5*h + 101, r - 50, 6*h + 119),'chkdef','Active user',BMessage(150380))
+		self.default = BCheckBox((20, 5*h + 101, r - 150, 6*h + 119),'chkdef','Active user',BMessage(150380))
+		self.encod = BTextControl((120, 96 + 5*h, r - 50, 6*h + 119), 'encod', 'User encoding:', encod, BMessage(11))
 		if default:
 			self.default.SetValue(1)
 		else:
@@ -249,7 +256,9 @@ class PeopleBView(BBox):
 		self.AddChild(self.pemail)
 		self.AddChild(self.temail)
 		self.AddChild(self.default)
-		
+		if setencoding:
+			self.AddChild(self.encod)
+
 class POmetadata(BWindow):
 	kWindowFrame = (150, 150, 585, 480)
 	kWindowName = "POSettings"
@@ -350,10 +359,18 @@ class ImpostazionsUtent(BWindow):
 				team=ConfigSectionMap(listu[x])['team']
 				pemail=ConfigSectionMap(listu[x])['pe-mail']
 				temail=ConfigSectionMap(listu[x])['te-mail']
-				if name == defaultuser:
-					self.userviewlist.append(PeopleBView(tfr,name,lang,team,pemail,temail,True))
+				print setencoding
+				if setencoding:
+					try:
+						thisencoding=ConfigSectionMap(listu[x])['encoding']
+					except:
+						thisencoding = 'utf-8'
 				else:
-					self.userviewlist.append(PeopleBView(tfr,name,lang,team,pemail,temail,False))
+					thisencoding = 'utf-8'
+				if name == defaultuser:
+					self.userviewlist.append(PeopleBView(tfr,name,lang,team,pemail,temail,True,thisencoding))
+				else:
+					self.userviewlist.append(PeopleBView(tfr,name,lang,team,pemail,temail,False,thisencoding))
 				self.tabslabels.append(BTab())
 				self.userstabview.AddTab(self.userviewlist[x], self.tabslabels[x])
 				x=x+1
@@ -369,10 +386,11 @@ class ImpostazionsUtent(BWindow):
 			self.underframe.AddChild(self.gjaveBtn)
 			self.underframe.AddChild(self.zonteBtn)
 		except:
-			say = BAlert('Oops', 'No config file or users found', 'Ok',None, None, None, 3)
+			say = BAlert('Oops', 'No/Wrong config file or users found', 'Ok',None, None, None, 3)
 			say.Go()
 			#self.Hide()
 			self.Quit()
+			
 		
 
 
@@ -486,6 +504,15 @@ class ImpostazionsUtent(BWindow):
 			Config.write(cfgfile)
 			cfgfile.close()
 			return
+		elif msg.what == 11:
+			cfgfile = open(confile,'w')
+			index=self.userstabview.Selection()
+			user = self.userviewlist[index].name
+			newenc = self.userviewlist[index].encod.Text()
+			Config.set(user,'encoding',newenc)
+			Config.write(cfgfile)
+			cfgfile.close()
+			return
 		elif msg.what == 150380:    #Change default user
 			Config.read(confile)
 			defaultuser = ConfigSectionMap("Users")['default']
@@ -524,6 +551,7 @@ class ImpostazionsUtent(BWindow):
 
 
 class GeneralSettings(BWindow):
+	global setencoding
 	kWindowFrame = (250, 150, 755, 297)
 	kWindowName = "General Settings"
 	def __init__(self):
@@ -532,18 +560,40 @@ class GeneralSettings(BWindow):
 		l,t,r,b = bounds
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(self.underframe)
+		self.encustenc = BCheckBox((5,49,r-15,74),'customenc', 'Check for custom encoding', BMessage(222))
 		self.langcheck = BCheckBox((5,79,r-15,104),'langcheck', 'Check language compliance between pofile and user', BMessage(242))
 		self.mimecheck = BCheckBox((5,109,r-15,134),'mimecheck', 'Check mimetype of file', BMessage(262))
+		self.underframe.AddChild(self.encustenc)
 		self.underframe.AddChild(self.langcheck)
 		self.underframe.AddChild(self.mimecheck)
 		Config.read(confile)
+#		print setencoding, ": -> valore di setencoding"
 		try:
-			langcheck = Config.getboolean('Settings','checklang')#ConfigSectionMap("Settings")['checklang']
+			custenccheck = Config.getboolean('Settings','customenc')
+			#print custenccheck,"customenc in config.ini"
+			if custenccheck:
+				self.encustenc.SetValue(1)
+			else:
+				self.encustenc.SetValue(0)
+		except:
+			print "eccezione creo customenc in config.ini"
+			cfgfile = open(confile,'w')
+			if setencoding:
+				Config.set('Settings','customenc', "True")
+			else:
+				Config.set('Settings','customenc', "False")
+			Config.write(cfgfile)
+			self.encustenc.SetValue(setencoding)
+			cfgfile.close()
+		try:
+			#langcheck
+			checklang = Config.getboolean('Settings','checklang')#ConfigSectionMap("Settings")['checklang']
 			if checklang:
 				self.langcheck.SetValue(1)
 			else:
 				self.langcheck.SetValue(0)
 		except:
+			print "eccezione creo checklang in config.ini"
 			cfgfile = open(confile,'w')
 			Config.set('Settings','checklang', "True")
 			Config.write(cfgfile)
@@ -556,6 +606,7 @@ class GeneralSettings(BWindow):
 			else:
 				self.mimecheck.SetValue(0)
 		except:
+			print "eccezione creo mimecheck in config.ini"
 			cfgfile = open(confile,'w')
 			Config.set('Settings','mimecheck', "True")
 			Config.write(cfgfile)
@@ -563,7 +614,22 @@ class GeneralSettings(BWindow):
 			cfgfile.close()
 
 	def MessageReceived(self, msg):
-		if msg.what == 242:
+		if msg.what == 222:
+			Config.read(confile)
+			cfgfile = open(confile,'w')
+			try:
+				if self.encustenc.Value():
+					Config.set('Settings','customenc', "True")
+					Config.write(cfgfile)
+					setencoding = True
+				else:
+					Config.set('Settings','customenc', "False")
+					Config.write(cfgfile)
+					setencoding = False
+			except:
+				print "Error setting up custom encoding, missing config section?"
+			cfgfile.close()
+		elif msg.what == 242:
 			Config.read(confile)
 			cfgfile = open(confile,'w')
 			try:
@@ -2016,7 +2082,7 @@ class EventTextView(BTextView):
 				thisBlistitem=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
 				thisBlistitem.tosave=False
 				thisBlistitem.txttosave=""
-				print "Seleziono la fine?"
+				#print "Seleziono la fine?"
 				fine=len(self.oldtext)
 				self.Select(fine,fine)
 				return
@@ -2965,7 +3031,7 @@ class PoWindow(BWindow):
 		self.drop = threading.Semaphore()
 		self.sem = threading.Semaphore()
 		self.shortcut=False
-		global confile
+		global confile,setencoding
 		try:
 				Config.read(confile)
 				self.poview[0]=Config.getboolean('Settings', 'Fuzzy')
@@ -3135,7 +3201,7 @@ class PoWindow(BWindow):
 
 		##### if first launch, it opens the profile creator wizard and sets default enconding for polib
 		if  firstrun:
-			self.setencoding = False
+			setencoding = False
 			goonplz = True
 			try:
 				Config.read(confile)
@@ -3149,18 +3215,37 @@ class PoWindow(BWindow):
 		else:
 			try:
 				Config.read(confile)
-				self.setencoding=Config.getboolean('Settings', 'customenc')
-				if self.setencoding:
+				#self.setencoding=Config.getboolean('Settings', 'customenc')
+				#if self.setencoding:
+				#print setencoding
+				if setencoding:
 					try:
-						self.encoding = ConfigSectionMap("Settings")['encoding']
-					except (ConfigParser.NoSectionError):
+						usero = ConfigSectionMap("Users")['default']
+						self.encoding = ConfigSectionMap(usero)['encoding']
+						#print "prima di leggere encoding"
+						# REMOVE , temp value
+						#self.encoding = ConfigSectionMap("Settings")['encoding'] # TO FIX, user setting
+						#print "dopo la lettura di encoding",self.encoding
+					except: #(ConfigParser.NoSectionError):
 						print ("custom encoding method specified but no encoding indicated")
-						self.setencoding = False
+						self.encoding = "utf-8"
+						try:
+							usero = ConfigSectionMap("Users")['default']
+							cfgfile = open(confile,'w')
+							Config.set(usero,'encoding',"utf-8")
+							Config.write(cfgfile)
+							cfgfile.close()
+						except:
+							print "error writing user encoding to config.ini, is there a default user?"
+							setencoding = False
+						
 			except (ConfigParser.NoSectionError):
 				print "ops! no Settings section for custom encoding"
-				self.setencoding = False
+				#self.setencoding = False
+				setencoding = False
 			except (ConfigParser.NoOptionError):
-				self.setencoding = False
+				#self.setencoding = False
+				setencoding = False
 
 		if showspell:
 			thread.start_new_thread( self.speloop, () )
@@ -4123,14 +4208,40 @@ class PoWindow(BWindow):
 						say.Go()
 						return
 				if letsgo:
-					if self.setencoding:
-						try:
-							self.pof = polib.pofile(txtpath,encoding=self.encoding)
+					if setencoding:
+						#try:
+							try:
+								Config.read(confile)
+								usero = ConfigSectionMap("Users")['default']
+								self.encoding = ConfigSectionMap(usero)['encoding']
+							except:
+								print "error setting up self.encoding, error reading config.ini"
+								print "setting self.encoding as utf-8"
+								self.encoding = "utf-8"
+							fileenc = polib.detect_encoding(txtpath)
+							if fileenc.lower() != self.encoding:
+								say = BAlert('Cyd', "It seems that file encoding is different from user encoding. Choose the encoding to use globally.", "The file encoding","The user defined", "Abort loading",None,3) # TO FIX, use a BALERT or something else ,"do you wish to use user encoding setting, file encoding setting or abort loading the file?"
+								#this will let you choose what to use, and set self.encoding accordingly
+								out=say.Go()
+								if out == 2:
+									return
+								elif out == 0:
+									self.encoding = fileenc
+							try:
+								self.pof = polib.pofile(txtpath,encoding=self.encoding)
+							except(UnicodeError):
+								say = BAlert('Wrongenc', "Error loading the file with the selected encoding","Ok",None,None,None,4)
+								say.Go()
+								return
+							except:
+								say = BAlert('GenericError', "Error loading the file","Ok",None,None,None,4)
+								say.Go()
+								return
 							if mimeinstalled:
 								say = BAlert('oops', "The file is ok, but there's no gettext mimetype installed in your system", 'Ok',None, None, None, 3)
 								say.Go()
-								tfr = self.postabview.Bounds()
-								trc = (0.0, 0.0, tfr[2] - tfr[0], tfr[3] - tfr[1])
+							tfr = self.postabview.Bounds()
+							trc = (0.0, 0.0, tfr[2] - tfr[0], tfr[3] - tfr[1])
 							ordmdata=self.pof.ordered_metadata()
 							a,b = checklang(ordmdata)
 							if a and not b:
@@ -4155,15 +4266,14 @@ class PoWindow(BWindow):
 							self.listemsgid[0].src.SetText("")
 							self.srctabview.Select(1)
 							self.srctabview.Select(0)
-							##### zonte achì ####
-						except:
-							test = compiletest(mimesuptbool,mimesubtbool,extbool)
-							say = BAlert('oops', 'Failed to load: '+test, 'Ok',None, None, None, 3)
-							say.Go()
+						#except:
+						#	test = compiletest(mimesuptbool,mimesubtbool,extbool)
+						#	say = BAlert('oops', 'Failed to load: '+test, 'Ok',None, None, None, 3)
+						#	say.Go()
 					else:
 						# reinsert commented lines
 						#try:
-							self.encoding="utf-8"
+							self.encoding ="utf-8"
 							self.pof = polib.pofile(txtpath,encoding=self.encoding)
 							if mimeinstalled:
 								say = BAlert('oops', "The file is ok, but there's no gettext mimetype installed in your system", 'Ok',None, None, None, 3)
@@ -4194,12 +4304,27 @@ class PoWindow(BWindow):
 							self.listemsgid[0].src.SetText("")
 							self.srctabview.Select(1)
 							self.srctabview.Select(0)
-							##### zonte achì ####
 			else:
-					if self.setencoding:
-						pass
-					else:
+					#if self.setencoding:
+				if setencoding:
+					try:
+						Config.read(confile)
+						usero = ConfigSectionMap("Users")['default']
+	#			cfgfile = open(confile,'w')
+	#			try:
+	#				Config.set(usero,'spell_esclusion',self.esclus.Text())
+	#				Config.write(cfgfile)
+	#			except:
+	#				print "Cannot save esclusion chars"
+	#			cfgfile.close()
+	#			Config.read(confile)
+						self.encoding = ConfigSectionMap(usero)['encoding']
+					except:
+						print "error reading encoding from config.ini for setting up self.encoding as mimecheck = False"
+						print "setting self.encoding as utf-8"
 						self.encoding="utf-8"
+				else:
+					self.encoding="utf-8"
 					self.pof = polib.pofile(txtpath,encoding=self.encoding)
 					tfr = self.postabview.Bounds()
 					trc = (0.0, 0.0, tfr[2] - tfr[0], tfr[3] - tfr[1])
