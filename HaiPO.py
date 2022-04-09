@@ -90,7 +90,6 @@ if not firstrun:
 			setspellcheck=False
 		try:
 			setencoding=Config.getboolean('Settings', 'customenc')
-			#print setencoding,"setencoding all'avvio"
 			if setencoding:
 					try:
 						usero=ConfigSectionMap("Users")['default']
@@ -98,8 +97,7 @@ if not firstrun:
 							encoding = ConfigSectionMap(usero)['encoding']
 						except:
 							print "setencoding true but no encoding property in user settings"
-							encoding = "utf-8" # REMOVE and set user setting
-						#encoding = ConfigSectionMap("Settings")['encoding'] #TO FIX, user setting
+							encoding = "utf-8"
 						pass
 					except (ConfigParser.NoSectionError):
 						encoding = "utf-8"
@@ -147,11 +145,9 @@ if not firstrun:
 			except:
 				exe = "hunspell-x86"
 			if setencoding:
-				comm = [exe,'-i',encoding,'-d',spelldict]#['hunspell-x86','-a','-i',encoding,'-d','/system/data/hunspell/fur_IT'] # '-a',
-				#print comm
+				comm = [exe,'-i',encoding,'-d',spelldict]
 			else:
-				comm = [exe,'-d',spelldict]#'-a',
-				#print comm
+				comm = [exe,'-d',spelldict]
 		else:
 			showspell=False
 	except:
@@ -393,7 +389,6 @@ class ImpostazionsUtent(BWindow):
 		except:
 			say = BAlert('Oops', 'No/Wrong config file or users found', 'Ok',None, None, None, 3)
 			say.Go()
-			#self.Hide()
 			self.Quit()
 			
 		
@@ -572,10 +567,8 @@ class GeneralSettings(BWindow):
 		self.underframe.AddChild(self.langcheck)
 		self.underframe.AddChild(self.mimecheck)
 		Config.read(confile)
-#		print setencoding, ": -> valore di setencoding"
 		try:
 			custenccheck = Config.getboolean('Settings','customenc')
-			#print custenccheck,"customenc in config.ini"
 			if custenccheck:
 				self.encustenc.SetValue(1)
 			else:
@@ -592,7 +585,7 @@ class GeneralSettings(BWindow):
 			cfgfile.close()
 		try:
 			#langcheck
-			checklang = Config.getboolean('Settings','checklang')#ConfigSectionMap("Settings")['checklang']
+			checklang = Config.getboolean('Settings','checklang')
 			if checklang:
 				self.langcheck.SetValue(1)
 			else:
@@ -1951,7 +1944,6 @@ class EventTextView(BTextView):
 
 	def KeyDown(self,char,bytes):
 		try:
-			#self.posticipate = True
 			ochar=ord(char)
 			if ochar in (B_DOWN_ARROW,B_UP_ARROW,10,B_PAGE_UP,B_PAGE_DOWN): #B_ENTER =10?
 				self.superself.sem.acquire()
@@ -2261,16 +2253,12 @@ def startinserting(stile,errors):
 	fontx.SetFace(B_ITALIC_FACE)
 	for er in errors:
 		if len(er.sugg)>0:
-			#inizio
-			stile.append((er.pos, fontz, (255,0,0,0)))#be_bold_font
-			#fine
-			stile.append(((er.pos+len(er.word)), be_plain_font, (0,0,0,0))) #+1?
+			stile.append((er.pos, fontz, (255,0,0,0)))
+			stile.append(((er.pos+len(er.word)), be_plain_font, (0,0,0,0)))
 		else:
 			#type 1 no suggestions
-			#inizio
 			stile.append((er.pos, fontx, (255,0,0,0)))
-			#fine
-			stile.append(((er.pos+len(er.word)), be_plain_font, (0,0,0,0))) #+1?
+			stile.append(((er.pos+len(er.word)), be_plain_font, (0,0,0,0)))
 	return stile
 
 class word2fix():
@@ -2341,8 +2329,7 @@ class srctabbox(BBox):
 	def __init__(self,playground1,name,altece):
 		self.name = name
 		BBox.__init__(self,(0,0,playground1[2]-playground1[0],playground1[3]-playground1[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
-		self.hsrc = playground1[3] - playground1[1] - altece 
-		#self.src = BTextView((playground1[0],playground1[1],playground1[2]-playground1[0]-20,playground1[3]-playground1[1]),name+'_source_BTextView',(5.0,5.0,playground1[2]-30,playground1[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)#-15
+		self.hsrc = playground1[3] - playground1[1] - altece
 		self.src = srcTextView((playground1[0],playground1[1],playground1[2]-playground1[0]-20,playground1[3]-playground1[1]),name+'_source_BTextView',(5.0,5.0,playground1[2]-30,playground1[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.src.MakeEditable(False)
 		self.AddChild(self.src)
@@ -2692,7 +2679,7 @@ class POEditorBBox(BBox):
 									for rie in pf:
 										polines.append(rie)
 								strtosrc = polines[rnwt-1]
-					txttoshow=svdlns[x]#txttoshow+
+					txttoshow=svdlns[x]
 					say = BAlert(svdlns[len(svdlns)-2], txttoshow+"\n\nGo to this error?", 'Yes',"Skip", None, None , 4)
 					out=say.Go()
 					if out==0:
@@ -3218,7 +3205,7 @@ class PoWindow(BWindow):
 			if goonplz:
 				BApplication.be_app.WindowAt(0).PostMessage(305)
 		else:
-			try:
+			#try:
 				Config.read(confile)
 				#self.setencoding=Config.getboolean('Settings', 'customenc')
 				#if self.setencoding:
@@ -3227,10 +3214,6 @@ class PoWindow(BWindow):
 					try:
 						usero = ConfigSectionMap("Users")['default']
 						self.encoding = ConfigSectionMap(usero)['encoding']
-						#print "prima di leggere encoding"
-						# REMOVE , temp value
-						#self.encoding = ConfigSectionMap("Settings")['encoding'] # TO FIX, user setting
-						#print "dopo la lettura di encoding",self.encoding
 					except: #(ConfigParser.NoSectionError):
 						print ("custom encoding method specified but no encoding indicated")
 						self.encoding = "utf-8"
@@ -3244,13 +3227,11 @@ class PoWindow(BWindow):
 							print "error writing user encoding to config.ini, is there a default user?"
 							setencoding = False
 						
-			except (ConfigParser.NoSectionError):
-				print "ops! no Settings section for custom encoding"
-				#self.setencoding = False
-				setencoding = False
-			except (ConfigParser.NoOptionError):
-				#self.setencoding = False
-				setencoding = False
+			#except (ConfigParser.NoSectionError):
+			#	print "ops! no Settings section for custom encoding"
+			#	setencoding = False
+			#except:
+			#	setencoding = False
 
 		if showspell:
 			thread.start_new_thread( self.speloop, () )
