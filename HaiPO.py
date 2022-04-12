@@ -27,7 +27,7 @@ import os,sys,ConfigParser,struct,re,thread,datetime,time,threading,unicodedata
 from distutils.spawn import find_executable
 from subprocess import Popen,STDOUT,PIPE
 
-version='HaiPO 1.1 RC3'
+version='HaiPO 1.2 b1'
 (appname,ver,state)=version.split(' ')
 
 jes = False
@@ -785,8 +785,8 @@ class Findsource(BWindow):
 		self.looktv.SetDivider(60.0)
 		self.underframe.AddChild(self.looktv)
 		self.looktv.MakeFocus()
-		self.encoding=BApplication.be_app.WindowAt(0).encoding
-		
+		self.encoding=BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].encodo#encoding
+		#self.encoding = BApplication.be_app.WindowAt(0).encoding
 
 
 	def MessageReceived(self, msg):
@@ -946,7 +946,8 @@ class FindRepTrans(BWindow):
 		self.pb.SetMaxValue(float(total))
 		indaco=lista.CurrentSelection()
 		self.pb.Update(float(indaco))
-		self.encoding=BApplication.be_app.WindowAt(0).encoding
+		#self.encoding=BApplication.be_app.WindowAt(0).encoding
+		self.encoding = BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].encodo
 		i = 1
 		w = BApplication.be_app.CountWindows()
 		while w > i:
@@ -1827,17 +1828,20 @@ class EventTextView(BTextView):
 		bckpmsg.AddInt32('tabview',self.superself.postabview.Selection())
 		if tabs == 0:
 			thisBlistitem.txttosave=self.Text()
-			thisBlistitem.msgstrs=self.Text().decode(self.superself.encoding)
+			#thisBlistitem.msgstrs=self.Text().decode(self.superself.encoding)
+			thisBlistitem.msgstrs=self.Text().decode(self.superself.editorslist[self.superself.postabview.Selection()].encodo)
 			bckpmsg.AddString('translation',thisBlistitem.txttosave)
 		else:
 			thisBlistitem.txttosavepl=[]
 			thisBlistitem.txttosave=self.superself.listemsgstr[0].trnsl.Text()
 			thisBlistitem.msgstrs=[]
-			thisBlistitem.msgstrs.append(self.superself.listemsgstr[0].trnsl.Text().decode(self.superself.encoding))
+			#thisBlistitem.msgstrs.append(self.superself.listemsgstr[0].trnsl.Text().decode(self.superself.encoding))
+			thisBlistitem.msgstrs.append(self.superself.listemsgstr[0].trnsl.Text().decode(self.superself.editorslist[self.superself.postabview.Selection()].encodo))
 			bckpmsg.AddString('translation',thisBlistitem.txttosave)
 			cox=1
 			while cox < tabs+1:
-				thisBlistitem.msgstrs.append(self.superself.listemsgstr[cox].trnsl.Text().decode(self.superself.encoding))
+				#thisBlistitem.msgstrs.append(self.superself.listemsgstr[cox].trnsl.Text().decode(self.superself.encoding))
+				thisBlistitem.msgstrs.append(self.superself.listemsgstr[cox].trnsl.Text().decode(self.superself.editorslist[self.superself.postabview.Selection()].encodo))
 				thisBlistitem.txttosavepl.append(self.superself.listemsgstr[cox].trnsl.Text())
 				bckpmsg.AddString('translationpl'+str(cox-1),self.superself.listemsgstr[cox].trnsl.Text())
 				cox+=1
@@ -2171,7 +2175,8 @@ class EventTextView(BTextView):
 			sd+=1
 		eltxt="".join(l)
 		
-		diffeltxt=eltxt.decode(self.superself.encoding,errors='replace')
+		#diffeltxt=eltxt.decode(self.superself.encoding,errors='replace')
+		diffeltxt=eltxt.decode(self.superself.editorslist[self.superself.postabview.Selection()].encodo,errors='replace')
 		stdout_data = speller.communicate(input=eltxt)[0]
 		reallength=len(diffeltxt)
 		areltxt=eltxt.split(" ")
@@ -2391,7 +2396,8 @@ class POEditorBBox(BBox):
 	def __init__(self,frame,name,percors,pofileloaded,arrayview,encoding,loadtempfile):
 		self.pofile = pofileloaded
 		self.name = name
-		self.encoding=encoding
+		#self.encoding=encoding
+		self.encodo=encoding
 		if loadtempfile:
 			self.backupfile = percors
 			percors = percors.replace('.temp','')
@@ -2452,13 +2458,13 @@ class POEditorBBox(BBox):
 						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
 						item.SetPrevious(True)
-						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encodo)))
 					if entry.previous_msgid_plural:
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
 					if entry.previous_msgctxt:
 						item.SetPrevious(True)
-						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encodo)))
 					item.SetLineNum(entry.linenum)
 				else:
 					if entry.comment:
@@ -2474,13 +2480,13 @@ class POEditorBBox(BBox):
 						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
 						item.SetPrevious(True)
-						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encodo)))
 					if entry.previous_msgid_plural:
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
 					if entry.previous_msgctxt:
 						item.SetPrevious(True)
-						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encodo)))
 					item.SetLineNum(entry.linenum)
 				self.list.lv.AddItem(item)
 		if arrayview[1]:
@@ -2506,13 +2512,13 @@ class POEditorBBox(BBox):
 						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
 						item.SetPrevious(True)
-						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encodo)))
 					if entry.previous_msgid_plural:
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
 					if entry.previous_msgctxt:
 						item.SetPrevious(True)
-						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encodo)))
 					item.SetLineNum(entry.linenum)
 				else:
 					if entry.comment:
@@ -2528,13 +2534,13 @@ class POEditorBBox(BBox):
 						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
 						item.SetPrevious(True)
-						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encodo)))
 					if entry.previous_msgid_plural:
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
 					if entry.previous_msgctxt:
 						item.SetPrevious(True)
-						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encodo)))
 					item.SetLineNum(entry.linenum)
 				self.list.lv.AddItem(item)
 		if arrayview[2]:
@@ -2560,13 +2566,13 @@ class POEditorBBox(BBox):
 						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
 						item.SetPrevious(True)
-						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encodo)))
 					if entry.previous_msgid_plural:
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
 					if entry.previous_msgctxt:
 						item.SetPrevious(True)
-						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encodo)))
 					item.SetLineNum(entry.linenum)
 				else:
 					if entry.comment:
@@ -2582,13 +2588,13 @@ class POEditorBBox(BBox):
 						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
 						item.SetPrevious(True)
-						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encodo)))
 					if entry.previous_msgid_plural:
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
 					if entry.previous_msgctxt:
 						item.SetPrevious(True)
-						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encodo)))
 					item.SetLineNum(entry.linenum)
 				self.list.lv.AddItem(item)
 		if arrayview[3]:
@@ -2614,13 +2620,13 @@ class POEditorBBox(BBox):
 						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
 						item.SetPrevious(True)
-						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encodo)))
 					if entry.previous_msgid_plural:
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
 					if entry.previous_msgctxt:
 						item.SetPrevious(True)
-						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encodo)))
 					item.SetLineNum(entry.linenum)
 				else:
 					if entry.comment:
@@ -2636,13 +2642,13 @@ class POEditorBBox(BBox):
 						item.SetTranslatorComment(entry.tcomment)
 					if entry.previous_msgid:
 						item.SetPrevious(True)
-						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encoding)))
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encodo)))
 					if entry.previous_msgid_plural:
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
 					if entry.previous_msgctxt:
 						item.SetPrevious(True)
-						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encoding)))
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encodo)))
 					item.SetLineNum(entry.linenum)
 				self.list.lv.AddItem(item)		
 
@@ -3471,6 +3477,7 @@ class PoWindow(BWindow):
 			#copy from source from menù
 			if len(self.editorslist)>0:
 				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
+					self.cod=self.editorslist[self.postabview.Selection()].encodo
 					cursel=self.editorslist[self.postabview.Selection()]
 					thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
 					thisBlistitem.tosave=True
@@ -3481,19 +3488,19 @@ class PoWindow(BWindow):
 					bckpmsg.AddInt8('plurals',tabs)
 					bckpmsg.AddInt32('tabview',self.postabview.Selection())
 					if tabs == 0:   #->      if not thisBlistitem.hasplural:                         <-------------------------- or this?
-						thisBlistitem.txttosave=thisBlistitem.text.decode(self.encoding)
+						thisBlistitem.txttosave=thisBlistitem.text.decode(self.cod)#(self.encoding)
 						thisBlistitem.msgstrs=thisBlistitem.txttosave
-						bckpmsg.AddString('translation',thisBlistitem.txttosave.encode(self.encoding)) # <------------ check if encode in self.encoding or utf-8
+						bckpmsg.AddString('translation',thisBlistitem.txttosave.encode(self.cod))#(self.encoding)) # <------------ check if encode in self.encoding or utf-8
 					else:
 						thisBlistitem.txttosavepl=[]
-						thisBlistitem.txttosave=self.listemsgid[0].src.Text().decode(self.encoding)
+						thisBlistitem.txttosave=self.listemsgid[0].src.Text().decode(self.cod)#(self.encoding)
 						thisBlistitem.msgstrs=[]
 						thisBlistitem.msgstrs.append(thisBlistitem.txttosave)
-						bckpmsg.AddString('translation',thisBlistitem.txttosave.encode(self.encoding)) # <------------ check if encode in self.encoding or utf-8
+						bckpmsg.AddString('translation',thisBlistitem.txttosave.encode(self.cod))#(self.encoding)(self.encoding)) # <------------ check if encode in self.encoding or utf-8
 						cox=1
 						while cox < tabs+1:
-							thisBlistitem.msgstrs.append(self.listemsgid[1].src.Text().decode(self.encoding))
-							thisBlistitem.txttosavepl.append(self.listemsgid[1].src.Text().decode(self.encoding))
+							thisBlistitem.msgstrs.append(self.listemsgid[1].src.Text().decode(self.cod))#(self.encoding)(self.encoding))
+							thisBlistitem.txttosavepl.append(self.listemsgid[1].src.Text().decode(self.cod))#(self.encoding)(self.encoding))
 							bckpmsg.AddString('translationpl'+str(cox-1),self.listemsgid[1].src.Text())    #<------- check removed encode(self.encoding)
 							cox+=1
 					bckpmsg.AddString('bckppath',cursel.backupfile)
@@ -3507,6 +3514,7 @@ class PoWindow(BWindow):
 			#copy from source from keyboard
 			if len(self.editorslist)>0:
 				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
+					self.cod=self.editorslist[self.postabview.Selection()].encodo
 					cursel=self.editorslist[self.postabview.Selection()]
 					thisBlistitem=cursel.list.lv.ItemAt(cursel.list.lv.CurrentSelection())
 					thisBlistitem.tosave=True
@@ -3517,19 +3525,19 @@ class PoWindow(BWindow):
 					bckpmsg.AddInt8('plurals',tabs)
 					bckpmsg.AddInt32('tabview',self.postabview.Selection())
 					if tabs == 0:   #->      if not thisBlistitem.hasplural:                         <-------------------------- or this?
-						thisBlistitem.txttosave=thisBlistitem.text.decode(self.encoding)
+						thisBlistitem.txttosave=thisBlistitem.text.decode(self.cod)#(self.encoding)
 						thisBlistitem.msgstrs=thisBlistitem.txttosave
-						bckpmsg.AddString('translation',thisBlistitem.txttosave.encode(self.encoding)) # <------------ check if encode in self.encoding or utf-8
+						bckpmsg.AddString('translation',thisBlistitem.txttosave.encode(self.cod))#(self.encoding)) # <------------ check if encode in self.encoding or utf-8
 					else:
 						thisBlistitem.txttosavepl=[]
-						thisBlistitem.txttosave=self.listemsgid[0].src.Text().decode(self.encoding)
+						thisBlistitem.txttosave=self.listemsgid[0].src.Text().decode(self.cod)#((self.encoding)
 						thisBlistitem.msgstrs=[]
 						thisBlistitem.msgstrs.append(thisBlistitem.txttosave)
-						bckpmsg.AddString('translation',thisBlistitem.txttosave.encode(self.encoding)) # <------------ check if encode in self.encoding or utf-8
+						bckpmsg.AddString('translation',thisBlistitem.txttosave.encode(self.cod))#(self.encoding)) # <------------ check if encode in self.encoding or utf-8
 						cox=1
 						while cox < tabs+1:
-							thisBlistitem.msgstrs.append(self.listemsgid[1].src.Text().decode(self.encoding))
-							thisBlistitem.txttosavepl.append(self.listemsgid[1].src.Text().decode(self.encoding))
+							thisBlistitem.msgstrs.append(self.listemsgid[1].src.Text().decode(self.cod))#(self.encoding))
+							thisBlistitem.txttosavepl.append(self.listemsgid[1].src.Text().decode(self.cod))#(self.encoding))
 							bckpmsg.AddString('translationpl'+str(cox-1),self.listemsgid[1].src.Text())    #<------- check removed encode(self.encoding)
 							cox+=1
 					bckpmsg.AddString('bckppath',cursel.backupfile)
@@ -3638,7 +3646,7 @@ class PoWindow(BWindow):
 			#Po header
 			if len(self.editorslist)>0:
 				tmp = self.postabview.Selection()
-				self.HeaderWindow = HeaderWindow(tmp,self.editorslist[tmp].pofile,self.encoding)
+				self.HeaderWindow = HeaderWindow(tmp,self.editorslist[tmp].pofile,self.editorslist[tmp].encodo)#self.encoding)
 				self.HeaderWindow.Show()
 			return
 
@@ -3755,7 +3763,7 @@ class PoWindow(BWindow):
 					cfgfile.close()
 					self.poview[0]=True
 				for b in self.editorslist:
-					b.list.reload(self.poview,b.pofile,self.encoding)
+					b.list.reload(self.poview,b.pofile,b.encodo)#self.encoding)
 			return
 					
 		elif msg.what == 75:
@@ -3799,7 +3807,7 @@ class PoWindow(BWindow):
 					cfgfile.close()
 					self.poview[1]=True
 				for b in self.editorslist:
-					b.list.reload(self.poview,b.pofile,self.encoding)
+					b.list.reload(self.poview,b.pofile,b.encodo)#self.encoding)
 			return
 
 		elif msg.what == 76:
@@ -3843,7 +3851,7 @@ class PoWindow(BWindow):
 					cfgfile.close()
 					self.poview[2]=True
 				for b in self.editorslist:
-					b.list.reload(self.poview,b.pofile,self.encoding)
+					b.list.reload(self.poview,b.pofile,b.encodo)#self.encoding)
 			return
 		
 		elif msg.what == 77:
@@ -3887,7 +3895,7 @@ class PoWindow(BWindow):
 					cfgfile.close()
 					self.poview[3]=True
 				for b in self.editorslist:
-					b.list.reload(self.poview,b.pofile,self.encoding)
+					b.list.reload(self.poview,b.pofile,b.encodo)#self.encoding)
 			return
 
 		elif msg.what == 130550: # change listview selection
@@ -4059,13 +4067,13 @@ class PoWindow(BWindow):
 				if entry and entry.msgid_plural:
 						y=0
 						textsavepl=[]
-						entry.msgstr_plural[0] = textsave.decode(self.encoding)
+						entry.msgstr_plural[0] = textsave.decode(scheda.encodo)#self.encoding)
 						while y < tabbi:
 							varname='translationpl'+str(y)                                               ########################### give me one more eye?
 							intended=msg.FindString(varname)
 							textsavepl.append(intended) #useless???
 							y+=1
-							entry.msgstr_plural[y]=intended.decode(self.encoding)
+							entry.msgstr_plural[y]=intended.decode(scheda.encodo)#self.encoding)
 						if 'fuzzy' in entry.flags:
 							entry.flags.remove('fuzzy')
 						if entry.previous_msgid:
@@ -4075,7 +4083,7 @@ class PoWindow(BWindow):
 						if entry.previous_msgctxt:
 							entry.previous_msgctxt=None
 				elif entry and not entry.msgid_plural:
-						entry.msgstr = textsave.decode(self.encoding)
+						entry.msgstr = textsave.decode(scheda.encodo)#self.encoding)
 						if 'fuzzy' in entry.flags:
 							entry.flags.remove('fuzzy')
 						if entry.previous_msgid:
@@ -4153,12 +4161,8 @@ class PoWindow(BWindow):
 						Config.set('Settings','mimecheck','False')
 					Config.write(cfgfile)
 					cfgfile.close()
-#				try:
-					
-				#mimecheck not present
-				#mimecheck="True"
+
 			if mimecheck == "True":
-			#if True:
 			#try:
 				letsgo=False
 				supt = msg.FindString("mime_supertype")
@@ -4233,7 +4237,7 @@ class PoWindow(BWindow):
 							if a and not b:
 								say = BAlert('oops', "User language differs from po language", 'Go on',None, None, None, 3)
 								say.Go()
-							self.loadPOfile(txtpath,trc,self.pof)
+							self.loadPOfile(txtpath,trc,self.pof,self.encoding)
 							self.Nichilize()
 							bounds = self.Bounds()
 							l, t, r, b = bounds
@@ -4271,7 +4275,7 @@ class PoWindow(BWindow):
 							if a and not b:
 								say = BAlert('oops', "User language differs from po language", 'Go on',None, None, None, 3)
 								say.Go()
-							self.loadPOfile(txtpath,trc,self.pof)
+							self.loadPOfile(txtpath,trc,self.pof,self.encoding)
 							self.Nichilize()
 							bounds = self.Bounds()
 							l, t, r, b = bounds
@@ -4291,7 +4295,6 @@ class PoWindow(BWindow):
 							self.srctabview.Select(1)
 							self.srctabview.Select(0)
 			else:
-					#if self.setencoding:
 				if setencoding:
 					try:
 						Config.read(confile)
@@ -4309,6 +4312,7 @@ class PoWindow(BWindow):
 						print "error reading encoding from config.ini for setting up self.encoding as mimecheck = False"
 						print "setting self.encoding as utf-8"
 						self.encoding="utf-8"
+					################### TODO: check why here we are not loading anything? ################
 				else:
 					self.encoding="utf-8"
 					self.pof = polib.pofile(txtpath,encoding=self.encoding)
@@ -4319,7 +4323,7 @@ class PoWindow(BWindow):
 					if a and not b:
 						say = BAlert('oops', "User language differs from po language", 'Go on',None, None, None, 3)
 						say.Go()
-					self.loadPOfile(txtpath,trc,self.pof)
+					self.loadPOfile(txtpath,trc,self.pof,self.encoding)
 
 			if len(self.editorslist) == 1:
 				self.postabview.Select(1) # bug fix closing last one file and opening a new one
@@ -4360,7 +4364,7 @@ class PoWindow(BWindow):
 			return
 		
 		elif msg.what == 8384:
-			self.analysisW=Analysis(self.encoding)
+			self.analysisW=Analysis(self.editorslist[self.postabview.Selection()].encodo)#self.encoding)
 			self.analysisW.Show()
 			i = 1
 			w = BApplication.be_app.CountWindows()
@@ -4443,19 +4447,19 @@ class PoWindow(BWindow):
 							self.srctabview.SetFocusTab(x,True)
 							self.srctabview.Select(x)
 							self.srctabview.Select(0)
-							self.listemsgid[0].src.SetText(item.msgids[0].encode(self.encoding))
-							self.listemsgid[1].src.SetText(item.msgids[1].encode(self.encoding))
+							self.listemsgid[0].src.SetText(item.msgids[0].encode(self.editorslist[self.postabview.Selection()].encodo))#self.encoding))
+							self.listemsgid[1].src.SetText(item.msgids[1].encode(self.editorslist[self.postabview.Selection()].encodo))#self.encoding))
 							ww=0
 							while ww<beta:
 								self.transtablabels.append(BTab())
 								if ww == 0:
-									self.listemsgstr[0].trnsl.SetPOReadText(item.msgstrs[0].encode(self.encoding))
+									self.listemsgstr[0].trnsl.SetPOReadText(item.msgstrs[0].encode(self.editorslist[self.postabview.Selection()].encodo))#self.encoding))
 									self.transtabview.SetFocusTab(x,True)
 									self.transtabview.Select(x)
 									self.transtabview.Select(0)
 								else:
 									self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr['+str(ww)+']',altece,self))
-									self.listemsgstr[ww].trnsl.SetPOReadText(item.msgstrs[ww].encode(self.encoding))
+									self.listemsgstr[ww].trnsl.SetPOReadText(item.msgstrs[ww].encode(self.editorslist[self.postabview.Selection()].encodo))#self.encoding))
 									self.transtabview.AddTab(self.listemsgstr[ww],self.transtablabels[ww])
 								ww=ww+1
 				else:
@@ -4464,8 +4468,8 @@ class PoWindow(BWindow):
 							self.transtablabels.append(BTab())
 							self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
 #######################################################################
-							self.listemsgid[0].src.SetText(item.msgids.encode(self.encoding))
-							self.listemsgstr[0].trnsl.SetPOReadText(item.msgstrs.encode(self.encoding))
+							self.listemsgid[0].src.SetText(item.msgids.encode(self.editorslist[self.postabview.Selection()].encodo))#self.encoding))
+							self.listemsgstr[0].trnsl.SetPOReadText(item.msgstrs.encode(self.editorslist[self.postabview.Selection()].encodo))#self.encoding))
 ############################### bugfix workaround? ####################						 
 							self.transtabview.Select(1)									#################  <----- needed to fix
 							self.transtabview.Select(0)									#################  <----- a bug, tab0 will not appear
@@ -4693,7 +4697,7 @@ class PoWindow(BWindow):
 		BApplication.be_app.WindowAt(0).PostMessage(mexacio)
 		
 			
-	def  loadPOfile(self,pathtofile,bounds,pofile):
+	def  loadPOfile(self,pathtofile,bounds,pofile,encodo):
 			# add a tab in the editor's tabview
 			head, tail = os.path.split(pathtofile)
 			startTime = time.time()
@@ -4706,17 +4710,17 @@ class PoWindow(BWindow):
 					if out == 0:
 #						apro il backup
 						temppathtofile=backupfile
-						temppofile = polib.pofile(backupfile,encoding=self.encoding)
-						self.editorslist.append(POEditorBBox(bounds,tail,temppathtofile,temppofile,self.poview,self.encoding,True))
+						temppofile = polib.pofile(backupfile,encoding=encodo)#self.encoding)
+						self.editorslist.append(POEditorBBox(bounds,tail,temppathtofile,temppofile,self.poview,encodo,True))
 					else:
 #						apro il file originale
-						self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile,self.poview,self.encoding,False))
+						self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile,self.poview,encodo,False))
 				else:
 #					apro il file originale
-					self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile,self.poview,self.encoding,False))
+					self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile,self.poview,encodo,False))
 			else:
 #				apro il file originale
-				self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile,self.poview,self.encoding,False))
+				self.editorslist.append(POEditorBBox(bounds,tail,pathtofile,pofile,self.poview,encodo,False))
 			executionTime = (time.time() - startTime)
 			print('Load-time in seconds: ' + str(executionTime))
 			self.tabslabels.append(BTab())
