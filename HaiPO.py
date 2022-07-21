@@ -27,7 +27,7 @@ import os,sys,ConfigParser,struct,re,thread,datetime,time,threading,unicodedata
 from distutils.spawn import find_executable
 from subprocess import Popen,STDOUT,PIPE
 
-version='HaiPO 1.2 b1'
+version='HaiPO 1.2 RC4'
 (appname,ver,state)=version.split(' ')
 
 jes = False
@@ -53,7 +53,8 @@ def ConfigSectionMap(section):
     return dict1
 
 firstrun=False
-global evstyle
+global evstyle,deb
+deb=False
 evstyle=threading.Semaphore()
 global confile,setencoding
 confile=os.path.join(sys.path[0],'config.ini')
@@ -1799,6 +1800,7 @@ class MsgStrItem(BListItem):
 		return self.text
 
 class EventTextView(BTextView):
+	global deb
 	def __init__(self,superself,frame,name,textRect,resizingMode,flags):
 		self.superself=superself
 		self.oldtext=""
@@ -1850,12 +1852,16 @@ class EventTextView(BTextView):
 		#self.superself.infoprogress.SetText(str(cursel.pofile.percent_translated())) #reinsert if something doesn't work properly but it should write in 16892/3
 
 	def checklater(self,name,oldtext,cursel,indexBlistitem):
+			if deb:
+				print "start checklater"
 			mes=BMessage(112118)
 			mes.AddInt8('cursel',cursel)
 			mes.AddInt32('indexBlistitem',indexBlistitem)
 			mes.AddString('oldtext',oldtext)
 			self.event.wait(0.1)
 			BApplication.be_app.WindowAt(0).PostMessage(mes)
+			if deb:
+				print "end checklater"
 
 	def MouseUp(self,point):
 		self.superself.drop.acquire()
@@ -2196,9 +2202,14 @@ class EventTextView(BTextView):
 		errors = []
 		self.analyzetxt = []
 		stdout_data=stdout_data.split('\n')
+		print "stdout_data:",stdout_data
 		for s in stdout_data:
 			if s != "":
 				words=s.split()
+				if deb:
+#					print words
+#					print newareltxt
+					print "s:",s
 				if s[0] == "&":
 					# there are suggestions
 					liw = s.find(words[3]) #string start-index that indicates the beginning of the number
@@ -2208,6 +2219,8 @@ class EventTextView(BTextView):
 					sugi = solutions.split(", ")
 					outs = s[liw:liw+lun]   # <<<<------ number that hunspell indicates as where is the word to fix
 					# here you check where is the correct byte for that hunspell-index
+					print "outs:",outs
+					print newareltxt
 					for items in newareltxt:
 						if items[1][0] == int(outs):
 							realouts=items[2][0]
@@ -2226,6 +2239,7 @@ class EventTextView(BTextView):
 					for items in newareltxt:
 						if items[1][0] == int(outs):
 							realouts=items[2][0]
+							
 					t=word2fix(words[1],int(outs),realouts)
 					errors.append(t)
 		#### Ricreo stringa colorata ####
@@ -2653,17 +2667,25 @@ class POEditorBBox(BBox):
 				self.list.lv.AddItem(item)		
 
 	def Save(self,path):
+		if deb:
+			print "start Save PoEditorBBOX"
+			print "path:",path
 		self.pofile.save(path)
-		execpath = find_executable("msgfmt-x86")
-		comtwo = execpath+" -c "+path
-		checker = Popen( comtwo.split(' '), stdout=PIPE,stderr=PIPE)
-		jessude,err= checker.communicate()
+		svdlns=[]  #moved to fix reference before assignment
+		#print "pezzo finale = ",path[-7:]
+		if path[-7:] != "temp.po":
+			execpath = find_executable("msgfmt-x86")
+			comtwo = execpath+" -c "+path
+			checker = Popen( comtwo.split(' '), stdout=PIPE,stderr=PIPE)
+			jessude,err= checker.communicate()
+			#svdlns=[]
+			for ries in err.split('\n'):
+				svdlns.append(ries)
+				
 		msgdigj=str(os.getcwd())+'/messages.mo'
 		if os.path.exists(msgdigj):
 			os.remove(msgdigj)
-		svdlns=[]
-		for ries in err.split('\n'):
-			svdlns.append(ries)
+
 		guut = []
 		if len(svdlns)>1:
 			try:
@@ -2723,6 +2745,8 @@ class POEditorBBox(BBox):
 				out=say.Go()
 				#self.Looper().PostMessage(ermsg)
 		self.writter.release()
+		if deb:
+			print "end Save PoEditorBBOX"
 		
 class translationtabview(BTabView):
 	def __init__(self,frame,name,width,risizingMode,flags,superself):
@@ -3017,7 +3041,7 @@ class PoWindow(BWindow):
 		('Settings', ((40, 'General'),(41, 'User settings'), (42, 'Po properties'), (43, 'Po header'), (44, 'Spellcheck'))),
 		('About', ((8, 'Help'),(None, None),(9, 'About')))
 		)
-		
+
 	def __init__(self, frame):
 		selectionmenu=0
 		BWindow.__init__(self, frame, 'Simple PO editor for Haiku!', B_TITLED_WINDOW,0)
@@ -3029,7 +3053,7 @@ class PoWindow(BWindow):
 		self.drop = threading.Semaphore()
 		self.sem = threading.Semaphore()
 		self.shortcut=False
-		global confile,setencoding
+		global confile,setencoding,deb
 		try:
 				Config.read(confile)
 				self.poview[0]=Config.getboolean('Settings', 'Fuzzy')
@@ -3454,7 +3478,15 @@ class PoWindow(BWindow):
 			
 		elif msg.what == 2:
 			# Save current file
-			if len(self.editorslist)>0:
+			if len(self.editorslist)>0:     ###### FIX HERE IT DOESN'T WORK!! no real save
+				if deb:
+					print "controllo modifica eventtextview"
+				if self.listemsgstr[self.transtabview.Selection()].trnsl.tosave:
+					if deb:
+						print "eventtextview modificato... \n si procede a salvare"
+					self.listemsgstr[self.transtabview.Selection()].trnsl.Save()
+					if deb:
+						print "salvato"
 				try:
 					Config.read(confile)
 					namo=ConfigSectionMap("Users")['default']
@@ -3465,11 +3497,14 @@ class PoWindow(BWindow):
 					grp=self.editorslist[self.postabview.Selection()].pofile.metadata['Language-Team']
 				now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
 				savepath=self.editorslist[self.postabview.Selection()].filen+self.editorslist[self.postabview.Selection()].file_ext
+
 				self.editorslist[self.postabview.Selection()].writter.acquire()
 				self.editorslist[self.postabview.Selection()].pofile.metadata['Last-Translator']=defname
 				self.editorslist[self.postabview.Selection()].pofile.metadata['Language-Team']=grp
 				self.editorslist[self.postabview.Selection()].pofile.metadata['PO-Revision-Date']=now
 				self.editorslist[self.postabview.Selection()].pofile.metadata['X-Editor']=version
+				if deb:
+					print "Function save: starting thread"
 				thread.start_new_thread( self.editorslist[self.postabview.Selection()].Save, (savepath,) )
 			return
 
@@ -4017,6 +4052,9 @@ class PoWindow(BWindow):
 			self.checkres.SetText("☑")
 		elif msg.what == 112118:
 			#launch a delayed check
+			print deb
+			if deb:
+				print "start delayed check"
 			oldtext=msg.FindString('oldtext')
 			cursel=msg.FindInt8('cursel')
 			indexBlistitem=msg.FindInt32('indexBlistitem')
@@ -4027,6 +4065,8 @@ class PoWindow(BWindow):
 					if self.listemsgstr[self.transtabview.Selection()].trnsl.oldtext != self.listemsgstr[self.transtabview.Selection()].trnsl.Text():  ### o è meglio controllare nel caso di plurale tutti gli eventtextview?
 						self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
 			self.intime=time.time()
+			if deb:
+				print "end delayed check"
 
 		elif msg.what == 16893:
 			try:
@@ -4655,6 +4695,8 @@ class PoWindow(BWindow):
 			BWindow.MessageReceived(self, msg)
 	
 	def	speloop(self):
+		if deb:
+			print "start speloop"
 		ev = threading.Event()
 		global quitter
 		quitter = True
@@ -4681,10 +4723,14 @@ class PoWindow(BWindow):
 				t1 = time.time()
 			y+=1
 			if y == len(steps):
-				y=0			
+				y=0
+		if deb:
+			print "end speloop"
 			
 		
 	def highlightlater(self,name,inizi,fin,schede,srctrnsl): #why name?     <--------------------
+		if deb:
+			print "start highlightlater"
 		self.event.wait(0.1)
 		if srctrnsl==0:
 			mexacio = BMessage(852630)
@@ -4695,6 +4741,8 @@ class PoWindow(BWindow):
 		mexacio.AddInt8("schede",schede)
 #		mexacio.AddInt8("srctrnsl",srctrnsl)
 		BApplication.be_app.WindowAt(0).PostMessage(mexacio)
+		if deb:
+			print "end highlightlater"
 		
 			
 	def  loadPOfile(self,pathtofile,bounds,pofile,encodo):
@@ -4763,12 +4811,13 @@ def checklang(orderedata):
 		return (False,False)
 
 class HaiPOApp(BApplication.BApplication):
-#	global quitter
 	def __init__(self):
 		BApplication.BApplication.__init__(self, "application/x-vnd.HaiPO-Editor")
 
 
+
 	def ReadyToRun(self):
+		global deb
 		window((100,80,960,720))
 		if len(sys.argv) > 1:
 			try:
@@ -4776,8 +4825,12 @@ class HaiPOApp(BApplication.BApplication):
 					if item == sys.argv[0]:
 						pass
 					else:
-						percors = item
-						self.elaborate_path(os.path.abspath(percors))
+						if item == '-d':
+							deb=True
+							print "Debug Mode ON"
+						else:
+							percors = item
+							self.elaborate_path(os.path.abspath(percors))
 			except:
 				pass
 		
@@ -4844,6 +4897,7 @@ def compiletest(supt,subt,ext):
 def window(rectangle):
 	window = PoWindow(rectangle)
 	window.Show()
+
 
 HaiPO = HaiPOApp()
 HaiPO.Run()
