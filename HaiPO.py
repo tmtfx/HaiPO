@@ -27,7 +27,7 @@ import os,sys,ConfigParser,struct,re,thread,datetime,time,threading,unicodedata
 from distutils.spawn import find_executable
 from subprocess import Popen,STDOUT,PIPE
 
-version='HaiPO 1.2 RC4'
+version='HaiPO 1.3 beta'
 (appname,ver,state)=version.split(' ')
 
 jes = False
@@ -4691,6 +4691,15 @@ class PoWindow(BWindow):
 			self.speloc.release()
 		elif msg.what == 7484:
 			self.spellcount.SetText(msg.FindString('graph'))
+		elif msg.what == 946389:
+			percors=msg.FindString("percors")
+			filo=open("/boot/home/where.txt","w")
+			filo.write(percors)
+			filo.close()
+#			self.elaborate_path(percors)
+#			print percors
+			#say = BAlert(percors, 'Ok',None, None, None, 3)
+			#say.Go()
 		else:
 			BWindow.MessageReceived(self, msg)
 	
@@ -4817,25 +4826,52 @@ class HaiPOApp(BApplication.BApplication):
 
 
 	def ReadyToRun(self):
-		global deb
 		window((100,80,960,720))
-		if len(sys.argv) > 1:
-			try:
-				for item in sys.argv:
-					if item == sys.argv[0]:
-						pass
-					else:
-						if item == '-d':
-							deb=True
-							print "Debug Mode ON"
-						else:
-							percors = item
-							self.elaborate_path(os.path.abspath(percors))
-			except:
-				pass
+
+	def ArgvReceived(self, argv):
+		global deb
+		if deb:
+			i=0
+			strigo=""
+			while i < len(argv):
+				strigo=strigo+argv[i]+" "
+				i+=1
+			filo=open("/boot/home/argv.txt","w")
+			filo.write(strigo)
+			filo.close()
+		i=2
+		while i < len(argv):
+			if os.path.exists(argv[i]):
+				entryref=BEntry(argv[i])
+				percors = entryref.GetPath()
+				mksg=BMessage(B_REFS_RECEIVED)
+				mksg.AddRef("refs",entryref.GetRef())
+				self.RefsReceived(mksg);
+			elif argv[i]=='-d':
+				deb=True
+				print "Debug Mode ON"
+			i+=1
 		
 	def RefsReceived(self, msg):
+		
 		if msg.what == B_REFS_RECEIVED:
+			if deb:
+				import io
+				real_stdout=sys.stdout
+				fake_stdout=io.BytesIO()
+				try:
+					sys.stdout=fake_stdout
+					o=0
+					while o<msg.CountNames(B_ANY_TYPE):
+						print msg.GetInfo(B_ANY_TYPE,o)
+						o+=1				
+				finally:
+					sys.stdout=real_stdout
+					outputstring=fake_stdout.getvalue()
+					filo=open("/boot/home/mex.txt","w")
+					filo.write(outputstring)
+					filo.close()
+					fake_stdout.close()
 			i = 0
 			while 1:
 				try:
@@ -4843,7 +4879,13 @@ class HaiPOApp(BApplication.BApplication):
 					entryref = BEntry(e,True)
 					percors = entryref.GetPath()
 					self.txtpath= percors.Path()
-					self.elaborate_path(self.txtpath)
+					if deb:
+						filo=open("/boot/home/refrecpath.txt","w")
+						filo.write(percors.Path())
+						filo.close()
+					mehh=BMessage(183654)
+					mehh.AddString("percors",percors.Path())
+					BApplication.be_app.PostMessage(mehh)
 				except:
 					e = None
 				if e is None:
@@ -4857,6 +4899,12 @@ class HaiPOApp(BApplication.BApplication):
 			messaggio.AddString("name",e)
 			BApplication.be_app.WindowAt(0).PostMessage(messaggio)
 			return
+		if msg.what == 183654:
+			percors=msg.FindString("percors")
+			self.elaborate_path(os.path.abspath(percors))
+			mah=BMessage(946389)
+			mah.AddString("percors",percors)
+			BApplication.be_app.WindowAt(0).PostMessage(mah)
 
 	def elaborate_path(self,percors):
 					self.txtpath = percors
@@ -4898,6 +4946,8 @@ def window(rectangle):
 	window = PoWindow(rectangle)
 	window.Show()
 
+global notready
+notready=True
 
 HaiPO = HaiPOApp()
 HaiPO.Run()
