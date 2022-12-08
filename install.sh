@@ -11,7 +11,7 @@ else
 	echo "Proceeding..."
 	ret3=1
 fi
-echo "Now we will install Betho if present..."
+echo "Now we will install Bethon if present..."
 if [ -e Bethon.tar.gz ]
 then
 	tar -xf Bethon.tar.gz
@@ -52,24 +52,30 @@ fi
 echo
 if [ -e HaiPO.py ]
 then
-	mkdir /boot/home/config/non-packaged/data/HaiPO
-	cp HaiQR.py /boot/home/config/non-packaged/data/HaiPO
+	echo Copying files to system folder...
+	[ ! -d /boot/home/config/non-packaged/data/HaiPO ] && mkdir /boot/home/config/non-packaged/data/HaiPO
+	cp HaiPO.py /boot/home/config/non-packaged/data/HaiPO/
 	ret7=$?
-	if [ -e LaunchApp ]
+	if [ -e LauncherApp ]
 	then
 		echo Adding attributes and Installing LaunchApp
 		addattr -t \'MSGG\' BEOS:FILE_TYPES text/x-gettext-translation LauncherApp
 		addattr -t mime BEOS:APP_SIG application/x-vnd.dw-LauncherApp LauncherApp
-		cp LauncherApp /boot/home/config/non-packaged/data/HaiPO
-		if [ -e home-config-settings-mime_db-text.zip ]
+		cp LauncherApp /boot/home/config/non-packaged/data/HaiPO/
+		if [ -f home-config-settings-mime_db-text.zip ]
+		then
 			echo Installing mime types...
-			cp home-config-settings-mime_db-text.zip /boot/home/config/settings/mime_db/
-			unzip /boot/home/config/settings/mime_db/home-config-settings-mime_db-text.zip
+			[ ! -d /boot/home/config/settings/mime_db/text/ ] && mkdir /boot/home/config/settings/mime_db/text
+			cp home-config-settings-mime_db-text.zip /boot/home/config/settings/mime_db/text/
+			cd /boot/home/config/settings/mime_db/text/
+			unzip /boot/home/config/settings/mime_db/text/home-config-settings-mime_db-text.zip
+			rm /boot/home/config/settings/mime_db/text/home-config-settings-mime_db-text.zip
+			cd -
 		fi
 	fi
-	ln -s /boot/home/config/non-packaged/data/HaiPO/HaiPO.py /boot/home/config/non-packaged/bin/HaiPO
-	mkdir /boot/home/config/settings/deskbar/menu/Applications/
-	ln -s /boot/home/config/non-packaged/bin/HaiPO /boot/home/config/settings/deskbar/menu/Applications/HaiPO
+	[ ! -f /boot/home/config/non-packaged/bin/HaiPO ] && ln -s /boot/home/config/non-packaged/data/HaiPO/HaiPO.py /boot/home/config/non-packaged/bin/HaiPO
+	[ ! -d /boot/home/config/settings/deskbar/menu/Applications/ ] && mkdir /boot/home/config/settings/deskbar/menu/Applications/
+	[ ! -f /boot/home/config/settings/deskbar/menu/Applications/HaiPO ] && ln -s /boot/home/config/non-packaged/bin/HaiPO /boot/home/config/settings/deskbar/menu/Applications/HaiPO
 	ret8=$?
 else
 	echo "Main program missing"
