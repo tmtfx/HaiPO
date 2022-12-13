@@ -4907,6 +4907,9 @@ class HaiPOApp(BApplication.BApplication):
 			BApplication.be_app.WindowAt(0).PostMessage(mah)
 
 	def elaborate_path(self,percors):
+					reallaunchpath=os.path.realpath(sys.argv[0])
+					if percors == reallaunchpath:
+						return
 					self.txtpath = percors
 					filename, file_extension = os.path.splitext(self.txtpath)
 					static = BMimeType()
