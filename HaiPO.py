@@ -76,7 +76,7 @@ else:
 	firstrun = True
 
 if not firstrun:
-	global tm,tmxsrv,tmxprt
+	global tm,tmxsrv,tmxprt,tmsocket
 	try:
 		Config.read(confile)
 		try:
@@ -92,21 +92,28 @@ if not firstrun:
 			tm=False
 		if tm:
 			import socket,pickle
+			tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 			usero=ConfigSectionMap("Users")['default']
 			try:
 				tmxsrv=ConfigSectionMap(usero)['tmxsrv']
-				tmxprt=ConfigSectionMap(usero)['tmxprt']
+				tmxprt=int(ConfigSectionMap(usero)['tmxprt'])
 			except:
 				cfgfile = open(confile,'w')
 				Config.set(usero,'tmxsrv', '127.0.0.1')
 				Config.set(usero,'tmxprt', 2022)
 				Config.write(cfgfile)
 				cfgfile.close()
+
 	except:
 		tm = False
 		tmxsrv = '127.0.0.1'
 		tmxprt = 2022
-
+	try:
+		if tm:
+			tmsocket.settimeout(3)
+			tmsocket.connect((tmxsrv,tmxprt))
+	except:
+		print ("impossibile connettersi")
 		
 if not firstrun:
 	global showspell
@@ -2102,6 +2109,7 @@ class EventTextView(BTextView):
 						if self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection()>-1:
 							self.tosave=True
 							return BTextView.KeyDown(self,char,bytes)
+							
 # commented out because already included?
 #				if ochar != B_ENTER: # needed to pass up/down keys to textview	
 #					return BTextView.KeyDown(self,char,bytes)
@@ -3331,7 +3339,13 @@ class PoWindow(BWindow):
 			
 ############# end of _init_ ################
 			
-
+	def NichilizeTM(self):
+		if tm:
+			totchild=self.tmpanel.CountChildren()
+			ichild=0
+			while ichild<totchild:
+				self.tmpanel.RemoveChild(self.tmpanel.ChildAt(ichild))
+				ichild+=1
 			
 	def FrameResized(self,x,y):
 			i=self.postabview.Selection()
@@ -3372,6 +3386,25 @@ class PoWindow(BWindow):
 				self.scrolltcomment.ResizeToP(d-a,l-j)
 			except:
 				pass
+	def tmcommunicate(self,src):
+		#try:
+			#oltim=tmsocket.gettimeout()
+			#tmsocket.settimeout(5)
+			#print ("mi collego a:",tmxsrv,tmxprt)
+			#tmsocket.connect((tmxsrv,int(tmxprt)))
+			#print ("connesso a: ",tmxsrv)
+			pck=[]
+			pck.append(src)
+			send_pck=pickle.dumps(pck)
+			tmsocket.send(send_pck)
+			pck_answer=tmsocket.recv(1024)
+			answer=pickle.loads(pck_answer)
+			print answer
+			#tmsocket.settimeout(oltim)
+			#tmsocket.close()
+		#except:
+		#	print "Not connected to tm server"
+		#	tm=False
 			
 	def Nichilize(self):
 					if (len(self.listemsgid)-1) == 1:    #IF THERE'S A PLURAL MSGID, REMOVE IT
@@ -3983,7 +4016,9 @@ class PoWindow(BWindow):
 			return
 
 		elif msg.what == 130550: # change listview selection
+			print "changing selection"
 			movetype=msg.FindInt8('movekind')
+			self.NichilizeTM() #AZZERAMENTO TM PANEL
 			if movetype == 0:
 				#select one down
 				if (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1) and (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()<self.editorslist[self.postabview.Selection()].list.lv.CountItems()):
@@ -4072,6 +4107,7 @@ class PoWindow(BWindow):
 				pass
 			if self.listemsgstr[self.transtabview.Selection()].trnsl.Text()!="":
 				BApplication.be_app.WindowAt(0).PostMessage(333111)
+			#NON AGGIUNGERE QUI RICHIESTA TM PANEL
 			return
 
 		elif msg.what == 305:
@@ -4681,15 +4717,22 @@ class PoWindow(BWindow):
 #				num=self.listemsgstr[self.transtabview.Selection()].trnsl.CountLines()
 #				self.listemsgstr[self.transtabview.Selection()].trnsl.GoToLine(num)
 				self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
-				
+				if tm:
+					print ("da richiedere: ",self.listemsgid[self.srctabview.Selection()].src.Text())
+					self.tmcommunicate(self.listemsgid[self.srctabview.Selection()].src.Text())
+					
 			else:
+				if tm:
+					self.NichilizeTM()
+					print("nichilizzo tm panel")
 				self.Nichilize()				
 				self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
 				self.transtablabels.append(BTab())
 				self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
 				################### BUG? ###################
-				self.transtabview.Select(1)									#################  <----- needed to fix a bug
-				self.transtabview.Select(0)
+				#self.transtabview.Select(1)									#################  <----- needed to fix a bug
+				#self.transtabview.Select(0)
+				self.transtabview.Draw(self.transtabview.Bounds())
 				#############################################
 				self.listemsgid[0].src.SetText("")
 			return
