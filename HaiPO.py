@@ -3215,7 +3215,9 @@ class PoWindow(BWindow):
 		self.event= threading.Event()
 		self.background.AddChild(self.lubox)
 		if tm:
-			delt=50
+			delt=100
+			self.tmpanel = BBox((5.0, b-barheight-245-delt+3,d*3/4-5,b-barheight-245-3), 'tmbox', B_FOLLOW_TOP_BOTTOM|B_FOLLOW_RIGHT, B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS|B_NAVIGABLE,B_FANCY_BORDER)
+			self.background.AddChild(self.tmpanel)
 		else:
 			delt=3
 		self.postabview = postabview(self,(5.0, 5.0, d*3/4-5, b-barheight-245-delt), 'postabview',B_WIDTH_FROM_LABEL)
@@ -3259,8 +3261,8 @@ class PoWindow(BWindow):
 		self.listemsgstr.append(self.transbox)
 		self.transtablabels.append(BTab())
 		self.transtabview.AddTab(self.listemsgstr[0], self.transtablabels[0])
-
-
+		#self.postabview.Draw(self.postabview.Bounds())
+		#self.transtabview.Draw(self.transtabview.Bounds())
 		##### if first launch, it opens the profile creator wizard and sets default enconding for polib
 		if  firstrun:
 			setencoding = False
@@ -3457,11 +3459,13 @@ class PoWindow(BWindow):
 						self.transtablabels.append(BTab())
 						self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
 						################### BUG? ###################
-						self.transtabview.Select(1)									###### bug fix
-						self.transtabview.Select(0)
+						#self.transtabview.Select(1)									###### bug fix
+						#self.transtabview.Select(0)
+						self.transtabview.Draw(self.transtabview.Bounds())
 						self.listemsgid[0].src.SetText("")
-						self.srctabview.Select(1)
-						self.srctabview.Select(0)
+						#self.srctabview.Select(1)
+						#self.srctabview.Select(0)
+						self.srctabview.Draw(self.srctabview.Bounds())
 				else:
 					actualselection=self.editorslist[whichrem+1].list.lv.CurrentSelection()
 					if actualselection>-1:
@@ -3481,11 +3485,13 @@ class PoWindow(BWindow):
 						self.transtablabels.append(BTab())
 						self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
 						################### BUG? ###################
-						self.transtabview.Select(1)									###### bug fix
-						self.transtabview.Select(0)
+						#self.transtabview.Select(1)									###### bug fix
+						#self.transtabview.Select(0)
+						self.transtabview.Draw(self.transtabview.Bounds())
 						self.listemsgid[0].src.SetText("")
-						self.srctabview.Select(1)
-						self.srctabview.Select(0)
+						#self.srctabview.Select(1)
+						#self.srctabview.Select(0)
+						self.srctabview.Draw(self.srctabview.Bounds())
 				self.postabview.RemoveTab(whichrem)
 				self.tabslabels.pop(whichrem)
 				self.editorslist.pop(whichrem)
@@ -3504,14 +3510,17 @@ class PoWindow(BWindow):
 				self.transtablabels.append(BTab())
 				self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
 				################### BUG? ###################
-				self.transtabview.Select(1)									###### bug fix
-				self.transtabview.Select(0)
+#				self.transtabview.Select(1)									###### bug fix
+#				self.transtabview.Select(0)
+				self.transtabview.Draw(self.transtabview.Bounds())
 				self.listemsgid[0].src.SetText("")
-				self.srctabview.Select(1)
-				self.srctabview.Select(0)
+				#self.srctabview.Select(1)
+				#self.srctabview.Select(0)
+				self.srctabview.Draw(self.srctabview.Bounds())
 				self.postabview.RemoveTab(whichrem)
-				self.postabview.Hide()     # <----- Bug fix
-				self.postabview.Show()	   # <----- Bug fix
+				self.postabview.Draw(self.postabview.Bounds())
+#				self.postabview.Hide()     # <----- Bug fix
+#				self.postabview.Show()	   # <----- Bug fix
 				self.tabslabels.pop(whichrem)
 				self.editorslist.pop(whichrem)
 			return
