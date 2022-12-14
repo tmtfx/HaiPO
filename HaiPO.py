@@ -74,6 +74,39 @@ if os.path.isfile(confile):
 		firstrun = True
 else:
 	firstrun = True
+
+if not firstrun:
+	global tm,tmxsrv,tmxprt
+	try:
+		Config.read(confile)
+		try:
+			if ConfigSectionMap("Settings")['tm'] == "True":
+				tm = True
+			else:
+				tm = False
+		except:
+			cfgfile = open(confile,'w')
+			Config.set('Settings','tm', 'False')
+			Config.write(cfgfile)
+			cfgfile.close()
+			tm=False
+		if tm:
+			import socket,pickle
+			usero=ConfigSectionMap("Users")['default']
+			try:
+				tmxsrv=ConfigSectionMap(usero)['tmxsrv']
+				tmxprt=ConfigSectionMap(usero)['tmxprt']
+			except:
+				cfgfile = open(confile,'w')
+				Config.set(usero,'tmxsrv', '127.0.0.1')
+				Config.set(usero,'tmxprt', 2022)
+				Config.write(cfgfile)
+				cfgfile.close()
+	except:
+		tm = False
+		tmxsrv = '127.0.0.1'
+		tmxprt = 2022
+
 		
 if not firstrun:
 	global showspell
@@ -82,7 +115,10 @@ if not firstrun:
 #	if True:
 		Config.read(confile)
 		try:
-			setspellcheck=ConfigSectionMap("Settings")['spellchecking']
+			if ConfigSectionMap("Settings")['spellchecking'] == "True":
+				setspellcheck=True
+			else:
+				setspellcheck=False
 		except:
 			cfgfile = open(confile,'w')
 			Config.set('Settings','spellchecking', 'False')
@@ -3178,7 +3214,11 @@ class PoWindow(BWindow):
 			self.tempbtn.Hide()
 		self.event= threading.Event()
 		self.background.AddChild(self.lubox)
-		self.postabview = postabview(self,(5.0, 5.0, d*3/4-5, b-barheight-245), 'postabview',B_WIDTH_FROM_LABEL)
+		if tm:
+			delt=50
+		else:
+			delt=3
+		self.postabview = postabview(self,(5.0, 5.0, d*3/4-5, b-barheight-245-delt), 'postabview',B_WIDTH_FROM_LABEL)
 
 		altece = self.postabview.TabHeight()
 		tfr = (5.0, 5.0, d*3/4-5, s-5)
