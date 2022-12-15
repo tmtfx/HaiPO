@@ -1453,8 +1453,28 @@ class MyListView(BListView):
 						itemtext.Save()
 			if showspell:
 				BApplication.be_app.WindowAt(0).PostMessage(333111)
+			if tm:
+				cirmsg=BMessage(738033)
+				cirmsg.AddString('s',self.ItemAt(self.CurrentSelection()).Text())
+				BApplication.be_app.WindowAt(0).PostMessage(cirmsg)
+#				thread.start_new_thread( self.tmcommunicate, (self.listemsgid[self.srctabview.Selection()].src.Text(),) )
 		return BListView.MouseDown(self,point)
 
+class ScrollSugj:
+	HiWhat = 141# Doubleclick --> paste to trnsl TextView
+	def __init__(self, rect, name):
+		self.lv = BListView(rect, name, B_SINGLE_SELECTION_LIST,B_FOLLOW_ALL_SIDES,B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_FRAME_EVENTS)
+		msg = BMessage(self.HiWhat)
+		self.lv.SetInvocationMessage(msg)
+		self.sv = BScrollView('ScrollSugj', self.lv, B_FOLLOW_ALL_SIDES, B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_NAVIGABLE|B_FRAME_EVENTS, 0, 0, B_FANCY_BORDER)
+		
+	def SelectedText(self):
+		return self.lv.ItemAt(self.lv.CurrentSelection()).Text()
+
+	def Clear(self):
+		self.lv.DeselectAll()
+		while self.lv.CountItems()>0:
+				self.lv.RemoveItem(self.lv.ItemAt(0))
 
 class ScrollView:
 	HiWhat = 32 #Doubleclick --> open translator comment window
@@ -1746,6 +1766,41 @@ class MyListItem(BListItem):
 #		owner.SetFont(self.font)
 #		owner.MovePenTo(frame[0]+30,frame[3]-2)
 #		owner.DrawString(self.text)
+class SugjItem(BListItem):
+	nocolor = (0, 0, 0, 0)
+	frame=[0,0,0,0]
+	def __init__(self,sugj,lev):
+		self.text=sugj
+		tl=len(sugj)
+		self.percent=(100*(tl-lev))/tl
+		BListItem.__init__(self)
+
+	def DrawItem(self, owner, frame,complete):
+		self.frame = frame
+		if self.IsSelected() or complete: # 
+			color = (200,200,200,255)
+			owner.SetHighColor(color)
+			owner.SetLowColor(color)
+			owner.FillRect(frame)
+		self.color = self.nocolor
+		owner.MovePenTo(frame[0]+5,frame[3]-2)
+		if self.percent == 100:
+			self.font = be_bold_font
+			tempcolor = (0,200,0,0)
+		else:
+			self.font = be_plain_font
+			tempcolor = (20,20,20,0)
+		owner.SetHighColor(tempcolor)
+		owner.SetFont(self.font)
+		owner.DrawString(str(self.percent)+"%")
+		owner.SetHighColor(self.color)
+		self.font = be_plain_font
+		owner.SetFont(self.font)
+		owner.MovePenTo(frame[0]+40,frame[3]-2)
+		owner.DrawString(self.text)
+		
+	def Text(self):
+		return self.text
 		
 class MsgStrItem(BListItem):
 	nocolor = (0, 0, 0, 0)
@@ -2395,21 +2450,21 @@ class srctabbox(BBox):
 		self.name = name
 		BBox.__init__(self,(0,0,playground1[2]-playground1[0],playground1[3]-playground1[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
 		self.hsrc = playground1[3] - playground1[1] - altece
-		self.src = srcTextView((playground1[0],playground1[1],playground1[2]-playground1[0]-20,playground1[3]-playground1[1]),name+'_source_BTextView',(5.0,5.0,playground1[2]-30,playground1[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)
+		self.src = srcTextView((playground1[0],playground1[1],playground1[2]-playground1[0]-18,playground1[3]-playground1[1]),name+'_source_BTextView',(5.0,5.0,playground1[2]-30,playground1[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.src.MakeEditable(False)
 		self.AddChild(self.src)
 		bi,bu,bo,ba = playground1
-		self.scrollbsrc=BScrollBar((bo -21,1,bo-5,ba-5),name+'_ScrollBar',self.src,0.0,0.0,B_VERTICAL)
+		self.scrollbsrc=BScrollBar((bo -20,1,bo-5,ba-5),name+'_ScrollBar',self.src,0.0,0.0,B_VERTICAL)
 		self.AddChild(self.scrollbsrc)
 class trnsltabbox(BBox):
 	def __init__(self,playground2,name,altece,superself):
 		self.name = name
 		BBox.__init__(self,(0,0,playground2[2]-playground2[0],playground2[3]-playground2[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
-		self.trnsl = EventTextView(superself,(playground2[0],playground2[1],playground2[2]-playground2[0]-20,playground2[3]-playground2[1]),name+'_translation_BTextView',(5.0,5.0,playground2[2]-30,playground2[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)
+		self.trnsl = EventTextView(superself,(playground2[0],playground2[1],playground2[2]-playground2[0]-18,playground2[3]-playground2[1]),name+'_translation_BTextView',(5.0,5.0,playground2[2]-30,playground2[3]-5),B_FOLLOW_ALL,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.trnsl.MakeEditable(True)
 		self.AddChild(self.trnsl)
 		bi,bu,bo,ba = playground2
-		self.scrollbtrans=BScrollBar((bo -21,1,bo-5,ba-5),name+'_ScrollBar',self.trnsl,0.0,0.0,B_VERTICAL)
+		self.scrollbtrans=BScrollBar((bo -20,1,bo-5,ba-5),name+'_ScrollBar',self.trnsl,0.0,0.0,B_VERTICAL)
 		self.AddChild(self.scrollbtrans)
 
 class HeaderWindow(BWindow):
@@ -2489,9 +2544,9 @@ class POEditorBBox(BBox):
 		BBox.__init__(self,(a,s,d-5,f-35),name,B_FOLLOW_ALL,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
 		contor=self.Bounds()
 		l, t, r, b = contor
-		self.list = ScrollView((5, 5, r -22, b-5), name+'_ScrollView')
+		self.list = ScrollView((5, 5, r -20, b-5), name+'_ScrollView')
 		self.AddChild(self.list.topview())
-		self.scrollb = BScrollBar((r -21,5,r-5,b-5),name+'_ScrollBar',self.list.listview(),0.0,float(ind),B_VERTICAL)#len(datab)
+		self.scrollb = BScrollBar((r -19,5,r-5,b-5),name+'_ScrollBar',self.list.listview(),0.0,float(ind),B_VERTICAL)#len(datab)
 		self.AddChild(self.scrollb)
 		self.occumemo=[]
 		if arrayview[0]:
@@ -3227,6 +3282,12 @@ class PoWindow(BWindow):
 		if tm:
 			delt=100
 			self.tmpanel = BBox((5.0, b-barheight-245-delt+3,d*3/4-5,b-barheight-245-3), 'tmbox', B_FOLLOW_TOP_BOTTOM|B_FOLLOW_RIGHT, B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS|B_NAVIGABLE,B_FANCY_BORDER)
+			(tpa,tpb,tpc,tpd)=self.tmpanel.Bounds()
+			self.tmscrollsugj=ScrollSugj((tpa+2,tpb+2,tpc-17,tpd-2), 'ScrollSugj') #AAAA4
+			self.tmpanel.AddChild(self.tmscrollsugj.sv)
+			aaa,bbb,ccc,ddd = self.tmpanel.Bounds()#l, t, r, b
+			self.sscrlb = BScrollBar((ccc -16,1,ccc-1,ddd-1),'Sugj_ScrollBar',self.tmscrollsugj.lv,0.0,float(r),B_VERTICAL)#len(datab)
+			self.tmpanel.AddChild(self.sscrlb)
 			self.background.AddChild(self.tmpanel)
 		else:
 			delt=3
@@ -3248,7 +3309,7 @@ class PoWindow(BWindow):
 		self.srctabview = sourcetabview(playground1, 'sourcetabview',B_WIDTH_FROM_LABEL,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS,self)
 
 		altece = self.srctabview.TabHeight()
-		tabrc = (3.0, 3.0, playground1[2] - playground1[0], playground1[3] - playground1[1]-altece)
+		tabrc = (3.0, 3.0, playground1[2] - playground1[0], playground1[3] - playground1[1]-altece-1)
 		self.srctablabels=[]
 		self.listemsgid=[]
 		self.background.AddChild(self.srctabview)
@@ -3345,11 +3406,13 @@ class PoWindow(BWindow):
 			
 	def NichilizeTM(self):
 		if tm:
-			totchild=self.tmpanel.CountChildren()
-			ichild=0
-			while ichild<totchild:
-				self.tmpanel.RemoveChild(self.tmpanel.ChildAt(ichild))
-				ichild+=1
+			self.tmscrollsugj.Clear()
+				
+#			totchild=self.tmpanel.CountChildren()
+#			ichild=0
+#			while ichild<totchild:
+#				self.tmpanel.RemoveChild(self.tmpanel.ChildAt(ichild))
+#				ichild+=1
 			
 	def FrameResized(self,x,y):
 			i=self.postabview.Selection()
@@ -3415,10 +3478,22 @@ class PoWindow(BWindow):
 				if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #nel frattempo (attesa risposta) potrei aver cambiato il testo
 					#print "dopo controllo testo sorgente elaboro risposta ricevuta"
 					answer=pickle.loads(pck_answer)
-					print answer
+					sugjmsg=BMessage(5391359)
+					ts=len(answer)
+					sugjmsg.AddInt16('totsugj',ts)
+					x=0
+					while x <ts:
+						print answer[x][0]
+						sugjmsg.AddString('sugj_'+str(x),answer[x][0].encode('utf-8'))
+						sugjmsg.AddInt8('lev_'+str(x),answer[x][1])
+						x+=1
+					BApplication.be_app.WindowAt(0).PostMessage(sugjmsg)
+#					print answer
 				else:
 					pass
 				tmsocket.close()
+				
+					
 			else:
 				pass
 #			except:
@@ -4817,6 +4892,24 @@ class PoWindow(BWindow):
 #			print percors
 			#say = BAlert(percors, 'Ok',None, None, None, 3)
 			#say.Go()
+		elif msg.what == 5391359:
+			r=msg.FindInt16('totsugj')
+			act=0
+			while act<r:
+				self.tmscrollsugj.lv.AddItem(SugjItem(msg.FindString('sugj_'+str(act)),msg.FindInt8('lev_'+str(act))))
+				act+=1
+		elif msg.what == 738033:
+			self.NichilizeTM()
+			thread.start_new_thread(self.tmcommunicate,(msg.FindString('s'),))
+		elif msg.what == 141:
+			#copia testo da scrollsugj su transtabview attuale
+			self.listemsgstr[self.transtabview.Selection()].trnsl.SetText(self.tmscrollsugj.lv.ItemAt(self.tmscrollsugj.lv.CurrentSelection()).Text())
+			self.listemsgstr[self.transtabview.Selection()].trnsl.MakeFocus()
+			lngth=self.listemsgstr[self.transtabview.Selection()].trnsl.TextLength()
+			self.listemsgstr[self.transtabview.Selection()].trnsl.Select(lngth,lngth)
+			self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
+			#notifica necessità di salvataggio
+			self.listemsgstr[self.transtabview.Selection()].trnsl.Save()
 		else:
 			BWindow.MessageReceived(self, msg)
 	
