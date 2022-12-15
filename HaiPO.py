@@ -92,7 +92,7 @@ if not firstrun:
 			tm=False
 		if tm:
 			import socket,pickle
-			tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+			#tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 			usero=ConfigSectionMap("Users")['default']
 			try:
 				tmxsrv=ConfigSectionMap(usero)['tmxsrv']
@@ -108,12 +108,12 @@ if not firstrun:
 		tm = False
 		tmxsrv = '127.0.0.1'
 		tmxprt = 2022
-	try:
-		if tm:
-			tmsocket.settimeout(3)
-			tmsocket.connect((tmxsrv,tmxprt))
-	except:
-		print ("impossibile connettersi")
+	#try:
+	#	if tm:
+	#		tmsocket.settimeout(3)
+	#		#tmsocket.connect((tmxsrv,tmxprt))
+	#except:
+	#	print ("impossibile connettersi")
 		
 if not firstrun:
 	global showspell
@@ -404,7 +404,7 @@ class ImpostazionsUtent(BWindow):
 				team=ConfigSectionMap(listu[x])['team']
 				pemail=ConfigSectionMap(listu[x])['pe-mail']
 				temail=ConfigSectionMap(listu[x])['te-mail']
-				print setencoding
+				#print setencoding
 				if setencoding:
 					try:
 						thisencoding=ConfigSectionMap(listu[x])['encoding']
@@ -2246,7 +2246,8 @@ class EventTextView(BTextView):
 		errors = []
 		self.analyzetxt = []
 		stdout_data=stdout_data.split('\n')
-		print "stdout_data:",stdout_data
+		if deb:
+			print "stdout_data:",stdout_data
 		for s in stdout_data:
 			if s != "":
 				words=s.split()
@@ -2263,8 +2264,9 @@ class EventTextView(BTextView):
 					sugi = solutions.split(", ")
 					outs = s[liw:liw+lun]   # <<<<------ number that hunspell indicates as where is the word to fix
 					# here you check where is the correct byte for that hunspell-index
-					print "outs:",outs
-					print newareltxt
+					if deb:
+						print "outs:",outs
+						print newareltxt
 					for items in newareltxt:
 						if items[1][0] == int(outs):
 							realouts=items[2][0]
@@ -3337,6 +3339,8 @@ class PoWindow(BWindow):
 			self.spellabel= BStringView((8,jkl-hig*3-80,ghj-8,jkl-hig*2-72),"spellabel","Spellcheck status: disabled")
 			self.lubox.AddChild(self.spellabel)
 			
+		self.netlock=threading.Semaphore()
+			
 ############# end of _init_ ################
 			
 	def NichilizeTM(self):
@@ -3393,13 +3397,32 @@ class PoWindow(BWindow):
 			#print ("mi collego a:",tmxsrv,tmxprt)
 			#tmsocket.connect((tmxsrv,int(tmxprt)))
 			#print ("connesso a: ",tmxsrv)
-			pck=[]
-			pck.append(src)
-			send_pck=pickle.dumps(pck)
-			tmsocket.send(send_pck)
-			pck_answer=tmsocket.recv(1024)
-			answer=pickle.loads(pck_answer)
-			print answer
+			#print "acquisisco lock"
+			self.netlock.acquire()
+#			try:
+			if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #controlliamo se è ancora lo stesso
+				#print "creo socket"
+				tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+				#print "connetto socket"
+				tmsocket.connect((tmxsrv,tmxprt))
+				pck=[]
+				pck.append(src)
+				send_pck=pickle.dumps(pck)
+				#print "invio pacchetto"
+				tmsocket.send(send_pck)
+				#print "attendo risposta"
+				pck_answer=tmsocket.recv(1024)
+				if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #nel frattempo (attesa risposta) potrei aver cambiato il testo
+					#print "dopo controllo testo sorgente elaboro risposta ricevuta"
+					answer=pickle.loads(pck_answer)
+					print answer
+				else:
+					pass
+				tmsocket.close()
+			else:
+				pass
+#			except:
+			self.netlock.release()
 			#tmsocket.settimeout(oltim)
 			#tmsocket.close()
 		#except:
@@ -4719,7 +4742,9 @@ class PoWindow(BWindow):
 				self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
 				if tm:
 					print ("da richiedere: ",self.listemsgid[self.srctabview.Selection()].src.Text())
-					self.tmcommunicate(self.listemsgid[self.srctabview.Selection()].src.Text())
+					#TODO: azzerare ScrollSugj
+					
+					thread.start_new_thread( self.tmcommunicate, (self.listemsgid[self.srctabview.Selection()].src.Text(),) )
 					
 			else:
 				if tm:
