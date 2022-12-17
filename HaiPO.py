@@ -27,7 +27,7 @@ import os,sys,ConfigParser,struct,re,thread,datetime,time,threading,unicodedata
 from distutils.spawn import find_executable
 from subprocess import Popen,STDOUT,PIPE
 
-version='HaiPO 1.3 beta'
+version='HaiPO 1.4 beta'
 (appname,ver,state)=version.split(' ')
 
 jes = False
@@ -1431,8 +1431,8 @@ class AboutWindow(BWindow):
 		self.messagjio= BTextView(cise, 'TxTView', cjamput, B_FOLLOW_ALL, B_WILL_DRAW)
 		self.messagjio.SetStylable(1)
 		self.messagjio.MakeSelectable(0)
-		self.messagjio.MakeEditable(0)
-		stuff = '\n\t\t\t\t\t\t\t\t\t'+appname+'\n\n\t\t\t\t\t\t\t\t\t\t\t\tA simple PO editor\n\t\t\t\t\t\t\t\t\t\t\t\tfor Haiku, version '+ver+' '+state+'\n\t\t\t\t\t\t\t\t\t\t\t\tcodename "Ludario e Rigulât"\n\n\t\t\t\t\t\t\t\t\t\t\t\tby Fabio Tomat\n\t\t\t\t\t\t\t\t\t\t\t\te-mail:\n\t\t\t\t\t\t\t\t\t\t\t\tf.t.public@gmail.com\n\n\n\n\n\n\nMIT LICENSE\nCopyright © 2021 Fabio Tomat\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.'
+		self.messagjio.MakeEditable(0)		
+		stuff = '\n\t\t\t\t\t\t\t\t\t'+appname+'\n\n\t\t\t\t\t\t\t\t\t\t\t\tMy personal PO editor\n\t\t\t\t\t\t\t\t\t\t\t\tfor Haiku, version '+ver+' '+state+'\n\t\t\t\t\t\t\t\t\t\t\t\tbuild 221217\n\n\t\t\t\t\t\t\t\t\t\t\t\tby Fabio Tomat\n\t\t\t\t\t\t\t\t\t\t\t\te-mail:\n\t\t\t\t\t\t\t\t\t\t\t\tf.t.public@gmail.com\n\n\n\n\n\n\nMIT LICENSE\nCopyright © 2021 Fabio Tomat\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.'
 		n = stuff.find(appname)
 		m = stuff.find('MIT LICENSE')
 		command=[(0, be_plain_font, (0, 0, 0, 0)), (n, be_bold_font, (0, 0, 0, 0)), (n + 5, be_plain_font, (100, 100, 100, 0)),(m,be_bold_font,(0,0,0,0)),(m+11,be_plain_font,(100,100,100,0))]
@@ -3240,7 +3240,7 @@ class PoWindow(BWindow):
 
 	def __init__(self, frame):
 		selectionmenu=0
-		BWindow.__init__(self, frame, 'Simple PO editor for Haiku!', B_TITLED_WINDOW,0)
+		BWindow.__init__(self, frame, 'My personal PO editor for Haiku!', B_TITLED_WINDOW,0)
 		bounds = self.Bounds()
 		self.bar = BMenuBar(bounds, 'Bar')
 		x, barheight = self.bar.GetPreferredSize()
@@ -3560,7 +3560,7 @@ class PoWindow(BWindow):
 			#print ("connesso a: ",tmxsrv)
 			#print "acquisisco lock"
 		self.netlock.acquire()
-		print "mando messaggio per visualizzare scrollsugj"
+		#print "mando messaggio per cancellare scrollsugj"
 		showmsg=BMessage(83419)
 		BApplication.be_app.WindowAt(0).PostMessage(showmsg)
 		try:
@@ -3596,15 +3596,10 @@ class PoWindow(BWindow):
 			else:
 				pass
 		except:
-			print "mando messaggio per nascondere scrollsugj"
 			hidemsg=BMessage(104501)
 			BApplication.be_app.WindowAt(0).PostMessage(hidemsg)
 		self.netlock.release()
-			#tmsocket.settimeout(oltim)
-			#tmsocket.close()
-		#except:
-		#	print "Not connected to tm server"
-		#	tm=False
+
 			
 	def Nichilize(self):
 					if (len(self.listemsgid)-1) == 1:    #IF THERE'S A PLURAL MSGID, REMOVE IT
@@ -4222,7 +4217,7 @@ class PoWindow(BWindow):
 			return
 
 		elif msg.what == 130550: # change listview selection
-			print "changing selection"
+			#print "changing selection"
 			movetype=msg.FindInt8('movekind')
 			self.NichilizeTM() #AZZERAMENTO TM PANEL
 			if movetype == 0:
@@ -4736,7 +4731,9 @@ class PoWindow(BWindow):
 			actualtab.filen, actualtab.file_ext = os.path.splitext(completepath)
 			actualtab.backupfile= actualtab.filen+".temp"+actualtab.file_ext
 			return
-#		elif msg.what == 83419:
+		elif msg.what == 83419:
+			self.NichilizeTM()
+			#self.tmscrollsugj.Clear()
 #			print "mostro il pannello"
 #			#self.tmpanel.Show()
 #			self.tmscrollsugj.sv.Show()
@@ -4934,7 +4931,8 @@ class PoWindow(BWindow):
 #				self.listemsgstr[self.transtabview.Selection()].trnsl.GoToLine(num)
 				self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
 				if tm:
-					print ("da richiedere: ",self.listemsgid[self.srctabview.Selection()].src.Text())
+					if deb:
+						print ("da richiedere: ",self.listemsgid[self.srctabview.Selection()].src.Text())
 					#TODO: azzerare ScrollSugj
 					
 					thread.start_new_thread( self.tmcommunicate, (self.listemsgid[self.srctabview.Selection()].src.Text(),) )
