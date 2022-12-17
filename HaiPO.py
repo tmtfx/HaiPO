@@ -1532,10 +1532,10 @@ class MyListView(BListView):
 class ScrollSugj:
 	HiWhat = 141# Doubleclick --> paste to trnsl TextView
 	def __init__(self, rect, name):
-		self.lv = BListView(rect, name, B_SINGLE_SELECTION_LIST,B_FOLLOW_ALL_SIDES,B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_FRAME_EVENTS)
+		self.lv = BListView(rect, name, B_SINGLE_SELECTION_LIST,B_FOLLOW_LEFT_RIGHT|B_FOLLOW_BOTTOM,B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_FRAME_EVENTS)#B_FOLLOW_ALL_SIDES
 		msg = BMessage(self.HiWhat)
 		self.lv.SetInvocationMessage(msg)
-		self.sv = BScrollView('ScrollSugj', self.lv, B_FOLLOW_ALL_SIDES, B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_NAVIGABLE|B_FRAME_EVENTS, 0, 0, B_FANCY_BORDER)
+		self.sv = BScrollView('ScrollSugj', self.lv, B_FOLLOW_LEFT_RIGHT|B_FOLLOW_BOTTOM, B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_NAVIGABLE|B_FRAME_EVENTS, 0, 0, B_FANCY_BORDER)#B_FOLLOW_ALL_SIDES
 		
 	def SelectedText(self):
 		return self.lv.ItemAt(self.lv.CurrentSelection()).Text()
@@ -1870,6 +1870,32 @@ class SugjItem(BListItem):
 		
 	def Text(self):
 		return self.text
+class ErrorItem(BListItem):
+	nocolor = (0, 0, 0, 0)
+	frame=[0,0,0,0]
+	def __init__(self,sugj):
+		self.text=sugj
+		BListItem.__init__(self)
+
+	def DrawItem(self, owner, frame,complete):
+		self.frame = frame
+		if self.IsSelected() or complete: # 
+			color = (200,200,200,255)
+			owner.SetHighColor(color)
+			owner.SetLowColor(color)
+			owner.FillRect(frame)
+		self.color = self.nocolor
+		owner.MovePenTo(frame[0]+5,frame[3]-2)
+		self.font = be_plain_font
+		tempcolor = (20,20,20,0)
+		owner.SetHighColor(tempcolor)
+		owner.SetFont(self.font)
+		owner.DrawString(self.text)
+		#owner.SetHighColor(self.color)
+		#self.font = be_plain_font
+		#owner.SetFont(self.font)
+		#owner.MovePenTo(frame[0]+40,frame[3]-2)
+		#owner.DrawString(self.text)
 		
 class MsgStrItem(BListItem):
 	nocolor = (0, 0, 0, 0)
@@ -3350,7 +3376,7 @@ class PoWindow(BWindow):
 		self.background.AddChild(self.lubox)
 		if tm:
 			delt=100
-			self.tmpanel = BBox((5.0, b-barheight-245-delt+3,d*3/4-5,b-barheight-245-3), 'tmbox', B_FOLLOW_TOP_BOTTOM|B_FOLLOW_RIGHT, B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS|B_NAVIGABLE,B_FANCY_BORDER)
+			self.tmpanel = BBox((5.0, b-barheight-245-delt+3,d*3/4-5,b-barheight-245-3), 'tmbox', B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT, B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW|B_FRAME_EVENTS|B_NAVIGABLE,B_FANCY_BORDER)
 			(tpa,tpb,tpc,tpd)=self.tmpanel.Bounds()
 			self.tmscrollsugj=ScrollSugj((tpa+2,tpb+2,tpc-17,tpd-2), 'ScrollSugj') #AAAA4
 			self.tmpanel.AddChild(self.tmscrollsugj.sv)
@@ -3358,6 +3384,9 @@ class PoWindow(BWindow):
 			self.sscrlb = BScrollBar((ccc -16,1,ccc-1,ddd-1),'Sugj_ScrollBar',self.tmscrollsugj.lv,0.0,float(r),B_VERTICAL)#len(datab)
 			self.tmpanel.AddChild(self.sscrlb)
 			self.background.AddChild(self.tmpanel)
+			#self.errorstr=BStringView((tpa+2,tpb+2,tpc-17,tpd-2),"errorstring","Error connecting to Translation Memory server",B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT)
+			#self.background.AddChild(self.errorstr)
+			#self.errorstr.Hide()
 		else:
 			delt=3
 		self.postabview = postabview(self,(5.0, 5.0, d*3/4-5, b-barheight-245-delt), 'postabview',B_WIDTH_FROM_LABEL)
@@ -3530,8 +3559,11 @@ class PoWindow(BWindow):
 			#tmsocket.connect((tmxsrv,int(tmxprt)))
 			#print ("connesso a: ",tmxsrv)
 			#print "acquisisco lock"
-			self.netlock.acquire()
-#			try:
+		self.netlock.acquire()
+		print "mando messaggio per visualizzare scrollsugj"
+		showmsg=BMessage(83419)
+		BApplication.be_app.WindowAt(0).PostMessage(showmsg)
+		try:
 			if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #controlliamo se è ancora lo stesso
 				#print "creo socket"
 				tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -3552,7 +3584,7 @@ class PoWindow(BWindow):
 					sugjmsg.AddInt16('totsugj',ts)
 					x=0
 					while x <ts:
-						print answer[x][0]
+						#print answer[x][0]
 						sugjmsg.AddString('sugj_'+str(x),answer[x][0].encode('utf-8'))
 						sugjmsg.AddInt8('lev_'+str(x),answer[x][1])
 						x+=1
@@ -3560,13 +3592,14 @@ class PoWindow(BWindow):
 #					print answer
 				else:
 					pass
-				tmsocket.close()
-				
-					
+				tmsocket.close()					
 			else:
 				pass
-#			except:
-			self.netlock.release()
+		except:
+			print "mando messaggio per nascondere scrollsugj"
+			hidemsg=BMessage(104501)
+			BApplication.be_app.WindowAt(0).PostMessage(hidemsg)
+		self.netlock.release()
 			#tmsocket.settimeout(oltim)
 			#tmsocket.close()
 		#except:
@@ -3936,6 +3969,8 @@ class PoWindow(BWindow):
 
 		elif msg.what == 44:
 			#spelcheck settings
+#			if 'self.splchset' in locals():
+			#if hasattr(self, 'splchset'):
 			self.splchset = SpellcheckSettings()
 			self.splchset.Show()
 		elif msg.what == 45:
@@ -4701,7 +4736,17 @@ class PoWindow(BWindow):
 			actualtab.filen, actualtab.file_ext = os.path.splitext(completepath)
 			actualtab.backupfile= actualtab.filen+".temp"+actualtab.file_ext
 			return
-			
+#		elif msg.what == 83419:
+#			print "mostro il pannello"
+#			#self.tmpanel.Show()
+#			self.tmscrollsugj.sv.Show()
+#			self.tmscrollsugj.lv.Show()
+#			self.errorstr.Hide()
+		elif msg.what == 104501:
+			self.tmscrollsugj.lv.AddItem(ErrorItem("┌─────────────────────┐"))#───────────────────────────────────
+			self.tmscrollsugj.lv.AddItem(ErrorItem("     Error connecting to Translation Memory server     "))
+			self.tmscrollsugj.lv.AddItem(ErrorItem("└─────────────────────┘"))#──────────────────────────────
+			return
 		elif msg.what == 460550:
 			# selection from listview
 			bounds = self.Bounds()
@@ -4976,13 +5021,17 @@ class PoWindow(BWindow):
 			thread.start_new_thread(self.tmcommunicate,(msg.FindString('s'),))
 		elif msg.what == 141:
 			#copia testo da scrollsugj su transtabview attuale
-			self.listemsgstr[self.transtabview.Selection()].trnsl.SetText(self.tmscrollsugj.lv.ItemAt(self.tmscrollsugj.lv.CurrentSelection()).Text())
-			self.listemsgstr[self.transtabview.Selection()].trnsl.MakeFocus()
-			lngth=self.listemsgstr[self.transtabview.Selection()].trnsl.TextLength()
-			self.listemsgstr[self.transtabview.Selection()].trnsl.Select(lngth,lngth)
-			self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
-			#notifica necessità di salvataggio
-			self.listemsgstr[self.transtabview.Selection()].trnsl.Save()
+			try:
+				self.listemsgstr[self.transtabview.Selection()].trnsl.SetText(self.tmscrollsugj.lv.ItemAt(self.tmscrollsugj.lv.CurrentSelection()).Text())
+				self.listemsgstr[self.transtabview.Selection()].trnsl.MakeFocus()
+				lngth=self.listemsgstr[self.transtabview.Selection()].trnsl.TextLength()
+				self.listemsgstr[self.transtabview.Selection()].trnsl.Select(lngth,lngth)
+				self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
+				#notifica necessità di salvataggio
+				self.listemsgstr[self.transtabview.Selection()].trnsl.Save()
+			except:
+				if deb:
+					print "Not a SugjItem, but an ErrorItem as not having .Text() function"
 		else:
 			BWindow.MessageReceived(self, msg)
 	
