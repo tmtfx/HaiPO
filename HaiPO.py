@@ -697,6 +697,75 @@ class GeneralSettings(BWindow):
 				print "Error enabling mimechecking, missing config section?"
 			cfgfile.close()
 
+class TMSettings(BWindow):
+	kWindowFrame = (250, 150, 755, 240)
+	kWindowName = "Translation Memory Settings"
+	def __init__(self):
+		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, B_FLOATING_WINDOW, B_NOT_RESIZABLE)
+		bounds=self.Bounds()
+		l,t,r,b = bounds
+		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		self.AddChild(self.underframe)
+		Config.read(confile)
+		self.enablecheck = BCheckBox((5,5,r-5,18),'enabcheck', 'Enable/Disable translation memory', BMessage(222))
+		if tm:
+			self.enablecheck.SetValue(1)
+		else:
+			self.enablecheck.SetValue(0)
+		try:
+			usero = ConfigSectionMap("Users")['default']
+			bret = ConfigSectionMap(usero)['tmxsrv']
+		except:
+			bret = "127.0.0.1"
+		self.tmxsrvBTC = BTextControl((5,27,r-5,49),'tmxsrv','Server address:',bret,BMessage(8080))
+		try:
+			usero = ConfigSectionMap("Users")['default']
+			bret = ConfigSectionMap(usero)['tmxprt']
+		except:
+			bret = "2022"
+		self.tmxprtBTC = BTextControl((5,51,r-5,73),'tmxprt','Server port:',bret,BMessage(8086))
+		self.underframe.AddChild(self.enablecheck)
+		self.underframe.AddChild(self.tmxsrvBTC)
+		self.underframe.AddChild(self.tmxprtBTC)
+
+	def MessageReceived(self, msg):
+		if msg.what == 222:
+			cfgfile = open(confile,'w')
+			try:
+				if self.enablecheck.Value():
+					Config.set('Settings','tm', "True")
+					Config.write(cfgfile)
+				else:
+					Config.set('Settings','tm', "False")
+					Config.write(cfgfile)
+			except:
+				print "Error writing tm setting in config.ini, missing config section?"
+			cfgfile.close()
+		elif msg.what == 8080:
+			try:
+				usero = ConfigSectionMap("Users")['default']
+				cfgfile = open(confile,'w')
+				try:
+					Config.set(usero,'tmxsrv',self.tmxsrvBTC.Text())
+					Config.write(cfgfile)
+				except:
+					print "Cannot save TM server address"
+				cfgfile.close()
+			except:
+				print "Error reading default user"
+		elif msg.what == 8086:
+			try:
+				usero = ConfigSectionMap("Users")['default']
+				cfgfile = open(confile,'w')
+				try:
+					Config.set(usero,'tmxprt',int(self.tmxprtBTC.Text()))
+					Config.write(cfgfile)
+				except:
+					print "Cannot save TM server port"
+				cfgfile.close()
+			except:
+				print "Error reading default user"
+		
 class SpellcheckSettings(BWindow):
 	kWindowFrame = (250, 150, 755, 297)
 	kWindowName = "Spellchecking Settings"
@@ -3139,7 +3208,7 @@ class PoWindow(BWindow):
 		('File', ((295485, 'Open'), (2, 'Save'), (1, 'Close'), (5, 'Save as...'),(None, None),(B_QUIT_REQUESTED, 'Quit'))),
 		('Translation', ((3, 'Copy from source (ctrl+shif+s)'), (32,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy'), (72, 'Previous w/o saving'),(73,'Next w/o saving'),(None, None), (6, 'Find source'), (7, 'Find/Replace translation'))),
 		('View', ((74,'Fuzzy'), (75, 'Untranslated'),(76,'Translated'),(77, 'Obsolete'))),
-		('Settings', ((40, 'General'),(41, 'User settings'), (42, 'Po properties'), (43, 'Po header'), (44, 'Spellcheck'))),
+		('Settings', ((40, 'General'),(41, 'User settings'), (42, 'Po properties'), (43, 'Po header'), (44, 'Spellcheck'), (45,'Translation Memory'))),
 		('About', ((8, 'Help'),(None, None),(9, 'About')))
 		)
 
@@ -3869,6 +3938,10 @@ class PoWindow(BWindow):
 			#spelcheck settings
 			self.splchset = SpellcheckSettings()
 			self.splchset.Show()
+		elif msg.what == 45:
+			#spelcheck settings
+			self.tmset = TMSettings()
+			self.tmset.Show()
 		elif msg.what == 70:
 			# Done and next
 			if len(self.editorslist)>0:
