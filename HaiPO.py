@@ -3570,7 +3570,7 @@ class PoWindow(BWindow):
 				#print "connetto socket"
 				tmsocket.connect((tmxsrv,tmxprt))
 				pck=[]
-				pck.append(src)
+				pck.append(src.decode(self.encoding))#'utf-8'
 				send_pck=pickle.dumps(pck)
 				#print "invio pacchetto"
 				tmsocket.send(send_pck)
