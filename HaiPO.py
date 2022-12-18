@@ -1939,13 +1939,13 @@ class MsgStrItem(BListItem):
 			owner.SetHighColor(color)
 			owner.SetLowColor(color)
 			owner.FillRect(frame)
-			if self.state == 0: 
+			if self.state == self.untranslated: 
 				self.color = (0,0,255,0)
-			elif self.state == 1:
+			elif self.state == self.translated:
 				self.color = self.nocolor
-			elif self.state == 2:
+			elif self.state == self.fuzzy:
 				self.color = (153,153,0,0)
-			elif self.state == 3:
+			elif self.state == self.obsolete:
 				self.color = (150,75,0)
 
 		if self.state == 0:
@@ -3564,37 +3564,52 @@ class PoWindow(BWindow):
 		showmsg=BMessage(83419)
 		BApplication.be_app.WindowAt(0).PostMessage(showmsg)
 		try:
-			if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #controlliamo se è ancora lo stesso
-				#print "creo socket"
+		#if True:
+			if type(src)==str:
+				if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #controlliamo se è ancora lo stesso
+					#print "creo socket"
+					tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+					#print "connetto socket"
+					tmsocket.connect((tmxsrv,tmxprt))
+					pck=[]
+					pck.append(src.decode(self.encoding))#'utf-8'
+					send_pck=pickle.dumps(pck)
+					#print "invio pacchetto"
+					tmsocket.send(send_pck)
+					#print "attendo risposta"
+					pck_answer=tmsocket.recv(1024)
+					if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #nel frattempo (attesa risposta) potrei aver cambiato il testo
+						#print "dopo controllo testo sorgente elaboro risposta ricevuta"
+						answer=pickle.loads(pck_answer)
+						sugjmsg=BMessage(5391359)
+						ts=len(answer)
+						sugjmsg.AddInt16('totsugj',ts)
+						x=0
+						while x <ts:
+							#print answer[x][0]
+							sugjmsg.AddString('sugj_'+str(x),answer[x][0].encode('utf-8'))
+							sugjmsg.AddInt8('lev_'+str(x),answer[x][1])
+							x+=1
+						BApplication.be_app.WindowAt(0).PostMessage(sugjmsg)
+#						print answer
+					else:
+						pass
+					tmsocket.close()					
+				else:
+					pass
+			else:
+				
 				tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 				#print "connetto socket"
 				tmsocket.connect((tmxsrv,tmxprt))
 				pck=[]
-				pck.append(src.decode(self.encoding))#'utf-8'
+				pck.append((None,src[1].decode(self.encoding),src[2].decode(self.encoding)))#'utf-8'
+				print "stampo comando per aggiunta voce"
 				send_pck=pickle.dumps(pck)
 				#print "invio pacchetto"
 				tmsocket.send(send_pck)
-				#print "attendo risposta"
-				pck_answer=tmsocket.recv(1024)
-				if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #nel frattempo (attesa risposta) potrei aver cambiato il testo
-					#print "dopo controllo testo sorgente elaboro risposta ricevuta"
-					answer=pickle.loads(pck_answer)
-					sugjmsg=BMessage(5391359)
-					ts=len(answer)
-					sugjmsg.AddInt16('totsugj',ts)
-					x=0
-					while x <ts:
-						#print answer[x][0]
-						sugjmsg.AddString('sugj_'+str(x),answer[x][0].encode('utf-8'))
-						sugjmsg.AddInt8('lev_'+str(x),answer[x][1])
-						x+=1
-					BApplication.be_app.WindowAt(0).PostMessage(sugjmsg)
-#					print answer
-				else:
-					pass
-				tmsocket.close()					
-			else:
-				pass
+				print("adding source: "+src[1]+"\nand translation: "+src[2])
+				tmsocket.close()
 		except:
 			hidemsg=BMessage(104501)
 			BApplication.be_app.WindowAt(0).PostMessage(hidemsg)
@@ -4219,6 +4234,9 @@ class PoWindow(BWindow):
 		elif msg.what == 130550: # change listview selection
 			#print "changing selection"
 			movetype=msg.FindInt8('movekind')
+			#if tm:
+			#	for items in self.scrollsugj.lv:
+			#		
 			self.NichilizeTM() #AZZERAMENTO TM PANEL
 			if movetype == 0:
 				#select one down
@@ -4383,6 +4401,16 @@ class PoWindow(BWindow):
 				#self.editorslist[indexroot].pofile.save(bckppath)
 				return
 			elif savetype == 1:
+				needtopush=True
+				iterz=self.tmscrollsugj.lv.CountItems()
+				iteri=0
+				while iteri<iterz:
+					if self.tmscrollsugj.lv.ItemAt(iteri).percent == 100:
+						needtopush=False
+					iteri+=1
+				if needtopush:
+					mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text().decode(self.encoding),self.listemsgstr[self.transtabview.Selection()].trnsl.Text().decode(self.encoding))
+					thread.start_new_thread( self.tmcommunicate, (mx,) )
 				tvindex=msg.FindInt32('tvindex')
 				textsave=msg.FindString('translation')
 				tabbi=msg.FindInt8('plurals')
