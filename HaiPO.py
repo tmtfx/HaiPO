@@ -3505,12 +3505,6 @@ class PoWindow(BWindow):
 	def NichilizeTM(self):
 		if tm:
 			self.tmscrollsugj.Clear()
-				
-#			totchild=self.tmpanel.CountChildren()
-#			ichild=0
-#			while ichild<totchild:
-#				self.tmpanel.RemoveChild(self.tmpanel.ChildAt(ichild))
-#				ichild+=1
 			
 	def FrameResized(self,x,y):
 			i=self.postabview.Selection()
@@ -3552,46 +3546,32 @@ class PoWindow(BWindow):
 			except:
 				pass
 	def tmcommunicate(self,src):
-		#try:
-			#oltim=tmsocket.gettimeout()
-			#tmsocket.settimeout(5)
-			#print ("mi collego a:",tmxsrv,tmxprt)
-			#tmsocket.connect((tmxsrv,int(tmxprt)))
-			#print ("connesso a: ",tmxsrv)
-			#print "acquisisco lock"
 		self.netlock.acquire()
 		#print "mando messaggio per cancellare scrollsugj"
-		showmsg=BMessage(83419)
-		BApplication.be_app.WindowAt(0).PostMessage(showmsg)
+#		showmsg=BMessage(83419)                                                    # valutare se reintrodurre
+#		BApplication.be_app.WindowAt(0).PostMessage(showmsg)                       # valutare se reintrodurre
 		try:
-		#if True:
+#		if True:
 			if type(src)==str:
-				if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #controlliamo se è ancora lo stesso
-					#print "creo socket"
+				if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #check if it's still the same
 					tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-					#print "connetto socket"
 					tmsocket.connect((tmxsrv,tmxprt))
 					pck=[]
 					pck.append(src.decode(self.encoding))#'utf-8'
 					send_pck=pickle.dumps(pck)
-					#print "invio pacchetto"
 					tmsocket.send(send_pck)
-					#print "attendo risposta"
 					pck_answer=tmsocket.recv(1024)
-					if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #nel frattempo (attesa risposta) potrei aver cambiato il testo
-						#print "dopo controllo testo sorgente elaboro risposta ricevuta"
+					if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #check again if I changed the selection
 						answer=pickle.loads(pck_answer)
 						sugjmsg=BMessage(5391359)
 						ts=len(answer)
 						sugjmsg.AddInt16('totsugj',ts)
 						x=0
 						while x <ts:
-							#print answer[x][0]
 							sugjmsg.AddString('sugj_'+str(x),answer[x][0].encode('utf-8'))
 							sugjmsg.AddInt8('lev_'+str(x),answer[x][1])
 							x+=1
 						BApplication.be_app.WindowAt(0).PostMessage(sugjmsg)
-#						print answer
 					else:
 						pass
 					tmsocket.close()					
@@ -3600,13 +3580,13 @@ class PoWindow(BWindow):
 			else:
 				
 				tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-				#print "connetto socket"
 				tmsocket.connect((tmxsrv,tmxprt))
 				pck=[]
-				pck.append((None,src[1].decode(self.encoding),src[2].decode(self.encoding)))#'utf-8'
+				txt1=src[1].encode(self.encoding)
+				txt2=src[2].encode(self.encoding)
+				pck.append((None,txt1.decode(self.encoding),txt2.decode(self.encoding)))#'utf-8'
 				print "stampo comando per aggiunta voce"
 				send_pck=pickle.dumps(pck)
-				#print "invio pacchetto"
 				tmsocket.send(send_pck)
 				print("adding source: "+src[1]+"\nand translation: "+src[2])
 				tmsocket.close()
@@ -4401,16 +4381,27 @@ class PoWindow(BWindow):
 				#self.editorslist[indexroot].pofile.save(bckppath)
 				return
 			elif savetype == 1:
+				print "salvataggio"
 				needtopush=True
 				iterz=self.tmscrollsugj.lv.CountItems()
+				print iterz
 				iteri=0
 				while iteri<iterz:
-					if self.tmscrollsugj.lv.ItemAt(iteri).percent == 100:
-						needtopush=False
-					iteri+=1
+					try:
+						print('eseguo loop '+str(iteri))
+						print self.tmscrollsugj.lv.ItemAt(iteri).percent
+						if self.tmscrollsugj.lv.ItemAt(iteri).percent == 100:
+							needtopush=False
+						iteri+=1
+					except:
+						#significa che ha problemi con la connessione magari gli elementi di tmscrollsugj.lv sono ErrorItem senza percent
+						break
 				if needtopush:
 					mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text().decode(self.encoding),self.listemsgstr[self.transtabview.Selection()].trnsl.Text().decode(self.encoding))
+					print ("mx da inviare:", mx)
 					thread.start_new_thread( self.tmcommunicate, (mx,) )
+					print "aggiunta a tmx"
+				print "eppure da qui passo"
 				tvindex=msg.FindInt32('tvindex')
 				textsave=msg.FindString('translation')
 				tabbi=msg.FindInt8('plurals')
@@ -4993,6 +4984,7 @@ class PoWindow(BWindow):
 			evstyle.release()
 			self.listemsgstr[self.transtabview.Selection()].trnsl.Select(msg.FindInt32("start"),msg.FindInt32("end"))
 			self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
+			return
 		elif msg.what == 963741:
 			schplur = msg.FindInt8('plural')
 			#schsrcplur = msg.FindInt8('srcplur')
@@ -5014,6 +5006,7 @@ class PoWindow(BWindow):
 			schede =  msg.FindInt8("schede")
 			self.listemsgid[schede].src.MakeFocus(True)
 			self.listemsgid[schede].src.Highlight(inizi,fin)
+			return
 		elif msg.what == 852631:
 			#highlight translation text
 			inizi = msg.FindInt32("inizi")
@@ -5021,12 +5014,15 @@ class PoWindow(BWindow):
 			schede =  msg.FindInt8("schede")
 			self.listemsgstr[schede].trnsl.MakeFocus(True)
 			self.listemsgstr[schede].trnsl.Highlight(inizi,fin)
+			return
 		elif msg.what == 333111:
 			self.speloc.acquire()
 			self.intime=time.time()
 			self.speloc.release()
+			return
 		elif msg.what == 7484:
 			self.spellcount.SetText(msg.FindString('graph'))
+			return
 		elif msg.what == 946389:
 			percors=msg.FindString("percors")
 			filo=open("/boot/home/where.txt","w")
@@ -5036,15 +5032,29 @@ class PoWindow(BWindow):
 #			print percors
 			#say = BAlert(percors, 'Ok',None, None, None, 3)
 			#say.Go()
+			return
 		elif msg.what == 5391359:
 			r=msg.FindInt16('totsugj')
 			act=0
 			while act<r:
 				self.tmscrollsugj.lv.AddItem(SugjItem(msg.FindString('sugj_'+str(act)),msg.FindInt8('lev_'+str(act))))
 				act+=1
+			#se tra gli elementi non c'è 100% ma il BListItem è segnato come tradotto, è il caso di inviarlo al file tmx
+			if self.editorslist[self.postabview.Selection()].list.lv.ItemAt(self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()).state == 1:	
+				if self.tmscrollsugj.lv.CountItems()>0:
+					if self.tmscrollsugj.lv.ItemAt(0).percent < 100:
+						mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text().decode(self.encoding),self.listemsgstr[self.transtabview.Selection()].trnsl.Text().decode(self.encoding))
+						thread.start_new_thread( self.tmcommunicate, (mx,) )
+						#print "beh, questo è corretto ma ha suggerimenti sbagliati, salvare in tmx!"
+				else:
+					mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text().decode(self.encoding),self.listemsgstr[self.transtabview.Selection()].trnsl.Text().decode(self.encoding))
+					thread.start_new_thread( self.tmcommunicate, (mx,) )
+					#print "mah, questo è corretto ma non ha suggerimenti, da salvare in tmx!"
+			return
 		elif msg.what == 738033:
 			self.NichilizeTM()
 			thread.start_new_thread(self.tmcommunicate,(msg.FindString('s'),))
+			return
 		elif msg.what == 141:
 			#copia testo da scrollsugj su transtabview attuale
 			try:
@@ -5058,6 +5068,7 @@ class PoWindow(BWindow):
 			except:
 				if deb:
 					print "Not a SugjItem, but an ErrorItem as not having .Text() function"
+			return
 		else:
 			BWindow.MessageReceived(self, msg)
 	
