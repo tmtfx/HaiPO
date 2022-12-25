@@ -2940,6 +2940,27 @@ class POEditorBBox(BBox):
 				say = BAlert("Generic error",erout, 'OK',None, None, None , 4)
 				out=say.Go()
 				#self.Looper().PostMessage(ermsg)
+		# check mimetype
+		static=BMimeType()
+		mime = static.GuessMimeType(path)
+		print mime.Type()
+		if mime.Type() != "text/x-gettext-translation":
+			print "mimetype sbagliato"
+			st=BMimeType("text/x-gettext-translation")
+			print st.InitCheck()
+			print st.Type()
+			nd=BNode(path)
+			ni = BNodeInfo(nd)
+			ni.SetType("text/x-gettext-translation")
+		mime = static.GuessMimeType(path)
+		if mime.Type() != "text/x-gettext-translation":
+			print "è ancora sbagliato!"
+		else:
+			print "ora il mime è giusto"
+			#print st.GetSupertype()
+	#		mimmo=st.SetTo()
+		
+		#
 		self.writter.release()
 		if deb:
 			print "end Save PoEditorBBOX"
