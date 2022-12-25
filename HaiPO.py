@@ -3585,10 +3585,10 @@ class PoWindow(BWindow):
 				txt1=src[1].encode(self.encoding)
 				txt2=src[2].encode(self.encoding)
 				pck.append((None,txt1.decode(self.encoding),txt2.decode(self.encoding)))#'utf-8'
-				print "stampo comando per aggiunta voce"
+				#print "stampo comando per aggiunta voce"
 				send_pck=pickle.dumps(pck)
 				tmsocket.send(send_pck)
-				print("adding source: "+src[1]+"\nand translation: "+src[2])
+				#print("adding source: "+src[1]+"\nand translation: "+src[2])
 				tmsocket.close()
 		except:
 			hidemsg=BMessage(104501)
