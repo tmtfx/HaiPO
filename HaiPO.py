@@ -228,6 +228,7 @@ try:
 	from BTranslationUtils import *
 	from BFile import BFile
 	from BNode import BNode
+	from BNodeInfo import BNodeInfo
 	from BMimeType import BMimeType
 	from BCheckBox import BCheckBox
 	from BView import BView
@@ -2941,22 +2942,22 @@ class POEditorBBox(BBox):
 				out=say.Go()
 				#self.Looper().PostMessage(ermsg)
 		# check mimetype
-		static=BMimeType()
-		mime = static.GuessMimeType(path)
-		print mime.Type()
-		if mime.Type() != "text/x-gettext-translation":
-			print "mimetype sbagliato"
-			st=BMimeType("text/x-gettext-translation")
-			print st.InitCheck()
-			print st.Type()
-			nd=BNode(path)
-			ni = BNodeInfo(nd)
-			ni.SetType("text/x-gettext-translation")
-		mime = static.GuessMimeType(path)
-		if mime.Type() != "text/x-gettext-translation":
-			print "è ancora sbagliato!"
-		else:
-			print "ora il mime è giusto"
+		#static=BMimeType()
+		#mime = static.GuessMimeType(path)
+		#print mime.Type()
+		#if mime.Type() != "text/x-gettext-translation":
+		#	print "mimetype sbagliato"
+		st=BMimeType("text/x-gettext-translation")
+			#print st.InitCheck()
+			#print st.Type()
+		nd=BNode(path)
+		ni = BNodeInfo(nd)
+		ni.SetType("text/x-gettext-translation")
+		#mime = static.GuessMimeType(path)
+		#if mime.Type() != "text/x-gettext-translation":
+	#		print "è ancora sbagliato!"
+#		else:
+			#print "ora il mime è giusto"
 			#print st.GetSupertype()
 	#		mimmo=st.SetTo()
 		
@@ -3586,12 +3587,14 @@ class PoWindow(BWindow):
 						answer=pickle.loads(pck_answer)
 						sugjmsg=BMessage(5391359)
 						ts=len(answer)
+						print "lunghezza della risposta",ts
 						sugjmsg.AddInt16('totsugj',ts)
 						x=0
 						while x <ts:
 							sugjmsg.AddString('sugj_'+str(x),answer[x][0].encode('utf-8'))
 							sugjmsg.AddInt8('lev_'+str(x),answer[x][1])
 							x+=1
+						#if answer[x][1] != 0:
 						BApplication.be_app.WindowAt(0).PostMessage(sugjmsg)
 					else:
 						pass
@@ -4402,7 +4405,7 @@ class PoWindow(BWindow):
 				#self.editorslist[indexroot].pofile.save(bckppath)
 				return
 			elif savetype == 1:
-				print "salvataggio"
+				#save
 				needtopush=True
 				iterz=self.tmscrollsugj.lv.CountItems()
 				print iterz
@@ -4412,12 +4415,18 @@ class PoWindow(BWindow):
 						print('eseguo loop '+str(iteri))
 						print self.tmscrollsugj.lv.ItemAt(iteri).percent
 						if self.tmscrollsugj.lv.ItemAt(iteri).percent == 100:
-							needtopush=False
+							for tabbi in self.listemsgstr:
+								if self.tmscrollsugj.lv.ItemAt(iteri).text==tabbi.trnsl.Text():
+									needtopush=False
+									print "non serve aggiungere a tmx"
+							#TODO: check if trnsl.Text()!=da suggerimento
+							
 						iteri+=1
 					except:
 						#significa che ha problemi con la connessione magari gli elementi di tmscrollsugj.lv sono ErrorItem senza percent
 						break
 				if needtopush:
+					#print "serve aggiungere a tmx"
 					mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text().decode(self.encoding),self.listemsgstr[self.transtabview.Selection()].trnsl.Text().decode(self.encoding))
 					print ("mx da inviare:", mx)
 					thread.start_new_thread( self.tmcommunicate, (mx,) )
@@ -5058,6 +5067,8 @@ class PoWindow(BWindow):
 			r=msg.FindInt16('totsugj')
 			act=0
 			while act<r:
+				print ("Valore per percentuale nel messaggio",msg.FindInt8('lev_'+str(act)))
+				print ("Stringa nel messagio",msg.FindString('sugj_'+str(act)))
 				self.tmscrollsugj.lv.AddItem(SugjItem(msg.FindString('sugj_'+str(act)),msg.FindInt8('lev_'+str(act))))
 				act+=1
 			#se tra gli elementi non c'è 100% ma il BListItem è segnato come tradotto, è il caso di inviarlo al file tmx
