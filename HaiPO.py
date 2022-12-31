@@ -1530,10 +1530,20 @@ class MyListView(BListView):
 #				thread.start_new_thread( self.tmcommunicate, (self.listemsgid[self.srctabview.Selection()].src.Text(),) )
 		return BListView.MouseDown(self,point)
 
+class KListView(BListView):
+	def __init__(self,frame, name,type,align,flags):
+		BListView.__init__(self, frame, name, type, align, flags)
+	def KeyDown(self,char,bytes):
+		if ord(char) == 127:
+			delmsg=BMessage(431110173)
+			delmsg.AddString("sugj",self.ItemAt(self.CurrentSelection()).Text())#check if it needs encoding
+			BApplication.be_app.WindowAt(0).PostMessage(delmsg)
+		return BListView.KeyDown(self,char,bytes)
+
 class ScrollSugj:
 	HiWhat = 141# Doubleclick --> paste to trnsl TextView
 	def __init__(self, rect, name):
-		self.lv = BListView(rect, name, B_SINGLE_SELECTION_LIST,B_FOLLOW_LEFT_RIGHT|B_FOLLOW_BOTTOM,B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_FRAME_EVENTS)#B_FOLLOW_ALL_SIDES
+		self.lv = KListView(rect, name, B_SINGLE_SELECTION_LIST,B_FOLLOW_LEFT_RIGHT|B_FOLLOW_BOTTOM,B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_FRAME_EVENTS)#B_FOLLOW_ALL_SIDES
 		msg = BMessage(self.HiWhat)
 		self.lv.SetInvocationMessage(msg)
 		self.sv = BScrollView('ScrollSugj', self.lv, B_FOLLOW_LEFT_RIGHT|B_FOLLOW_BOTTOM, B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_NAVIGABLE|B_FRAME_EVENTS, 0, 0, B_FANCY_BORDER)#B_FOLLOW_ALL_SIDES
@@ -2242,26 +2252,41 @@ class EventTextView(BTextView):
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",0)
 						BApplication.be_app.WindowAt(0).PostMessage(cpmsg)
+						return
+					else:
+						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 50:
 					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",1)
 						BApplication.be_app.WindowAt(0).PostMessage(cpmsg)
+						return
+					else:
+						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 51:
 					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",2)
 						BApplication.be_app.WindowAt(0).PostMessage(cpmsg)
+						return
+					else:
+						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 52:
 					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",3)
 						BApplication.be_app.WindowAt(0).PostMessage(cpmsg)
+						return
+					else:
+						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 53:
 					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",4)
 						BApplication.be_app.WindowAt(0).PostMessage(cpmsg)
+						return
+					else:
+						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 10: #ENTER
 					#CTRL + enter
 					if value:
@@ -3588,8 +3613,8 @@ class PoWindow(BWindow):
 		#print "mando messaggio per cancellare scrollsugj"
 #		showmsg=BMessage(83419)                                                    # valutare se reintrodurre
 #		BApplication.be_app.WindowAt(0).PostMessage(showmsg)                       # valutare se reintrodurre
-		try:
-#		if True:
+		#try:
+		if True:
 			if type(src)==str:
 				if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #check if it's still the same
 					tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -3622,17 +3647,31 @@ class PoWindow(BWindow):
 				tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 				tmsocket.connect((tmxsrv,tmxprt))
 				pck=[]
+				#print src
+				txt0=src[0]
+				print type(txt0),txt0
+				#print src[1]
+				print "questa la stringa incriminata",src[2]
 				txt1=src[1].encode(self.encoding)
-				txt2=src[2].encode(self.encoding)
-				pck.append((None,txt1.decode(self.encoding),txt2.decode(self.encoding)))#'utf-8'
+				#txt2=src[2].encode(self.encoding)
+				#pck.append((txt0,txt1.decode(self.encoding),txt2.decode(self.encoding)))#'utf-8' txt[0] un tempo era None
+				txt1=src[1].encode(self.encoding)
+				if txt0==None:
+					#add to tm dictionary
+					txt2=src[2].encode(self.encoding)
+					pck.append((txt0,txt1.decode(self.encoding),txt2.decode(self.encoding)))
+				else:
+					#remove from tm dictionary
+					txt2=src[2].decode(self.encoding)
+					pck.append((txt0,txt1.decode(self.encoding),txt2))
 				#print "stampo comando per aggiunta voce"
 				send_pck=pickle.dumps(pck)
 				tmsocket.send(send_pck)
 				#print("adding source: "+src[1]+"\nand translation: "+src[2])
 				tmsocket.close()
-		except:
-			hidemsg=BMessage(104501)
-			BApplication.be_app.WindowAt(0).PostMessage(hidemsg)
+#		except:
+#			hidemsg=BMessage(104501)
+#			BApplication.be_app.WindowAt(0).PostMessage(hidemsg)
 		self.netlock.release()
 
 			
@@ -3863,7 +3902,16 @@ class PoWindow(BWindow):
 					kmesg.AddInt8('movekind',0)
 					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 			return
+		elif msg.what == 431110173:
+			#delete a suggestion on remote tmserver
+			txtdel=msg.FindString("sugj")
+			srcdel=self.listemsgid[self.srctabview.Selection()].src.Text()
+			cmd=("d","e","l")
+			mx=[cmd,srcdel,txtdel]
+			thread.start_new_thread( self.tmcommunicate, (mx,) )
+			
 		elif msg.what == 8147420:
+			# copy from tm suggestions
 			if len(self.editorslist)>0:
 				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
 					askfor=msg.FindInt8("sel")
