@@ -2149,9 +2149,10 @@ class EventTextView(BTextView):
 	def KeyDown(self,char,bytes):
 		try:
 			ochar=ord(char)
-			if ochar in (B_DOWN_ARROW,B_UP_ARROW,10,B_PAGE_UP,B_PAGE_DOWN): #B_ENTER =10?
+			if ochar in (B_DOWN_ARROW,B_UP_ARROW,10,B_PAGE_UP,B_PAGE_DOWN,10,49,50,51,52,53): #B_ENTER =10?
 				self.superself.sem.acquire()
 				value=self.superself.modifier #CTRL pressed
+				shrtctvalue=self.superself.shortcut
 				self.superself.sem.release()
 				item=self.superself.editorslist[self.superself.postabview.Selection()].list.lv.ItemAt(self.superself.editorslist[self.superself.postabview.Selection()].list.lv.CurrentSelection())
 				hasplural=item.hasplural
@@ -2236,6 +2237,31 @@ class EventTextView(BTextView):
 						BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 						return
 					return BTextView.KeyDown(self,char,bytes)
+				elif ochar == 49:
+					if shrtctvalue:
+						cpmsg=BMessage(8147420)
+						cpmsg.AddInt8("sel",0)
+						BApplication.be_app.WindowAt(0).PostMessage(cpmsg)
+				elif ochar == 50:
+					if shrtctvalue:
+						cpmsg=BMessage(8147420)
+						cpmsg.AddInt8("sel",1)
+						BApplication.be_app.WindowAt(0).PostMessage(cpmsg)
+				elif ochar == 51:
+					if shrtctvalue:
+						cpmsg=BMessage(8147420)
+						cpmsg.AddInt8("sel",2)
+						BApplication.be_app.WindowAt(0).PostMessage(cpmsg)
+				elif ochar == 52:
+					if shrtctvalue:
+						cpmsg=BMessage(8147420)
+						cpmsg.AddInt8("sel",3)
+						BApplication.be_app.WindowAt(0).PostMessage(cpmsg)
+				elif ochar == 53:
+					if shrtctvalue:
+						cpmsg=BMessage(8147420)
+						cpmsg.AddInt8("sel",4)
+						BApplication.be_app.WindowAt(0).PostMessage(cpmsg)
 				elif ochar == 10: #ENTER
 					#CTRL + enter
 					if value:
@@ -3633,12 +3659,18 @@ class PoWindow(BWindow):
 			value=msg.FindInt32("modifiers")
 			self.sem.acquire()
 			if value==self.modifiervalue or value==self.modifiervalue+8 or value ==self.modifiervalue+32 or value ==self.modifiervalue+40:
+				if deb:
+					print "modificatore"
 				self.modifier=True
 				self.shortcut = False
 			elif value == self.modifiervalue+4357 or value==self.modifiervalue+265 or value==self.modifiervalue+289 or value == self.modifiervalue+297:
+				if deb:
+					print "scorciatoia"
 				self.shortcut = True
 				self.modifier = False
 			else:
+				if deb:
+					print "altro"
 				self.modifier=False
 				self.shortcut=False
 			self.sem.release()
@@ -3831,6 +3863,15 @@ class PoWindow(BWindow):
 					kmesg.AddInt8('movekind',0)
 					BApplication.be_app.WindowAt(0).PostMessage(kmesg)
 			return
+		elif msg.what == 8147420:
+			if len(self.editorslist)>0:
+				if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
+					askfor=msg.FindInt8("sel")
+					if self.tmscrollsugj.lv.CountItems()>askfor:
+						self.listemsgstr[self.transtabview.Selection()].trnsl.SetText(self.tmscrollsugj.lv.ItemAt(askfor).text)
+						self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
+#						print self.tmscrollsugj.lv.ItemAt(askfor).text #settext con tutte i vari controlli ortografici mettere tosave = True a eventtextview interessato
+						
 		elif msg.what == 33:
 			#copy from source from keyboard
 			if len(self.editorslist)>0:
