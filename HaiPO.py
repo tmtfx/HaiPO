@@ -2941,27 +2941,14 @@ class POEditorBBox(BBox):
 				say = BAlert("Generic error",erout, 'OK',None, None, None , 4)
 				out=say.Go()
 				#self.Looper().PostMessage(ermsg)
-		# check mimetype
-		#static=BMimeType()
-		#mime = static.GuessMimeType(path)
-		#print mime.Type()
-		#if mime.Type() != "text/x-gettext-translation":
-		#	print "mimetype sbagliato"
+
+		#################################################
+		########## This should be done by OS ############
 		st=BMimeType("text/x-gettext-translation")
-			#print st.InitCheck()
-			#print st.Type()
 		nd=BNode(path)
 		ni = BNodeInfo(nd)
 		ni.SetType("text/x-gettext-translation")
-		#mime = static.GuessMimeType(path)
-		#if mime.Type() != "text/x-gettext-translation":
-	#		print "è ancora sbagliato!"
-#		else:
-			#print "ora il mime è giusto"
-			#print st.GetSupertype()
-	#		mimmo=st.SetTo()
-		
-		#
+		#################################################
 		self.writter.release()
 		if deb:
 			print "end Save PoEditorBBOX"
@@ -3010,6 +2997,7 @@ class postabview(BTabView):
 		while gg<numtabs:
 			if (point[0]>=self.TabFrame(gg)[0]) and (point[0]<=self.TabFrame(gg)[2]) and (point[1]>=self.TabFrame(gg)[1]) and (point[1]<=self.TabFrame(gg)[3]):
 				if self.Selection()!=gg:
+					self.superself.NichilizeTM()
 					shouldstop=False
 					self.superself.infoprogress.SetText(str(self.superself.editorslist[gg].pofile.percent_translated()))
 					if self.superself.editorslist[gg].list.lv.CurrentSelection()==-1:
@@ -3120,6 +3108,7 @@ class postabview(BTabView):
 						self.superself.transtablabels.append(BTab())
 						self.superself.transtabview.AddTab(self.superself.listemsgstr[0],self.superself.transtablabels[0])
 						################### BUG? ###################
+						#self.superself.transtabview.Draw(self.superself.transtabview.Bounds())
 						self.superself.transtabview.Select(1)									############# bug fix
 						self.superself.transtabview.Select(0)
 						idlen=len(self.superself.listemsgid)
@@ -3128,8 +3117,9 @@ class postabview(BTabView):
 							self.superself.listemsgid[x].src.SetText("")
 							x+=1
 						#################### BUG ?##################
-						self.superself.srctabview.Select(1)
-						self.superself.srctabview.Select(0)
+						#self.superself.srctabview.Select(1)
+						#self.superself.srctabview.Select(0)
+						self.superself.srctabview.Draw(self.superself.srctabview.Bounds())
 			gg=gg+1
 		
 		return BTabView.MouseDown(self,point)
@@ -3706,9 +3696,9 @@ class PoWindow(BWindow):
 						self.transtablabels.append(BTab())
 						self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
 						################### BUG? ###################
-						#self.transtabview.Select(1)									###### bug fix
-						#self.transtabview.Select(0)
-						self.transtabview.Draw(self.transtabview.Bounds())
+						self.transtabview.Select(1)									###### bug fix
+						self.transtabview.Select(0)
+						#self.transtabview.Draw(self.transtabview.Bounds())
 						self.listemsgid[0].src.SetText("")
 						#self.srctabview.Select(1)
 						#self.srctabview.Select(0)
@@ -3732,9 +3722,9 @@ class PoWindow(BWindow):
 						self.transtablabels.append(BTab())
 						self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
 						################### BUG? ###################
-						#self.transtabview.Select(1)									###### bug fix
-						#self.transtabview.Select(0)
-						self.transtabview.Draw(self.transtabview.Bounds())
+						self.transtabview.Select(1)									###### bug fix
+						self.transtabview.Select(0)
+						#self.transtabview.Draw(self.transtabview.Bounds())
 						self.listemsgid[0].src.SetText("")
 						#self.srctabview.Select(1)
 						#self.srctabview.Select(0)
@@ -3757,9 +3747,9 @@ class PoWindow(BWindow):
 				self.transtablabels.append(BTab())
 				self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
 				################### BUG? ###################
-#				self.transtabview.Select(1)									###### bug fix
-#				self.transtabview.Select(0)
-				self.transtabview.Draw(self.transtabview.Bounds())
+				self.transtabview.Select(1)									###### bug fix
+				self.transtabview.Select(0)
+				#self.transtabview.Draw(self.transtabview.Bounds())
 				self.listemsgid[0].src.SetText("")
 				#self.srctabview.Select(1)
 				#self.srctabview.Select(0)
@@ -4628,9 +4618,11 @@ class PoWindow(BWindow):
 							################### BUG? ###################
 							self.transtabview.Select(1)									###### bug fix
 							self.transtabview.Select(0)
+							#self.transtabview.Draw(self.transtabview.Bounds())
 							self.listemsgid[0].src.SetText("")
-							self.srctabview.Select(1)
-							self.srctabview.Select(0)
+							#self.srctabview.Select(1)
+							#self.srctabview.Select(0)
+							self.srctabview.Draw(self.srctabview.Bounds())
 						#except:
 						#	test = compiletest(mimesuptbool,mimesubtbool,extbool)
 						#	say = BAlert('oops', 'Failed to load: '+test, 'Ok',None, None, None, 3)
@@ -4666,9 +4658,11 @@ class PoWindow(BWindow):
 							################### BUG? ###################
 							self.transtabview.Select(1)									###### bug fix
 							self.transtabview.Select(0)
+							#self.transtabview.Draw(self.transtabview.Bounds())
 							self.listemsgid[0].src.SetText("")
-							self.srctabview.Select(1)
-							self.srctabview.Select(0)
+							#self.srctabview.Select(1)
+							#self.srctabview.Select(0)
+							self.srctabview.Draw(self.srctabview.Bounds())
 			else:
 				if setencoding:
 					try:
@@ -4701,8 +4695,9 @@ class PoWindow(BWindow):
 					self.loadPOfile(txtpath,trc,self.pof,self.encoding)
 
 			if len(self.editorslist) == 1:
-				self.postabview.Select(1) # bug fix closing last one file and opening a new one
-				self.postabview.Select(0) # bug fix
+				self.postabview.Draw(self.postabview.Bounds())
+				#self.postabview.Select(1) # bug fix closing last one file and opening a new one
+				#self.postabview.Select(0) # bug fix
 				
 			#except:
 			#	e = None
@@ -4860,8 +4855,10 @@ class PoWindow(BWindow):
 ############################### bugfix workaround? ####################						 
 							self.transtabview.Select(1)									#################  <----- needed to fix
 							self.transtabview.Select(0)									#################  <----- a bug, tab0 will not appear
-							self.srctabview.Select(1)									#################  <----- so forcing a tabview update
-							self.srctabview.Select(0)
+							#self.transtabview.Draw(self.transtabview.Bounds())
+							#self.srctabview.Select(1)									#################  <----- so forcing a tabview update
+							#self.srctabview.Select(0)
+							self.srctabview.Draw(self.srctabview.Bounds())
 				self.valueln.SetText(str(item.linenum))
 				asd,sdf,dfg,fgh=self.lubox.Bounds()
 				hig=round(self.lubox.GetFontHeight()[0])
@@ -4995,9 +4992,10 @@ class PoWindow(BWindow):
 				self.transtablabels.append(BTab())
 				self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
 				################### BUG? ###################
-				#self.transtabview.Select(1)									#################  <----- needed to fix a bug
-				#self.transtabview.Select(0)
-				self.transtabview.Draw(self.transtabview.Bounds())
+				self.transtabview.Select(1)									#################  <----- needed to fix a bug
+				self.transtabview.Select(0)
+				#print "ho eseguito transtabview.Draw()"
+				#self.transtabview.Draw(self.transtabview.Bounds())
 				#############################################
 				self.listemsgid[0].src.SetText("")
 			return
