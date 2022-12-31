@@ -4231,7 +4231,8 @@ class PoWindow(BWindow):
 			#if tm:
 			#	for items in self.scrollsugj.lv:
 			#		
-			self.NichilizeTM() #AZZERAMENTO TM PANEL
+			if tm:
+				self.NichilizeTM() #AZZERAMENTO TM PANEL
 			if movetype == 0:
 				#select one down
 				if (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1) and (self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()<self.editorslist[self.postabview.Selection()].list.lv.CountItems()):
@@ -4419,6 +4420,7 @@ class PoWindow(BWindow):
 					#print "serve aggiungere a tmx"
 					mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text().decode(self.encoding),self.listemsgstr[self.transtabview.Selection()].trnsl.Text().decode(self.encoding))
 					print ("mx da inviare:", mx)
+					print "eseguo riga: 4422"
 					thread.start_new_thread( self.tmcommunicate, (mx,) )
 					print "aggiunta a tmx"
 				print "eppure da qui passo"
@@ -4507,6 +4509,7 @@ class PoWindow(BWindow):
 			extbool = False
 			mimeinstalled=False
 			mimecheck = "True"
+			self.NichilizeTM()
 			if os.path.isfile(confile):
 				try:
 					Config.read(confile)
@@ -4790,6 +4793,8 @@ class PoWindow(BWindow):
 			return
 		elif msg.what == 460550:
 			# selection from listview
+			#if tm:
+			#	self.NichilizeTM()
 			bounds = self.Bounds()
 			l, t, r, b = bounds
 			binds = self.background.Bounds()
@@ -4980,7 +4985,7 @@ class PoWindow(BWindow):
 					if deb:
 						print ("da richiedere: ",self.listemsgid[self.srctabview.Selection()].src.Text())
 					#TODO: azzerare ScrollSugj
-					
+					print "eseguo riga: 4984"
 					thread.start_new_thread( self.tmcommunicate, (self.listemsgid[self.srctabview.Selection()].src.Text(),) )
 					
 			else:
@@ -5074,15 +5079,19 @@ class PoWindow(BWindow):
 				if self.tmscrollsugj.lv.CountItems()>0:
 					if self.tmscrollsugj.lv.ItemAt(0).percent < 100:
 						mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text().decode(self.encoding),self.listemsgstr[self.transtabview.Selection()].trnsl.Text().decode(self.encoding))
+						print "eseguo riga: 5078"
 						thread.start_new_thread( self.tmcommunicate, (mx,) )
 						#print "beh, questo è corretto ma ha suggerimenti sbagliati, salvare in tmx!"
 				else:
 					mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text().decode(self.encoding),self.listemsgstr[self.transtabview.Selection()].trnsl.Text().decode(self.encoding))
+					print "eseguo riga: 5083"
 					thread.start_new_thread( self.tmcommunicate, (mx,) )
 					#print "mah, questo è corretto ma non ha suggerimenti, da salvare in tmx!"
 			return
 		elif msg.what == 738033:
-			self.NichilizeTM()
+			if tm:
+				self.NichilizeTM()
+			print "eseguo riga: 5089"
 			thread.start_new_thread(self.tmcommunicate,(msg.FindString('s'),))
 			return
 		elif msg.what == 141:
