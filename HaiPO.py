@@ -3626,7 +3626,6 @@ class PoWindow(BWindow):
 						send_pck=pickle.dumps(pck)
 						tmsocket.send(send_pck)
 						pck_answer=tmsocket.recv(4096)#1024
-						print pck_answer
 						if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #check again if I changed the selection
 							answer=pickle.loads(pck_answer)
 							sugjmsg=BMessage(5391359)
@@ -3646,7 +3645,7 @@ class PoWindow(BWindow):
 						pass
 			else:
 				#we are requesting either to add or remove a translation
-				txt0=src[0]:
+				txt0=src[0]
 				tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 				tmsocket.connect((tmxsrv,tmxprt))
 				pck=[]
@@ -4444,7 +4443,6 @@ class PoWindow(BWindow):
 			self.checkres.SetText("☑")
 		elif msg.what == 112118:
 			#launch a delayed check
-			print deb
 			if deb:
 				print "start delayed check"
 			oldtext=msg.FindString('oldtext')
@@ -4493,12 +4491,9 @@ class PoWindow(BWindow):
 				if tm:
 					needtopush=True
 					iterz=self.tmscrollsugj.lv.CountItems()
-					print iterz
 					iteri=0
 					while iteri<iterz:
 						try:
-							print('eseguo loop '+str(iteri))
-							print self.tmscrollsugj.lv.ItemAt(iteri).percent
 							if self.tmscrollsugj.lv.ItemAt(iteri).percent == 100:
 								for tabbi in self.listemsgstr:
 									if self.tmscrollsugj.lv.ItemAt(iteri).text==tabbi.trnsl.Text():
@@ -4506,7 +4501,7 @@ class PoWindow(BWindow):
 								#TODO: check if trnsl.Text()!=da suggerimento
 							iteri+=1
 						except:
-							#significa che ha problemi con la connessione magari gli elementi di tmscrollsugj.lv sono ErrorItem senza percent
+							#significa che ha problemi con la connessione magari gli elementi di tmscrollsugj.lv sono ErrorItem senza percent?
 							break
 					if needtopush:
 						#print "serve aggiungere a tmx"
@@ -5077,7 +5072,6 @@ class PoWindow(BWindow):
 			else:
 				if tm:
 					self.NichilizeTM()
-					print("nichilizzo tm panel")
 				self.Nichilize()				
 				self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece,self))
 				self.transtablabels.append(BTab())
@@ -5156,8 +5150,6 @@ class PoWindow(BWindow):
 			r=msg.FindInt16('totsugj')
 			act=0
 			while act<r:
-				print ("Valore per percentuale nel messaggio",msg.FindInt8('lev_'+str(act)))
-				print ("Stringa nel messagio",msg.FindString('sugj_'+str(act)))
 				self.tmscrollsugj.lv.AddItem(SugjItem(msg.FindString('sugj_'+str(act)),msg.FindInt8('lev_'+str(act))))
 				act+=1
 			#se tra gli elementi non c'è 100% ma il BListItem è segnato come tradotto, è il caso di inviarlo al file tmx
@@ -5165,19 +5157,17 @@ class PoWindow(BWindow):
 				if self.tmscrollsugj.lv.CountItems()>0:
 					if self.tmscrollsugj.lv.ItemAt(0).percent < 100:
 						mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text().decode(self.encoding),self.listemsgstr[self.transtabview.Selection()].trnsl.Text().decode(self.encoding))
-						#print "eseguo riga: 5078"
 						thread.start_new_thread( self.tmcommunicate, (mx,) )
 						#print "beh, questo è corretto ma ha suggerimenti sbagliati, salvare in tmx!"
 				else:
 					mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text().decode(self.encoding),self.listemsgstr[self.transtabview.Selection()].trnsl.Text().decode(self.encoding))
-					print "eseguo riga: 5083"
+					#print "eseguo riga: 5083"
 					thread.start_new_thread( self.tmcommunicate, (mx,) )
 					#print "mah, questo è corretto ma non ha suggerimenti, da salvare in tmx!"
 			return
 		elif msg.what == 738033:
 			if tm:
 				self.NichilizeTM()
-			print "eseguo riga: 5089"
 			thread.start_new_thread(self.tmcommunicate,(msg.FindString('s'),))
 			return
 		elif msg.what == 141:
