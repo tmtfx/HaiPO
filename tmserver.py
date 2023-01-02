@@ -1,4 +1,4 @@
-import pickle,socket,os,sys
+import pickle,socket,os,sys,html
 from translate.storage.tmx import tmxfile
 from Levenshtein import distance as lev
 log=False
@@ -25,12 +25,14 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                     instr = client_socket.recv(HEADER)
                     if not instr:
                         break
-                    #print("richiesto:",instr)
+                    if log:
+	                    print("richiesto:",instr)
                     message = pickle.loads(instr)
-                    #print("Decodificato:",message)
-                    #print("message[0]:",message[0])
-                    #print(message)
-                    #print(type(message))
+                    if log:
+                    	#print("Decodificato:",message)
+                    	#print("message[0]:",message[0])
+                    	print(message)
+                    	print(type(message))
                     suggerimenti=[]
                     if message==[None]:
                         suggerimenti.append(None)
@@ -53,8 +55,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                                             #if str(linie).find("</body>")==-1:
                                                 des.write(str(linie)+"\n")
                                             else:
-                                                des.write("    <tu>\n      <tuv xml:lang=\"en\">\n        <seg>"+message[0][1]+"</seg>\n      </tuv>\n")
-                                                des.write("      <tuv xml:lang=\"fur\">\n        <seg>"+message[0][2]+"</seg>\n      </tuv>\n    </tu>\n")
+                                                msgid=html.escape(message[0][1])
+                                                msgstr=html.escape(message[0][2])
+                                                des.write("    <tu>\n      <tuv xml:lang=\"en\">\n        <seg>"+msgid+"</seg>\n      </tuv>\n")
+                                                des.write("      <tuv xml:lang=\"fur\">\n        <seg>"+msgstr+"</seg>\n      </tuv>\n    </tu>\n")
                                                 des.write("  </body>\n</tmx>\n")
                                                 #addnewstrings(message[0][1],message[0][2])
                                                 des.close()
@@ -94,7 +98,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                                                                 txt+=str(liniis[i+k+1])+"\n" #this add /tu
                                                                 break
                                                     #if (txt.find("<seg>"+message[0][1]+"</seg>")>-1) and (txt.find("<seg>"+message[0][2]+"</seg>")>-1):
-                                                    if "<seg>"+message[0][1]+"</seg>" in txt and "<seg>"+message[0][2]+"</seg>" in txt:
+                                                    msgid=html.escape(message[0][1])
+                                                    msgstr=html.escape(message[0][2])
+                                                    if "<seg>"+msgid+"</seg>" in txt and "<seg>"+msgstr+"</seg>" in txt:
                                                         i+=k+1
                                                     else:
                                                         des.write(txt)
