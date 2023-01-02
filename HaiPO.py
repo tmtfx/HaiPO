@@ -3613,65 +3613,89 @@ class PoWindow(BWindow):
 		#print "mando messaggio per cancellare scrollsugj"
 #		showmsg=BMessage(83419)                                                    # valutare se reintrodurre
 #		BApplication.be_app.WindowAt(0).PostMessage(showmsg)                       # valutare se reintrodurre
-		try:
-		#if True:
+		#try:
+		if True:
 			if type(src)==str:
-				if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #check if it's still the same
-					tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-					tmsocket.connect((tmxsrv,tmxprt))
-					pck=[]
-					pck.append(src.decode(self.encoding))#'utf-8'
-					send_pck=pickle.dumps(pck)
-					tmsocket.send(send_pck)
-					pck_answer=tmsocket.recv(1024)
-					if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #check again if I changed the selection
-						answer=pickle.loads(pck_answer)
-						sugjmsg=BMessage(5391359)
-						ts=len(answer)
-						print "lunghezza della risposta",ts
-						sugjmsg.AddInt16('totsugj',ts)
-						x=0
-						while x <ts:
-							sugjmsg.AddString('sugj_'+str(x),answer[x][0].encode('utf-8'))
-							sugjmsg.AddInt8('lev_'+str(x),answer[x][1])
-							x+=1
-						#if answer[x][1] != 0:
-						BApplication.be_app.WindowAt(0).PostMessage(sugjmsg)
+				##if it's a string we can request it at the TMserver
+				#if src.find(">") > src.find("<"):
+				#	print "cannot parse skipping request" # causes lxml error deconding a tag example <http://....>
+				#else:
+					if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #check if it's still the same
+						tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+						tmsocket.connect((tmxsrv,tmxprt))
+						pck=[]
+						pck.append(src.decode(self.encoding))#'utf-8'
+						send_pck=pickle.dumps(pck)
+						tmsocket.send(send_pck)
+						pck_answer=tmsocket.recv(1024)
+						#print pck_answer
+						if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #check again if I changed the selection
+							answer=pickle.loads(pck_answer)
+							sugjmsg=BMessage(5391359)
+							ts=len(answer)
+							print "lunghezza della risposta",ts
+							sugjmsg.AddInt16('totsugj',ts)
+							x=0
+							while x <ts:
+								sugjmsg.AddString('sugj_'+str(x),answer[x][0].encode('utf-8'))
+								sugjmsg.AddInt8('lev_'+str(x),answer[x][1])
+								x+=1
+							#if answer[x][1] != 0:
+							BApplication.be_app.WindowAt(0).PostMessage(sugjmsg)
+						else:
+							pass
+						tmsocket.close()					
 					else:
 						pass
-					tmsocket.close()					
-				else:
-					pass
 			else:
-				
+				#we are requesting either to add or remove a translation
+				txt0=src[0]
+				#print type(txt0),txt0
+				#print "questa la stringa incriminata",src[2]
+				#goforit=True
+				#if src[2].find(">") > src[2].find("<"):
+				#	goforit=False
+				#	print "cannot ask as tags inside this string"
+				#if src[1].find(">") > src[1].find("<"):
+				#	goforit=False
+				#	print "cannot ask as tags inside this string"
+				#if goforit:
 				tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 				tmsocket.connect((tmxsrv,tmxprt))
 				pck=[]
-				#print src
-				txt0=src[0]
-				print type(txt0),txt0
-				#print src[1]
-				print "questa la stringa incriminata",src[2]
 				txt1=src[1].encode(self.encoding)
+				#txt1.replace('<','&lt;')
+				#txt1.replace('>','&gt;')
 				#txt2=src[2].encode(self.encoding)
 				#pck.append((txt0,txt1.decode(self.encoding),txt2.decode(self.encoding)))#'utf-8' txt[0] un tempo era None
-				txt1=src[1].encode(self.encoding)
+				#txt1=src[1].encode(self.encoding)
 				if txt0==None:
 					#add to tm dictionary
 					txt2=src[2].encode(self.encoding)
-					pck.append((txt0,txt1.decode(self.encoding),txt2.decode(self.encoding)))
+					st2=txt2.decode(self.encoding)
+					st2.replace('<','&lt;')
+					st2.replace('>','&gt;')
+					st1=txt1.decode(self.encoding)
+					st1.replace('<','&lt;')
+					st1.replace('>','&gt;')
+					pck.append((txt0,st1,st2))
 				else:
 					#remove from tm dictionary
 					txt2=src[2].decode(self.encoding)
-					pck.append((txt0,txt1.decode(self.encoding),txt2))
+					txt2.replace('<','&lt;')
+					txt2.replace('>','&gt;')
+					st1=txt1.decode(self.encoding)
+					st1.replace('<','&lt;')
+					st1.replace('>','&gt;')
+					pck.append((txt0,st1,txt2))
 				#print "stampo comando per aggiunta voce"
 				send_pck=pickle.dumps(pck)
 				tmsocket.send(send_pck)
 				#print("adding source: "+src[1]+"\nand translation: "+src[2])
 				tmsocket.close()
-		except:
-			hidemsg=BMessage(104501)
-			BApplication.be_app.WindowAt(0).PostMessage(hidemsg)
+		#except:
+		#	hidemsg=BMessage(104501)
+		#	BApplication.be_app.WindowAt(0).PostMessage(hidemsg)
 		self.netlock.release()
 
 			
