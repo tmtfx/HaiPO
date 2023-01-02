@@ -3618,9 +3618,6 @@ class PoWindow(BWindow):
 		if True:
 			if type(src)==str:
 				##if it's a string we can request it at the TMserver
-				#if src.find(">") > src.find("<"):
-				#	print "cannot parse skipping request" # causes lxml error deconding a tag example <http://....>
-				#else:
 					if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #check if it's still the same
 						tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 						tmsocket.connect((tmxsrv,tmxprt))
@@ -3641,7 +3638,6 @@ class PoWindow(BWindow):
 								sugjmsg.AddString('sugj_'+str(x),answer[x][0].encode('utf-8'))
 								sugjmsg.AddInt8('lev_'+str(x),answer[x][1])
 								x+=1
-							#if answer[x][1] != 0:
 							BApplication.be_app.WindowAt(0).PostMessage(sugjmsg)
 						else:
 							pass
@@ -3650,26 +3646,11 @@ class PoWindow(BWindow):
 						pass
 			else:
 				#we are requesting either to add or remove a translation
-				txt0=src[0]
-				#print type(txt0),txt0
-				#print "questa la stringa incriminata",src[2]
-				#goforit=True
-				#if src[2].find(">") > src[2].find("<"):
-				#	goforit=False
-				#	print "cannot ask as tags inside this string"
-				#if src[1].find(">") > src[1].find("<"):
-				#	goforit=False
-				#	print "cannot ask as tags inside this string"
-				#if goforit:
+				txt0=src[0]:
 				tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 				tmsocket.connect((tmxsrv,tmxprt))
 				pck=[]
 				txt1=src[1].encode(self.encoding)
-				#txt1.replace('<','&lt;')
-				#txt1.replace('>','&gt;')
-				#txt2=src[2].encode(self.encoding)
-				#pck.append((txt0,txt1.decode(self.encoding),txt2.decode(self.encoding)))#'utf-8' txt[0] un tempo era None
-				#txt1=src[1].encode(self.encoding)
 				if txt0==None:
 					#add to tm dictionary
 					txt2=src[2].encode(self.encoding)
@@ -3689,10 +3670,8 @@ class PoWindow(BWindow):
 					st1.replace('<','&lt;')
 					st1.replace('>','&gt;')
 					pck.append((txt0,st1,txt2))
-				#print "stampo comando per aggiunta voce"
 				send_pck=pickle.dumps(pck)
 				tmsocket.send(send_pck)
-				#print("adding source: "+src[1]+"\nand translation: "+src[2])
 				tmsocket.close()
 		#except:
 		#	hidemsg=BMessage(104501)
@@ -4889,14 +4868,10 @@ class PoWindow(BWindow):
 			actualtab.filen, actualtab.file_ext = os.path.splitext(completepath)
 			actualtab.backupfile= actualtab.filen+".temp"+actualtab.file_ext
 			return
+
 		elif msg.what == 83419:
 			self.NichilizeTM()
-			#self.tmscrollsugj.Clear()
-#			print "mostro il pannello"
-#			#self.tmpanel.Show()
-#			self.tmscrollsugj.sv.Show()
-#			self.tmscrollsugj.lv.Show()
-#			self.errorstr.Hide()
+
 		elif msg.what == 104501:
 			self.tmscrollsugj.lv.AddItem(ErrorItem("┌─────────────────────┐"))#───────────────────────────────────
 			self.tmscrollsugj.lv.AddItem(ErrorItem("     Error connecting to Translation Memory server     "))
