@@ -49,7 +49,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                                         liniis=whole.decode("utf-8").split('\n')
                                         for linie in liniis:
                                             #print(str(linie))
-                                            if "</body>" in str(linie):
+                                            if "</body>" not in str(linie):
                                             #if str(linie).find("</body>")==-1:
                                                 des.write(str(linie)+"\n")
                                             else:
