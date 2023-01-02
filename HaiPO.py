@@ -4486,33 +4486,30 @@ class PoWindow(BWindow):
 				return
 			elif savetype == 1:
 				#save
-				needtopush=True
-				iterz=self.tmscrollsugj.lv.CountItems()
-				print iterz
-				iteri=0
-				while iteri<iterz:
-					try:
-						print('eseguo loop '+str(iteri))
-						print self.tmscrollsugj.lv.ItemAt(iteri).percent
-						if self.tmscrollsugj.lv.ItemAt(iteri).percent == 100:
-							for tabbi in self.listemsgstr:
-								if self.tmscrollsugj.lv.ItemAt(iteri).text==tabbi.trnsl.Text():
-									needtopush=False
-									print "non serve aggiungere a tmx"
-							#TODO: check if trnsl.Text()!=da suggerimento
-							
-						iteri+=1
-					except:
-						#significa che ha problemi con la connessione magari gli elementi di tmscrollsugj.lv sono ErrorItem senza percent
-						break
-				if needtopush:
-					#print "serve aggiungere a tmx"
-					mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text().decode(self.encoding),self.listemsgstr[self.transtabview.Selection()].trnsl.Text().decode(self.encoding))
-					print ("mx da inviare:", mx)
-					print "eseguo riga: 4422"
-					thread.start_new_thread( self.tmcommunicate, (mx,) )
-					print "aggiunta a tmx"
-				print "eppure da qui passo"
+				if tm:
+					needtopush=True
+					iterz=self.tmscrollsugj.lv.CountItems()
+					print iterz
+					iteri=0
+					while iteri<iterz:
+						try:
+							print('eseguo loop '+str(iteri))
+							print self.tmscrollsugj.lv.ItemAt(iteri).percent
+							if self.tmscrollsugj.lv.ItemAt(iteri).percent == 100:
+								for tabbi in self.listemsgstr:
+									if self.tmscrollsugj.lv.ItemAt(iteri).text==tabbi.trnsl.Text():
+										needtopush=False
+								#TODO: check if trnsl.Text()!=da suggerimento
+							iteri+=1
+						except:
+							#significa che ha problemi con la connessione magari gli elementi di tmscrollsugj.lv sono ErrorItem senza percent
+							break
+					if needtopush:
+						#print "serve aggiungere a tmx"
+						mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text().decode(self.encoding),self.listemsgstr[self.transtabview.Selection()].trnsl.Text().decode(self.encoding))
+						thread.start_new_thread( self.tmcommunicate, (mx,) )
+
+
 				tvindex=msg.FindInt32('tvindex')
 				textsave=msg.FindString('translation')
 				tabbi=msg.FindInt8('plurals')
