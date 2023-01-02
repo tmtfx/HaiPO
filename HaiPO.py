@@ -1538,6 +1538,7 @@ class KListView(BListView):
 			delmsg=BMessage(431110173)
 			delmsg.AddString("sugj",self.ItemAt(self.CurrentSelection()).Text())#check if it needs encoding
 			BApplication.be_app.WindowAt(0).PostMessage(delmsg)
+			self.RemoveItem(self.ItemAt(self.CurrentSelection()))
 		return BListView.KeyDown(self,char,bytes)
 
 class ScrollSugj:
@@ -3627,8 +3628,8 @@ class PoWindow(BWindow):
 						pck.append(src.decode(self.encoding))#'utf-8'
 						send_pck=pickle.dumps(pck)
 						tmsocket.send(send_pck)
-						pck_answer=tmsocket.recv(1024)
-						#print pck_answer
+						pck_answer=tmsocket.recv(4096)#1024
+						print pck_answer
 						if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #check again if I changed the selection
 							answer=pickle.loads(pck_answer)
 							sugjmsg=BMessage(5391359)
@@ -5213,7 +5214,7 @@ class PoWindow(BWindow):
 				self.listemsgstr[self.transtabview.Selection()].trnsl.Select(lngth,lngth)
 				self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
 				#notifica necessità di salvataggio
-				self.listemsgstr[self.transtabview.Selection()].trnsl.Save()
+				self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
 			except:
 				if deb:
 					print "Not a SugjItem, but an ErrorItem as not having .Text() function"
