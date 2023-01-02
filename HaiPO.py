@@ -3613,8 +3613,8 @@ class PoWindow(BWindow):
 		#print "mando messaggio per cancellare scrollsugj"
 #		showmsg=BMessage(83419)                                                    # valutare se reintrodurre
 #		BApplication.be_app.WindowAt(0).PostMessage(showmsg)                       # valutare se reintrodurre
-		#try:
-		if True:
+		try:
+		#if True:
 			if type(src)==str:
 				if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #check if it's still the same
 					tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -3669,9 +3669,9 @@ class PoWindow(BWindow):
 				tmsocket.send(send_pck)
 				#print("adding source: "+src[1]+"\nand translation: "+src[2])
 				tmsocket.close()
-#		except:
-#			hidemsg=BMessage(104501)
-#			BApplication.be_app.WindowAt(0).PostMessage(hidemsg)
+		except:
+			hidemsg=BMessage(104501)
+			BApplication.be_app.WindowAt(0).PostMessage(hidemsg)
 		self.netlock.release()
 
 			
@@ -5071,7 +5071,7 @@ class PoWindow(BWindow):
 					if deb:
 						print ("da richiedere: ",self.listemsgid[self.srctabview.Selection()].src.Text())
 					#TODO: azzerare ScrollSugj
-					print "eseguo riga: 4984"
+					#print "eseguo riga: 4984"
 					thread.start_new_thread( self.tmcommunicate, (self.listemsgid[self.srctabview.Selection()].src.Text(),) )
 					
 			else:
@@ -5165,7 +5165,7 @@ class PoWindow(BWindow):
 				if self.tmscrollsugj.lv.CountItems()>0:
 					if self.tmscrollsugj.lv.ItemAt(0).percent < 100:
 						mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text().decode(self.encoding),self.listemsgstr[self.transtabview.Selection()].trnsl.Text().decode(self.encoding))
-						print "eseguo riga: 5078"
+						#print "eseguo riga: 5078"
 						thread.start_new_thread( self.tmcommunicate, (mx,) )
 						#print "beh, questo è corretto ma ha suggerimenti sbagliati, salvare in tmx!"
 				else:
