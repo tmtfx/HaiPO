@@ -134,10 +134,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                             dist=lev(message[0],node.source)
                             if dist<delta:#2
                                 suggerimenti.append((node.target,dist))
-                                #print(node.source,node.target)
                     suggerimenti.sort(key=lambda element:element[1])
-                    packsug=pickle.dumps(suggerimenti,protocol=2)
-                    client_socket.sendall(packsug)
+                    client_socket.send(pickle.dumps(suggerimenti,protocol=2))
     except KeyboardInterrupt:
         server_socket.close()
         print("interrotto dall'utente")
