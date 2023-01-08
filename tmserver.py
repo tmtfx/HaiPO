@@ -23,8 +23,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                 if log:
                     print(f"Connected by {client_address}")
                 while True:
-                	try:
-	                    instr = client_socket.recv(HEADER)
+                    try:
+                        instr = client_socket.recv(HEADER)
                         if not instr:
                             break
                         if log:
