@@ -2054,7 +2054,7 @@ class EventTextView(BTextView):
 				cox+=1
 		bckpmsg.AddString('bckppath',cursel.backupfile)
 		BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
-		#self.superself.infoprogress.SetText(str(cursel.pofile.percent_translated())) #reinsert if something doesn't work properly but it should write in 16892/3
+		self.superself.infoprogress.SetText(str(cursel.pofile.percent_translated())) #reinsert if something doesn't work properly but it should write in 16892/3
 
 	def checklater(self,name,oldtext,cursel,indexBlistitem):
 			if deb:
