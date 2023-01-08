@@ -3296,7 +3296,7 @@ class Analysis(BWindow):
 class PoWindow(BWindow):
 	Menus = (
 		('File', ((295485, 'Open'), (2, 'Save'), (1, 'Close'), (5, 'Save as...'),(None, None),(B_QUIT_REQUESTED, 'Quit'))),
-		('Translation', ((3, 'Copy from source (ctrl+shif+s)'), (32,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy (ctrl+b)'), (72, 'Previous w/o saving'),(73,'Next w/o saving'),(None, None), (6, 'Find source'), (7, 'Find/Replace translation'))),
+		('Translation', ((3, 'Copy from source (ctrl+shift+s)'), (32,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy (ctrl+b)'), (72, 'Previous w/o saving'),(73,'Next w/o saving'),(None, None), (6, 'Find source'), (7, 'Find/Replace translation'))),
 		('View', ((74,'Fuzzy'), (75, 'Untranslated'),(76,'Translated'),(77, 'Obsolete'))),
 		('Settings', ((40, 'General'),(41, 'User settings'), (42, 'Po properties'), (43, 'Po header'), (44, 'Spellcheck'), (45,'Translation Memory'))),
 		('About', ((8, 'Help'),(None, None),(9, 'About')))
@@ -3971,6 +3971,9 @@ class PoWindow(BWindow):
 							pi+=1
 					self.editorslist[self.postabview.Selection()].Hide()
 					self.editorslist[self.postabview.Selection()].Show() #Updates the MsgStrItem
+					lngth=self.listemsgstr[self.transtabview.Selection()].trnsl.TextLength()
+					self.listemsgstr[self.transtabview.Selection()].trnsl.Select(lngth,lngth)
+					self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
 					BApplication.be_app.WindowAt(0).PostMessage(12343)
 		elif msg.what == 5:
 			# Save as
