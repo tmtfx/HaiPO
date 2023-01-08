@@ -40,7 +40,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                             client_socket.sendall(packsug)
                             keeperoftheloop=False
                             break
-                         elif message[0][0]==None:
+                        elif message[0][0]==None:
                                 print("adding source: "+message[0][1]+"\nand translation: "+message[0][2])
                                 with open(ftmx, 'rb') as fin:
                                     with open("outtmx3", 'a') as des:
@@ -63,7 +63,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                                                 os.rename("outtmx3",ftmx)
                                                 break
                                 break
-                         elif message[0][0]==('d','e','l'):
+                        elif message[0][0]==('d','e','l'):
                                 with open(ftmx, 'r', encoding='utf-8') as fin, open("outtmx3", 'a', encoding='utf-8') as des:
                                         whole=fin.read()
                                         liniis=whole.split('\n')
@@ -109,7 +109,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                                 os.rename(ftmx,"old_outtmx2")
                                 os.rename("outtmx3",ftmx)
                                 break
-                         else:
+                        else:
                             lung1=len(message[0])
                             lung2=round(lung1*0.75,0)
         	                delta=lung1-lung2+1
