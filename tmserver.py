@@ -29,8 +29,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
 	                    print("richiesto:",instr)
                     message = pickle.loads(instr)
                     if log:
-                    	#print("Decodificato:",message)
-                    	#print("message[0]:",message[0])
                     	print(message)
                     	print(type(message))
                     suggerimenti=[]
@@ -41,16 +39,14 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                         keeperoftheloop=False
                         break
                     else:
-                            
-                        #try:
-                        if message[0][0]==None:
+                        try:
+                            if message[0][0]==None:
                                 print("adding source: "+message[0][1]+"\nand translation: "+message[0][2])
                                 with open("outtmx2", 'rb') as fin:
                                     with open("outtmx3", 'a') as des:
                                         whole=fin.read()
                                         liniis=whole.decode("utf-8").split('\n')
                                         for linie in liniis:
-                                            #print(str(linie))
                                             if "</body>" not in str(linie):
                                             #if str(linie).find("</body>")==-1:
                                                 des.write(str(linie)+"\n")
@@ -60,7 +56,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                                                 des.write("    <tu>\n      <tuv xml:lang=\"en\">\n        <seg>"+msgid+"</seg>\n      </tuv>\n")
                                                 des.write("      <tuv xml:lang=\"fur\">\n        <seg>"+msgstr+"</seg>\n      </tuv>\n    </tu>\n")
                                                 des.write("  </body>\n</tmx>\n")
-                                                #addnewstrings(message[0][1],message[0][2])
                                                 des.close()
                                                 if os.path.exists("old_outtmx2"):
                                                     os.remove("old_outtmx2")
@@ -68,8 +63,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                                                 os.rename("outtmx3","outtmx2")
                                                 break
                                 break
-                        elif message[0][0]==('d','e','l'):
-                            with open("outtmx2", 'r', encoding='utf-8') as fin, open("outtmx3", 'a', encoding='utf-8') as des:
+                            elif message[0][0]==('d','e','l'):
+                                with open("outtmx2", 'r', encoding='utf-8') as fin, open("outtmx3", 'a', encoding='utf-8') as des:
                                         whole=fin.read()
                                         liniis=whole.split('\n')
                                         nl=len(liniis)
@@ -109,25 +104,19 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                                                         i+=k+1
                                             i+=1
                                     #des.close()
-                            if os.path.exists("old_outtmx2"):
-                                os.remove("old_outtmx2")
-                            os.rename("outtmx2","old_outtmx2")
-                            os.rename("outtmx3","outtmx2")
-                            break
-                        #except:
-                        #    pass
-                    #elif message==[alc]:
-                    #    aggiungi a tmx il termine e la traduzione
+                                if os.path.exists("old_outtmx2"):
+                                     os.remove("old_outtmx2")
+                                os.rename("outtmx2","old_outtmx2")
+                                os.rename("outtmx3","outtmx2")
+                                break
+                        except FineNotFoundError:
+                        	with open("outtmx3", 'a') as des:
+	                        	des.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE tmx SYSTEM \"tmx14.dtd\">\n<tmx version=\"1.4\">\n  <header creationtool=\"Translate Toolkit\" creationtoolversion=\"3.8.0\" segtype=\"sentence\" o-tmf=\"UTF-8\" adminlang=\"en\" srclang=\"en\" datatype=\"PlainText\"/>\n  <body>\n")
+                        		des.write("  </body>\n</tmx>\n")
+                            pass
                     lung1=len(message[0])
-                    #print(lung1)
                     lung2=round(lung1*0.75,0)
-                    #print(lung2)
                     delta=lung1-lung2+1
-                    #print("delta:",delta)
-                    #elif message == [ 2079460347 ]:
-                    #    keeperoftheloop=False
-                    #    break
-                    #controllare grandezza messaggio (4096)
                     with open("outtmx2", 'rb') as fin:
                         tmx_file = tmxfile(fin, "en", "fur")
                         for node in tmx_file.unit_iter():
