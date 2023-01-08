@@ -110,7 +110,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                                 os.rename(ftmx,"old_outtmx2")
                                 os.rename("outtmx3",ftmx)
                                 break
-                        except FineNotFoundError:
+                        except FileNotFoundError as e:
                         	with open(ftmx, 'a') as des:
 	                        	des.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE tmx SYSTEM \"tmx14.dtd\">\n<tmx version=\"1.4\">\n  <header creationtool=\"Translate Toolkit\" creationtoolversion=\"3.8.0\" segtype=\"sentence\" o-tmf=\"UTF-8\" adminlang=\"en\" srclang=\"en\" datatype=\"PlainText\"/>\n  <body>\n")
                         		des.write("  </body>\n</tmx>\n")
