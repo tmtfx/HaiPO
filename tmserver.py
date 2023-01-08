@@ -114,7 +114,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                         	with open(ftmx, 'a') as des:
 	                        	des.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE tmx SYSTEM \"tmx14.dtd\">\n<tmx version=\"1.4\">\n  <header creationtool=\"Translate Toolkit\" creationtoolversion=\"3.8.0\" segtype=\"sentence\" o-tmf=\"UTF-8\" adminlang=\"en\" srclang=\"en\" datatype=\"PlainText\"/>\n  <body>\n")
                         		des.write("  </body>\n</tmx>\n")
-                            pass
                     lung1=len(message[0])
                     lung2=round(lung1*0.75,0)
                     delta=lung1-lung2+1
