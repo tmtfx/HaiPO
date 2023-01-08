@@ -112,7 +112,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                         else:
                             lung1=len(message[0])
                             lung2=round(lung1*0.75,0)
-        	                delta=lung1-lung2+1
+                            delta=lung1-lung2+1
                             with open(ftmx, 'rb') as fin:
                                 tmx_file = tmxfile(fin, "en", "fur")
                                 for node in tmx_file.unit_iter():
@@ -121,10 +121,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                                         suggerimenti.append((node.target,dist))
                             suggerimenti.sort(key=lambda element:element[1])
                             client_socket.send(pickle.dumps(suggerimenti,protocol=2))
-					except FileNotFoundError as e:
-                   		with open(ftmx, 'a') as des:
-                        	des.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE tmx SYSTEM \"tmx14.dtd\">\n<tmx version=\"1.4\">\n  <header creationtool=\"Translate Toolkit\" creationtoolversion=\"3.8.0\" segtype=\"sentence\" o-tmf=\"UTF-8\" adminlang=\"en\" srclang=\"en\" datatype=\"PlainText\"/>\n  <body>\n")
-	                       	des.write("  </body>\n</tmx>\n")
+                    except FileNotFoundError as e:
+                        with open(ftmx, 'a') as des:
+                            des.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE tmx SYSTEM \"tmx14.dtd\">\n<tmx version=\"1.4\">\n  <header creationtool=\"Translate Toolkit\" creationtoolversion=\"3.8.0\" segtype=\"sentence\" o-tmf=\"UTF-8\" adminlang=\"en\" srclang=\"en\" datatype=\"PlainText\"/>\n  <body>\n")
+                            des.write("  </body>\n</tmx>\n")
     except KeyboardInterrupt:
         server_socket.close()
         print("interrotto dall'utente")
