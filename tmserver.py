@@ -41,7 +41,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                             keeperoftheloop=False
                             break
                         elif message[0][0]==None:
-                                print("adding source: "+message[0][1]+"\nand translation: "+message[0][2])
+			    print("trying to add source: "+message[0][1]+"\nand translation: "+message[0][2])
+			    if message[0][1]!="" and message[0][2]!="":
                                 with open(ftmx, 'rb') as fin:
                                     with open("outtmx3", 'a') as des:
                                         whole=fin.read()
