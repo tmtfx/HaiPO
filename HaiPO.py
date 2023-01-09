@@ -5154,10 +5154,6 @@ class PoWindow(BWindow):
 			filo=open("/boot/home/where.txt","w")
 			filo.write(percors)
 			filo.close()
-#			self.elaborate_path(percors)
-#			print percors
-			#say = BAlert(percors, 'Ok',None, None, None, 3)
-			#say.Go()
 			return
 		elif msg.what == 5391359:
 			r=msg.FindInt16('totsugj')
@@ -5399,9 +5395,10 @@ class HaiPOApp(BApplication.BApplication):
 		if msg.what == 183654:
 			percors=msg.FindString("percors")
 			self.elaborate_path(os.path.abspath(percors))
-			mah=BMessage(946389)
-			mah.AddString("percors",percors)
-			BApplication.be_app.WindowAt(0).PostMessage(mah)
+			if deb:
+				mah=BMessage(946389)
+				mah.AddString("percors",percors)
+				BApplication.be_app.WindowAt(0).PostMessage(mah)
 
 	def elaborate_path(self,percors):
 					reallaunchpath=os.path.realpath(sys.argv[0])
