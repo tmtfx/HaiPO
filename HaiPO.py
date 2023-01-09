@@ -1853,6 +1853,9 @@ class SugjItem(BListItem):
 	def __init__(self,sugj,lev):
 		self.text=sugj
 		tl=len(sugj)
+		if deb:
+			print sugj
+			print tl
 		self.percent=(100*(tl-lev))/tl
 		BListItem.__init__(self)
 
@@ -3630,7 +3633,8 @@ class PoWindow(BWindow):
 							answer=pickle.loads(pck_answer)
 							sugjmsg=BMessage(5391359)
 							ts=len(answer)
-							print "lunghezza della risposta",ts
+							if deb:
+								print "lunghezza della risposta",ts
 							sugjmsg.AddInt16('totsugj',ts)
 							x=0
 							while x <ts:
