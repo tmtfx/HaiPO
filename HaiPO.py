@@ -1876,11 +1876,13 @@ class SugjItem(BListItem):
 			tempcolor = (20,20,20,0)
 		owner.SetHighColor(tempcolor)
 		owner.SetFont(self.font)
-		owner.DrawString(str(self.percent)+"%")
+		xtxt=str(self.percent)+"%"
+		owner.DrawString(xtxt)
+		ww=self.font.StringWidth(xtxt)
 		owner.SetHighColor(self.color)
 		self.font = be_plain_font
 		owner.SetFont(self.font)
-		owner.MovePenTo(frame[0]+40,frame[3]-2)
+		owner.MovePenTo(frame[0]+ww+10,frame[3]-2)#40
 		owner.DrawString(self.text)
 		
 	def Text(self):
