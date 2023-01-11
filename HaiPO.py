@@ -3024,7 +3024,12 @@ class translationtabview(BTabView):
 				self.superself.srctabview.Select(gg)
 			gg=gg+1
 		BApplication.be_app.WindowAt(0).PostMessage(12343)
-		return BTabView.MouseDown(self,point)
+		BTabView.MouseDown(self,point)
+		self.superself.listemsgstr[self.Selection()].trnsl.MakeFocus()
+		lngth=self.superself.listemsgstr[self.Selection()].trnsl.TextLength()
+		self.superself.listemsgstr[self.Selection()].trnsl.Select(lngth,lngth)
+		self.superself.listemsgstr[self.Selection()].trnsl.ScrollToSelection()
+		#return 
 
 class sourcetabview(BTabView):
 	def __init__(self,frame,name,width,risizingMode,flags,superself):
@@ -3040,7 +3045,12 @@ class sourcetabview(BTabView):
 				self.superself.transtabview.Select(gg)
 			gg=gg+1
 		BApplication.be_app.WindowAt(0).PostMessage(12343)
-		return BTabView.MouseDown(self,point)
+		BTabView.MouseDown(self,point)
+		self.superself.listemsgstr[self.superself.transtabview.Selection()].trnsl.MakeFocus()
+		lngth=self.superself.listemsgstr[self.superself.transtabview.Selection()].trnsl.TextLength()
+		self.superself.listemsgstr[self.superself.transtabview.Selection()].trnsl.Select(lngth,lngth)
+		self.superself.listemsgstr[self.superself.transtabview.Selection()].trnsl.ScrollToSelection()
+		#return BTabView.MouseDown(self,point)
 
 class postabview(BTabView):
 	def __init__(self,superself,frame,name,width):
