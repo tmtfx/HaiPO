@@ -2555,36 +2555,42 @@ class srcTextView(BTextView):
 		self.SetStylable(1)
 	def Draw(self,suaze):
 		BTextView.Draw(self,suaze)
+		self.font = be_plain_font
 		hrdwrk= self.Text()
 		ii=0
 		decor=[]
 		while ii<len(hrdwrk):
-			
 	 		if hrdwrk[ii] == ' ':
 	 			if ii+1==len(hrdwrk):
+	 				asd=self.PointAt(ii)
+	 				color = (200,0,0,0)
+	 				self.SetHighColor(color)
+	 				self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
+	 				self.DrawString(' ᪶ ')#'˽'
+	 				color = (0,0,0,0)
+	 				self.SetHighColor(color)
+	 			elif hrdwrk[ii+1]=='\n':
 	 				asd=self.PointAt(ii)
 	 				color = (200,200,200,0)
 	 				self.SetHighColor(color)
 	 				self.MovePenTo((asd[0][0],asd[0][1]+asd[1]))
 	 				self.DrawString(' ᪶ ')
+	 				color = (255,0,0,0)
+					self.SetHighColor(color)
+					self.MovePenTo((asd[0][0]+8,asd[0][1]+asd[1]))
+					self.DrawString('⏎')
 	 				color = (0,0,0,0)
 	 				self.SetHighColor(color)
-	 			else:
-	 				if hrdwrk[ii+1]=='\n':
-	 					asd=self.PointAt(ii)
-	 					color = (200,200,200,0)
-	 					self.SetHighColor(color)
-	 					self.MovePenTo((asd[0][0],asd[0][1]+asd[1]))
-	 					self.DrawString(' ᪶ ')
-	 					color = (255,0,0,0)
-						self.SetHighColor(color)
-						self.MovePenTo((asd[0][0]+8,asd[0][1]+asd[1]))
-						self.DrawString('⏎')
-	 					color = (0,0,0,0)
-	 					self.SetHighColor(color)
-	 					ii+=1
-	 		else:
-	 			if hrdwrk[ii] == '\n':
+	 				ii+=1
+	 			elif hrdwrk[ii+1]==' ':
+	 				asd=self.PointAt(ii)
+	 				color = (200,0,0,0)
+	 				self.SetHighColor(color)
+	 				self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[ii])/2),asd[0][1]+self.font.GetHeight()[0]))
+	 				self.DrawString('·')
+	 				color = (0,0,0,0)
+	 				self.SetHighColor(color)
+	 		elif hrdwrk[ii] == '\n':
 		 			asd=self.PointAt(ii)
 		 			color = (255,0,0,0)
 					self.SetHighColor(color)
