@@ -2566,15 +2566,15 @@ class srcTextView(BTextView):
 	 				color = (200,0,0,0)
 	 				self.SetHighColor(color)
 	 				self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
-	 				self.DrawString(' ᪶ ')#'˽'
+	 				self.DrawString(' ̳')#' ᪶ ')#'˽'
 	 				color = (0,0,0,0)
 	 				self.SetHighColor(color)
 	 			elif hrdwrk[ii+1]=='\n':
 	 				asd=self.PointAt(ii)
-	 				color = (200,200,200,0)
+	 				color = (200,0,0,0)
 	 				self.SetHighColor(color)
-	 				self.MovePenTo((asd[0][0],asd[0][1]+asd[1]))
-	 				self.DrawString(' ᪶ ')
+	 				self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
+	 				self.DrawString(' ̳')
 	 				color = (255,0,0,0)
 					self.SetHighColor(color)
 					self.MovePenTo((asd[0][0]+8,asd[0][1]+asd[1]))
@@ -2586,6 +2586,8 @@ class srcTextView(BTextView):
 	 				asd=self.PointAt(ii)
 	 				color = (200,0,0,0)
 	 				self.SetHighColor(color)
+	 				self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
+	 				self.DrawString(' ̳')
 	 				self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[ii])/2),asd[0][1]+self.font.GetHeight()[0]))
 	 				self.DrawString('·')
 	 				color = (0,0,0,0)
