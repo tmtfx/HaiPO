@@ -2645,7 +2645,15 @@ class srcTextView(BTextView):
 		 			color = (0,0,0,0)
 		 			self.SetHighColor(color)
 	 			elif hrdwrk[zit] == '\t':
-	 				if hrdwrk[zed] == '\n':
+	 				if zed==len(hrdwrk):
+	 					asd=self.PointAt(zit)
+		 				color = (255,0,0,0)
+						self.SetHighColor(color)
+	 					self.MovePenTo((asd[0][0],asd[0][1]+self.font.GetHeight()[0]))
+	 					self.DrawString('↹')
+		 				color = (0,0,0,0)
+		 				self.SetHighColor(color)
+	 				elif hrdwrk[zed] == '\n':
 	 					asd=self.PointAt(zit)
 		 				color = (255,0,0,0)
 						self.SetHighColor(color)
