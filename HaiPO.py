@@ -2562,46 +2562,113 @@ class srcTextView(BTextView):
 		ii=0
 		decor=[]
 		while ii<len(hrdwrk):
-	 		if hrdwrk[ii] == ' ':
-	 			if ii+1==len(hrdwrk):
-	 				asd=self.PointAt(ii)
+	 		#if hrdwrk[ii] == ' ':
+	 		zit = ii
+	 		zed = ii+1
+	 		if unicodedata.category(unichr(ord(hrdwrk[zit])))=='Zs': #spaces
+	 			if zed==len(hrdwrk):
+	 				asd=self.PointAt(zit)
 	 				color = (200,0,0,0)
 	 				self.SetHighColor(color)
-	 				self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
+	 				self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[zit])/2),asd[0][1]+asd[1]-3))
 	 				self.DrawString(' ̳')#' ᪶ ')#'˽'
 	 				color = (0,0,0,0)
 	 				self.SetHighColor(color)
-	 			elif hrdwrk[ii+1]=='\n':
-	 				asd=self.PointAt(ii)
+	 			elif unicodedata.category(unichr(ord(hrdwrk[zed])))=='Zs':
+	 				asd=self.PointAt(zit)
 	 				color = (200,0,0,0)
 	 				self.SetHighColor(color)
 	 				self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
 	 				self.DrawString(' ̳')
-	 				color = (255,0,0,0)
-					self.SetHighColor(color)
-					self.MovePenTo((asd[0][0]+8,asd[0][1]+asd[1]))
-					self.DrawString('⏎')
-	 				color = (0,0,0,0)
-	 				self.SetHighColor(color)
-	 				ii+=1
-	 			elif hrdwrk[ii+1]==' ':
-	 				asd=self.PointAt(ii)
-	 				color = (200,0,0,0)
-	 				self.SetHighColor(color)
-	 				self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
-	 				self.DrawString(' ̳')
-	 				self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[ii])/2),asd[0][1]+self.font.GetHeight()[0]))
+	 				self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[zit])/2),asd[0][1]+self.font.GetHeight()[0]))
 	 				self.DrawString('·')
 	 				color = (0,0,0,0)
 	 				self.SetHighColor(color)
-	 		elif hrdwrk[ii] == '\n':
-		 			asd=self.PointAt(ii)
+	 			elif unicodedata.category(unichr(ord(hrdwrk[zed]))) in ['Cc','Zl','Zp']:#=='Cc':
+	 				#zed=ii+1
+	 				if hrdwrk[zed]=='\n':
+	 					asd=self.PointAt(zit)
+	 					color = (200,0,0,0)
+	 					self.SetHighColor(color)
+	 					self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
+	 					self.DrawString(' ̳')
+	 					color = (255,0,0,0)
+						self.SetHighColor(color)
+						self.MovePenTo((asd[0][0]+8,asd[0][1]+asd[1]))
+						self.DrawString('⏎')
+	 					color = (0,0,0,0)
+	 					self.SetHighColor(color)
+	 					ii+=1
+	 				elif hrdwrk[zed]=='\t':
+	 					asd=self.PointAt(zit)
+	 					color = (200,0,0,0)
+	 					self.SetHighColor(color)
+	 					self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
+	 					self.DrawString(' ̳')
+	 					color = (255,0,0,0)
+						self.SetHighColor(color)
+						self.MovePenTo((asd[0][0]+8,asd[0][1]+self.font.GetHeight()[0]))
+						self.DrawString('↹')
+	 					color = (0,0,0,0)
+	 					self.SetHighColor(color)
+	 					ii+=1
+	 			#elif hrdwrk[ii+1]=='\n':
+	 			#	asd=self.PointAt(ii)
+	 			#	color = (200,0,0,0)
+	 			#	self.SetHighColor(color)
+	 			#	self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
+	 			#	self.DrawString(' ̳')
+	 			#	color = (255,0,0,0)
+				#	self.SetHighColor(color)
+				#	self.MovePenTo((asd[0][0]+8,asd[0][1]+asd[1]))
+				#	self.DrawString('⏎')
+	 			#	color = (0,0,0,0)
+	 			#	self.SetHighColor(color)
+	 			#	ii+=1
+	 			#elif hrdwrk[ii+1]==' ':
+	 			#	asd=self.PointAt(ii)
+	 			#	color = (200,0,0,0)
+	 			#	self.SetHighColor(color)
+	 			#	self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
+	 			#	self.DrawString(' ̳')
+	 			#	self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[ii])/2),asd[0][1]+self.font.GetHeight()[0]))
+	 			#	self.DrawString('·')
+	 			#	color = (0,0,0,0)
+	 			#	self.SetHighColor(color)
+	 		if unicodedata.category(unichr(ord(hrdwrk[zit])))=='Cc':
+	 			if hrdwrk[zit] == '\n':
+	 				asd=self.PointAt(zit)
 		 			color = (255,0,0,0)
 					self.SetHighColor(color)
 	 				self.MovePenTo((asd[0][0],asd[0][1]+asd[1]))
 	 				self.DrawString('⏎')
 		 			color = (0,0,0,0)
 		 			self.SetHighColor(color)
+	 			elif hrdwrk[zit] == '\t':
+	 				if hrdwrk[zed] == '\n':
+	 					asd=self.PointAt(zit)
+		 				color = (255,0,0,0)
+						self.SetHighColor(color)
+	 					self.MovePenTo((asd[0][0],asd[0][1]+self.font.GetHeight()[0]))
+	 					self.DrawString('↹')
+		 				color = (0,0,0,0)
+		 				self.SetHighColor(color)
+		 				color = (255,0,0,0)
+						self.SetHighColor(color)
+						self.MovePenTo((asd[0][0]+self.font.StringWidth('w '),asd[0][1]+asd[1]))
+						self.DrawString('⏎')
+	 					color = (0,0,0,0)
+	 					self.SetHighColor(color)
+	 					ii+=1
+		 			else:
+		 				asd=self.PointAt(zit)
+		 				color = (255,0,0,0)
+						self.SetHighColor(color)
+	 					self.MovePenTo((asd[0][0],asd[0][1]+self.font.GetHeight()[0]))
+	 					self.DrawString('↹')
+		 				color = (0,0,0,0)
+		 				self.SetHighColor(color)
+		 			
 			ii+=1
 #		for chr in hrdwrk:
 #			if chr == '\n':
