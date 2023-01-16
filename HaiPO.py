@@ -2555,12 +2555,13 @@ class srcTextView(BTextView):
 	def __init__(self,frame,name,textRect,resizingMode,flags):
 		BTextView.__init__(self,frame,name,textRect,resizingMode,flags)
 		self.SetStylable(1)
-		self.spaces=["\\xc2\\xa0","\\xe1\x9a\\x80","\\xe2\\x80\\x80","\\xe2\\x80\\x81","\\xe2\\x80\\x82","\\xe2\\x80\\x83","\\xe2\\x80\\x84","\\xe2\\x80\\x85","\\xe2\\x80\\x86","\\xe2\\x80\\x87","\\xe2\\x80\\x88","\\xe2\\x80\\x89","\\xe2\\x80\\x8a","\\xe2\\x80\\x8b","\\xe2\\x80\\xaf","\\xe2\\x81\\x9f","\\xe3\\x80\\x80"]
+		self.spaces=["\\x20","\\xc2\\xa0","\\xe1\x9a\\x80","\\xe2\\x80\\x80","\\xe2\\x80\\x81","\\xe2\\x80\\x82","\\xe2\\x80\\x83","\\xe2\\x80\\x84","\\xe2\\x80\\x85","\\xe2\\x80\\x86","\\xe2\\x80\\x87","\\xe2\\x80\\x88","\\xe2\\x80\\x89","\\xe2\\x80\\x8a","\\xe2\\x80\\x8b","\\xe2\\x80\\xaf","\\xe2\\x81\\x9f","\\xe3\\x80\\x80"]
 	def Draw(self,suaze):
 		BTextView.Draw(self,suaze)
 		self.font = be_plain_font
 		hrdwrk= self.Text()
 		#multibyte spaces analisis
+		#text analisys for multiple whitespaces, tabulations, carriage returns...
 		tst=unicode(hrdwrk,'utf-8')
 		lis = list(tst)
 		foundo = 0
@@ -2570,6 +2571,7 @@ class srcTextView(BTextView):
 			a_hex=[hex(x) for x in a]
 			if deb:
 				print bob,index,a_hex,self.ByteAt(index),"lungh.str.:",self.TextLength()
+			print "a_hex[0]:",a_hex[0],ci.encode('utf-8')
 			if len(a_hex)>1:
 				i=0
 				stmp=""
@@ -2577,72 +2579,159 @@ class srcTextView(BTextView):
 					stmp+="\\"+a_hex[i][1:]
 					i+=1
 				if deb:
-					print "abbiamo un carattere multibyte",stmp#a_hex
+					print "abbiamo un carattere multibyte",stmp
 				if stmp in self.spaces:
+					print "passo quassu"
 					foundo=self.Text().find(ci.encode('utf-8'),foundo)
 					asd=self.PointAt(foundo)
 					foundo+=1
-	 				color = (200,0,0,0)
+	 				color = (0,0,200,0)
 	 				self.SetHighColor(color)
 	 				self.MovePenTo((asd[0][0]+(self.font.StringWidth(ci.encode('utf-8'))/2),asd[0][1]+asd[1]-3))
-	 				self.DrawString('̳')#'.')##'_')#(' ̳')#' ᪶ ')#'˽'
+	 				self.DrawString('͜')#'̳')#'.')##'_')#(' ̳')#' ᪶ ')#'˽'
 	 				color = (0,0,0,0)
 	 				self.SetHighColor(color)
-				
-		#text analisys for multiple whitespaces, tabulations, carriage returns...
-		ii=0
-		decor=[]
-		while ii<len(hrdwrk):
-	 		#if hrdwrk[ii] == ' ':
-	 		zit = ii
-	 		zed = ii+1
-	 		if unicodedata.category(unichr(ord(hrdwrk[zit])))=='Zs': #spaces
-	 			if zed==len(hrdwrk):
-	 				asd=self.PointAt(zit)
-	 				color = (200,0,0,0)
-	 				self.SetHighColor(color)
-	 				self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[zit])/2),asd[0][1]+asd[1]-3))
-	 				self.DrawString(' ̳')#' ᪶ ')#'˽'
-	 				color = (0,0,0,0)
-	 				self.SetHighColor(color)
-	 			elif unicodedata.category(unichr(ord(hrdwrk[zed])))=='Zs':
-	 				asd=self.PointAt(zit)
-	 				color = (200,0,0,0)
-	 				self.SetHighColor(color)
-	 				self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
-	 				self.DrawString(' ̳')
-	 				self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[zit])/2),asd[0][1]+self.font.GetHeight()[0]))
-	 				self.DrawString('·')
-	 				color = (0,0,0,0)
-	 				self.SetHighColor(color)
-	 			elif unicodedata.category(unichr(ord(hrdwrk[zed]))) in ['Cc','Zl','Zp']:#=='Cc':
-	 				#zed=ii+1
-	 				if hrdwrk[zed]=='\n':
-	 					asd=self.PointAt(zit)
+	 		else:
+	 			mum="\\"+a_hex[0][1:]
+	 			if mum in self.spaces:
+	 				print "mum è:",mum
+		 			foundo=self.Text().find(ci.encode('utf-8'),foundo)
+	 				asd=self.PointAt(foundo)
+	 				foundo+=1
+	 				if index+1<len(lis):
+	 					a=bytearray(lis[index+1].encode('utf-8'))
+		 				a_hex=[hex(x) for x in a]
+		 				if len(a_hex)==1:
+	 						print "passo di là"
+	 						stmp="\\"+a_hex[0][1:]
+	 						if stmp in self.spaces:
+	 							color = (200,0,0,0)
+	 							self.SetHighColor(color)
+	 							self.MovePenTo((asd[0][0]+(self.font.StringWidth(ci.encode('utf-8'))/2),asd[0][1]+asd[1]-3))
+		 						self.DrawString('̳·̳')#'.')##'_')#(' ̳')#' ᪶ ')#'˽'
+		 						color = (0,0,0,0)
+	 							self.SetHighColor(color)
+	 						elif stmp == "\\xa":
+	 							color = (200,0,0,0)
+			 					self.SetHighColor(color)
+		 						self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
+	 							self.DrawString('̳')
+		 						color = (0,0,0,0)
+		 						self.SetHighColor(color)
+	 						elif stmp == "\\x9":
+	 							color = (200,0,0,0)
+			 					self.SetHighColor(color)
+		 						self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
+	 							self.DrawString('̳')
+		 						color = (0,0,0,0)
+		 						self.SetHighColor(color)
+	 					else:
+	 						i=0
+							stmp=""
+							while i<len(a_hex):
+								stmp+="\\"+a_hex[i][1:]
+								i+=1
+							if stmp in self.spaces:
+								color = (200,0,0,0)
+	 							self.SetHighColor(color)
+	 							self.MovePenTo((asd[0][0]+(self.font.StringWidth(ci.encode('utf-8'))/2),asd[0][1]+asd[1]-3))
+		 						self.DrawString('̳·̳')#'.')##'_')#(' ̳')#' ᪶ ')#'˽'
+		 						color = (0,0,0,0)
+	 							self.SetHighColor(color)
+	 				else:
 	 					color = (200,0,0,0)
 	 					self.SetHighColor(color)
-	 					self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
-	 					self.DrawString(' ̳')
-	 					color = (255,0,0,0)
-						self.SetHighColor(color)
-						self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[zit])),asd[0][1]+asd[1]))#+8 replaced with +(self.font.StringWidth(hrdwrk[zit])/2)
-						self.DrawString('⏎')
-	 					color = (0,0,0,0)
+	 					self.MovePenTo((asd[0][0]+(self.font.StringWidth(ci.encode('utf-8'))/2),asd[0][1]+asd[1]-3))
+		 				self.DrawString('̳')#'.')##'_')#(' ̳')#' ᪶ ')#'˽'
+		 				color = (0,0,0,0)
 	 					self.SetHighColor(color)
-	 					ii+=1
-	 				elif hrdwrk[zed]=='\t':
-	 					asd=self.PointAt(zit)
-	 					color = (200,0,0,0)
-	 					self.SetHighColor(color)
-	 					self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
-	 					self.DrawString(' ̳')
-	 					color = (255,0,0,0)
-						self.SetHighColor(color)
-						self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[zit])/2),asd[0][1]+self.font.GetHeight()[0]))
-						self.DrawString('↹')
-	 					color = (0,0,0,0)
-	 					self.SetHighColor(color)
-	 					ii+=1
+	 			elif mum=="\\xa":
+	 				color = (200,0,0,0)
+			 		self.SetHighColor(color)
+		 			self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
+		 			self.DrawString('⏎')
+		 			color = (0,0,0,0)
+		 			self.SetHighColor(color)
+		 		elif mum=="\\x9":
+	 				color = (200,0,0,0)
+			 		self.SetHighColor(color)
+			 		foundo=self.Text().find(ci.encode('utf-8'),foundo)
+	 				asd=self.PointAt(foundo)
+	 				foundo+=1
+		 			self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
+		 			wst='↹'
+		 			if index+1<len(lis):
+	 					a=bytearray(lis[index+1].encode('utf-8'))
+						a_hex=[hex(x) for x in a]
+		 				if len(a_hex)==1:
+		 					stmp="\\"+a_hex[0][1:]
+		 					if stmp in self.spaces:
+	 							wst='↹·'
+		 				else:
+		 					i=0
+							stmp=""
+							while i<len(a_hex):
+								stmp+="\\"+a_hex[i][1:]
+								i+=1
+							if stmp in self.spaces:
+								wst='↹·'
+	 				self.DrawString(wst)
+		 			color = (0,0,0,0)
+		 			self.SetHighColor(color)
+
+#		ii=0
+#		decor=[]
+#		while ii<len(hrdwrk):
+#	 		#if hrdwrk[ii] == ' ':
+#	 		zit = ii
+#	 		zed = ii+1
+#	 		if unicodedata.category(unichr(ord(hrdwrk[zit])))=='Zs': #spaces
+#	 			if zed==len(hrdwrk):
+#	 				asd=self.PointAt(zit)
+#	 				color = (200,0,0,0)
+#	 				self.SetHighColor(color)
+#	 				self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[zit])/2),asd[0][1]+asd[1]-3))
+#	 				self.DrawString(' ̳')#' ᪶ ')#'˽'
+#	 				color = (0,0,0,0)
+#	 				self.SetHighColor(color)
+#	 			elif unicodedata.category(unichr(ord(hrdwrk[zed])))=='Zs':
+#	 				asd=self.PointAt(zit)
+#	 				color = (200,0,0,0)
+#	 				self.SetHighColor(color)
+#	 				self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
+#	 				self.DrawString(' ̳')
+#	 				self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[zit])/2),asd[0][1]+self.font.GetHeight()[0]))
+#	 				self.DrawString('·')
+#	 				color = (0,0,0,0)
+#	 				self.SetHighColor(color)
+#	 			elif unicodedata.category(unichr(ord(hrdwrk[zed]))) in ['Cc','Zl','Zp']:#=='Cc':
+#	 				#zed=ii+1
+#	 				if hrdwrk[zed]=='\n':
+#	 					asd=self.PointAt(zit)
+#	 					color = (200,0,0,0)
+#	 					self.SetHighColor(color)
+#	 					self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
+#	 					self.DrawString(' ̳')
+#	 					color = (255,0,0,0)
+#						self.SetHighColor(color)
+#						self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[zit])),asd[0][1]+asd[1]))#+8 replaced with +(self.font.StringWidth(hrdwrk[zit])/2)
+#						self.DrawString('⏎')
+#	 					color = (0,0,0,0)
+#	 					self.SetHighColor(color)
+#	 					ii+=1
+#	 				elif hrdwrk[zed]=='\t':
+#	 					asd=self.PointAt(zit)
+#	 					color = (200,0,0,0)
+#	 					self.SetHighColor(color)
+#	 					self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
+#	 					self.DrawString(' ̳')
+#	 					color = (255,0,0,0)
+#						self.SetHighColor(color)
+#						self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[zit])/2),asd[0][1]+self.font.GetHeight()[0]))
+#						self.DrawString('↹')
+#	 					color = (0,0,0,0)
+#	 					self.SetHighColor(color)
+#	 					ii+=1
 	 			#elif hrdwrk[ii+1]=='\n':
 	 			#	asd=self.PointAt(ii)
 	 			#	color = (200,0,0,0)
@@ -2666,50 +2755,50 @@ class srcTextView(BTextView):
 	 			#	self.DrawString('·')
 	 			#	color = (0,0,0,0)
 	 			#	self.SetHighColor(color)
-	 		if unicodedata.category(unichr(ord(hrdwrk[zit])))=='Cc':
-	 			if hrdwrk[zit] == '\n':
-	 				asd=self.PointAt(zit)
-		 			color = (255,0,0,0)
-					self.SetHighColor(color)
-	 				self.MovePenTo((asd[0][0],asd[0][1]+asd[1]))
-	 				self.DrawString('⏎')
-		 			color = (0,0,0,0)
-		 			self.SetHighColor(color)
-	 			elif hrdwrk[zit] == '\t':
-	 				if zed==len(hrdwrk):
-	 					asd=self.PointAt(zit)
-		 				color = (255,0,0,0)
-						self.SetHighColor(color)
-	 					self.MovePenTo((asd[0][0],asd[0][1]+self.font.GetHeight()[0]))
-	 					self.DrawString('↹')
-		 				color = (0,0,0,0)
-		 				self.SetHighColor(color)
-	 				elif hrdwrk[zed] == '\n':
-	 					asd=self.PointAt(zit)
-	 					print "tab asd",asd,zit
-		 				color = (255,0,0,0)
-						self.SetHighColor(color)
-	 					self.MovePenTo((asd[0][0],asd[0][1]+self.font.GetHeight()[0]))
-	 					self.DrawString('↹')
-		 				color = (0,0,0,0)
-		 				self.SetHighColor(color)
-		 				color = (255,0,0,0)
-						self.SetHighColor(color)
-						self.MovePenTo((asd[0][0]+self.font.StringWidth('w '),asd[0][1]+asd[1]))
-						self.DrawString('⏎')
-	 					color = (0,0,0,0)
-	 					self.SetHighColor(color)
-	 					ii+=1
-		 			else:
-		 				asd=self.PointAt(zit)
-		 				color = (255,0,0,0)
-						self.SetHighColor(color)
-	 					self.MovePenTo((asd[0][0],asd[0][1]+self.font.GetHeight()[0]))
-	 					self.DrawString('↹')
-		 				color = (0,0,0,0)
-		 				self.SetHighColor(color)
-		 			
-			ii+=1
+#	 		if unicodedata.category(unichr(ord(hrdwrk[zit])))=='Cc':
+#	 			if hrdwrk[zit] == '\n':
+#	 				asd=self.PointAt(zit)
+#		 			color = (255,0,0,0)
+#					self.SetHighColor(color)
+#	 				self.MovePenTo((asd[0][0],asd[0][1]+asd[1]))
+#	 				self.DrawString('⏎')
+#		 			color = (0,0,0,0)
+#		 			self.SetHighColor(color)
+#	 			elif hrdwrk[zit] == '\t':
+#	 				if zed==len(hrdwrk):
+#	 					asd=self.PointAt(zit)
+#		 				color = (255,0,0,0)
+#						self.SetHighColor(color)
+#	 					self.MovePenTo((asd[0][0],asd[0][1]+self.font.GetHeight()[0]))
+#	 					self.DrawString('↹')
+#		 				color = (0,0,0,0)
+#		 				self.SetHighColor(color)
+#	 				elif hrdwrk[zed] == '\n':
+#	 					asd=self.PointAt(zit)
+#	 					print "tab asd",asd,zit
+#		 				color = (255,0,0,0)
+#						self.SetHighColor(color)
+#	 					self.MovePenTo((asd[0][0],asd[0][1]+self.font.GetHeight()[0]))
+#	 					self.DrawString('↹')
+#		 				color = (0,0,0,0)
+#		 				self.SetHighColor(color)
+#		 				color = (255,0,0,0)
+#						self.SetHighColor(color)
+#						self.MovePenTo((asd[0][0]+self.font.StringWidth('w '),asd[0][1]+asd[1]))
+#						self.DrawString('⏎')
+#	 					color = (0,0,0,0)
+#	 					self.SetHighColor(color)
+#	 					ii+=1
+#		 			else:
+#		 				asd=self.PointAt(zit)
+#		 				color = (255,0,0,0)
+#						self.SetHighColor(color)
+#	 					self.MovePenTo((asd[0][0],asd[0][1]+self.font.GetHeight()[0]))
+#	 					self.DrawString('↹')
+#		 				color = (0,0,0,0)
+#		 				self.SetHighColor(color)
+#		 			
+#			ii+=1
 
 		return 
 		
