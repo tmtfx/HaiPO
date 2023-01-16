@@ -2555,10 +2555,41 @@ class srcTextView(BTextView):
 	def __init__(self,frame,name,textRect,resizingMode,flags):
 		BTextView.__init__(self,frame,name,textRect,resizingMode,flags)
 		self.SetStylable(1)
+		self.spaces=["\\xc2\\xa0","\\xe1\x9a\\x80","\\xe2\\x80\\x80","\\xe2\\x80\\x81","\\xe2\\x80\\x82","\\xe2\\x80\\x83","\\xe2\\x80\\x84","\\xe2\\x80\\x85","\\xe2\\x80\\x86","\\xe2\\x80\\x87","\\xe2\\x80\\x88","\\xe2\\x80\\x89","\\xe2\\x80\\x8a","\\xe2\\x80\\x8b","\\xe2\\x80\\xaf","\\xe2\\x81\\x9f","\\xe3\\x80\\x80"]
 	def Draw(self,suaze):
 		BTextView.Draw(self,suaze)
 		self.font = be_plain_font
 		hrdwrk= self.Text()
+		#multibyte spaces analisis
+		tst=unicode(hrdwrk,'utf-8')
+		lis = list(tst)
+		foundo = 0
+		for index,ci in enumerate(lis):
+			a=bytearray(ci.encode('utf-8'))
+			bob=self.PointAt(index)
+			a_hex=[hex(x) for x in a]
+			if deb:
+				print bob,index,a_hex,self.ByteAt(index),"lungh.str.:",self.TextLength()
+			if len(a_hex)>1:
+				i=0
+				stmp=""
+				while i<len(a_hex):
+					stmp+="\\"+a_hex[i][1:]
+					i+=1
+				if deb:
+					print "abbiamo un carattere multibyte",stmp#a_hex
+				if stmp in self.spaces:
+					foundo=self.Text().find(ci.encode('utf-8'),foundo)
+					asd=self.PointAt(foundo)
+					foundo+=1
+	 				color = (200,0,0,0)
+	 				self.SetHighColor(color)
+	 				self.MovePenTo((asd[0][0]+(self.font.StringWidth(ci.encode('utf-8'))/2),asd[0][1]+asd[1]-3))
+	 				self.DrawString('̳')#'.')##'_')#(' ̳')#' ᪶ ')#'˽'
+	 				color = (0,0,0,0)
+	 				self.SetHighColor(color)
+				
+		#text analisys for multiple whitespaces, tabulations, carriage returns...
 		ii=0
 		decor=[]
 		while ii<len(hrdwrk):
@@ -2594,7 +2625,7 @@ class srcTextView(BTextView):
 	 					self.DrawString(' ̳')
 	 					color = (255,0,0,0)
 						self.SetHighColor(color)
-						self.MovePenTo((asd[0][0]+8,asd[0][1]+asd[1]))
+						self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[zit])),asd[0][1]+asd[1]))#+8 replaced with +(self.font.StringWidth(hrdwrk[zit])/2)
 						self.DrawString('⏎')
 	 					color = (0,0,0,0)
 	 					self.SetHighColor(color)
@@ -2607,7 +2638,7 @@ class srcTextView(BTextView):
 	 					self.DrawString(' ̳')
 	 					color = (255,0,0,0)
 						self.SetHighColor(color)
-						self.MovePenTo((asd[0][0]+8,asd[0][1]+self.font.GetHeight()[0]))
+						self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[zit])/2),asd[0][1]+self.font.GetHeight()[0]))
 						self.DrawString('↹')
 	 					color = (0,0,0,0)
 	 					self.SetHighColor(color)
@@ -2655,6 +2686,7 @@ class srcTextView(BTextView):
 		 				self.SetHighColor(color)
 	 				elif hrdwrk[zed] == '\n':
 	 					asd=self.PointAt(zit)
+	 					print "tab asd",asd,zit
 		 				color = (255,0,0,0)
 						self.SetHighColor(color)
 	 					self.MovePenTo((asd[0][0],asd[0][1]+self.font.GetHeight()[0]))
@@ -2678,8 +2710,6 @@ class srcTextView(BTextView):
 		 				self.SetHighColor(color)
 		 			
 			ii+=1
-#		for chr in hrdwrk:
-#			if chr == '\n':
 
 		return 
 		
