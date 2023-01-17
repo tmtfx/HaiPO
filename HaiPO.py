@@ -1502,7 +1502,7 @@ class TranslatorComment(BWindow):
 		bckpmsg.AddInt8('savetype',3)
 		bckpmsg.AddInt32('tvindex',self.listindex)
 		bckpmsg.AddInt32('tabview',self.indextab)
-		bckpmsg.AddString('tcomment',self.item.tcomment.encode(self.encoding)) ################### TODO verificare se va bene encode utf-8
+		bckpmsg.AddString('tcomment',str(self.item.tcomment.encode(self.encoding)))#.decode(self.encoding)) ################### TODO verificare se va bene encode utf-8
 		bckpmsg.AddString('bckppath',cursel.backupfile)
 		BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
 		
@@ -4818,7 +4818,7 @@ class PoWindow(BWindow):
 				scheda=self.editorslist[intscheda]
 				scheda.writter.acquire()
 				entry = scheda.list.lv.ItemAt(tvindex).entry
-				entry.tcomment=textsave
+				entry.tcomment=textsave.decode(self.encoding) ##### TODO should be passed scheda.encodo as above
 				scheda.pofile.metadata['Last-Translator']=defname
 				scheda.pofile.metadata['PO-Revision-Date']=now
 				scheda.pofile.metadata['X-Editor']=version
@@ -5266,7 +5266,9 @@ class PoWindow(BWindow):
 					self.scrolltcomment=BScrollBar((dfg-24,hig+408,dfg-8,500),'tcommentview_ScrollBar',self.tcommentview,0.0,0.0,B_VERTICAL)
 					self.lubox.AddChild(self.scrolltcomment)
 					self.lubox.AddChild(self.tcommentview)
-					self.tcommentview.SetText(item.tcomment)
+					self.tcommentview.SetText(item.tcomment.encode(self.encoding))################ TODO: non deve essere self.encoding ma l'encoding associato alla scheda aperta (vedi scheda.encodo)
+					
+					#self.tcommentview.Draw(self.tcommentview.Bounds())
 				else:
 					try:
 						self.tcommentview.RemoveSelf()
