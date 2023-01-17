@@ -1040,7 +1040,7 @@ class FindRepTrans(BWindow):
 		self.underframe.AddChild(self.SearchButton)
 		kButtonFrame2 = (r/3+5,69,r*2/3-5,104)
 		kButtonName2 = "Replace"
-		self.ReplaceButton = BButton(kButtonFrame2, kButtonName2, kButtonName2, BMessage(7047))
+		self.ReplaceButton = BButton(kButtonFrame2, kButtonName2, kButtonName2, BMessage(10240))#7047))
 		self.underframe.AddChild(self.ReplaceButton)
 		self.casesens = BCheckBox((5,79,r/2-15,104),'casesens', 'Case sensistive', BMessage(222))
 		self.casesens.SetValue(1)
@@ -1060,6 +1060,8 @@ class FindRepTrans(BWindow):
 		self.pb.SetMaxValue(float(total))
 		indaco=lista.CurrentSelection()
 		self.pb.Update(float(indaco))
+		self.ei=0
+		self.ef=0
 		#self.encoding=BApplication.be_app.WindowAt(0).encoding
 		self.encoding = BApplication.be_app.WindowAt(0).editorslist[BApplication.be_app.WindowAt(0).postabview.Selection()].encodo
 		i = 1
@@ -1132,6 +1134,8 @@ class FindRepTrans(BWindow):
 										epistola.AddInt8('srctrnsl',1)
 										BApplication.be_app.WindowAt(0).PostMessage(epistola)
 										loopa = False
+										self.ei=ret
+										self.ef=ret+tl
 										break
 							else:
 								ret = blister.msgstrs.encode(self.encoding).find(self.looktv.Text())
@@ -1143,6 +1147,8 @@ class FindRepTrans(BWindow):
 									epistola.AddInt8('srctrnsl',1)
 									BApplication.be_app.WindowAt(0).PostMessage(epistola)
 									loopa = False
+									self.ei=ret
+									self.ef=ret+tl
 									break
 						else:
 							if blister.hasplural:
@@ -1156,6 +1162,8 @@ class FindRepTrans(BWindow):
 										epistola.AddInt8('srctrnsl',1)
 										BApplication.be_app.WindowAt(0).PostMessage(epistola)
 										loopa = False
+										self.ei=ret
+										self.ef=ret+tl
 										break
 							else:
 								ret = blister.msgstrs.encode(self.encoding).lower().find(self.looktv.Text().lower())
@@ -1167,6 +1175,8 @@ class FindRepTrans(BWindow):
 									epistola.AddInt8('srctrnsl',1)
 									BApplication.be_app.WindowAt(0).PostMessage(epistola)
 									loopa = False
+									self.ei=ret
+									self.ef=ret+tl
 									break
 				if now == total:
 						now = -1
@@ -1184,6 +1194,17 @@ class FindRepTrans(BWindow):
 			addfloat=msg.FindFloat('delta')
 			self.pb.Update(addfloat)
 			return
+		elif msg.what == 10240:
+			if self.ef>self.ei:
+				listar=BApplication.be_app.WindowAt(0).listemsgstr
+				repmsg=BMessage(10241)
+				repmsg.AddInt16("ei",self.ei)
+				repmsg.AddInt16("ef",self.ef)
+				repmsg.AddString("subs",self.reptv.Text())#.encode('utf-8'))
+				BApplication.be_app.WindowAt(0).PostMessage(repmsg)
+				#wt=listar[BApplication.be_app.WindowAt(0).transtabview.Selection()].trnsl#.Text()
+				#wt.Delete(self.ei,self.ef)
+				#print wt
 		elif msg.what == 1010:
 #			lftxt=
 			self.looktv.SetText(msg.FindString('txt'))
@@ -4648,6 +4669,13 @@ class PoWindow(BWindow):
 			self.maacutent.Show()
 			self.SetFlags(B_AVOID_FOCUS)
 			return
+			
+		elif msg.what == 10241:
+			ei=msg.FindInt16("ei")
+			ef=msg.FindInt16("ef")
+			test=msg.FindString("subs")
+			self.listemsgstr[self.transtabview.Selection()].trnsl.Delete(ei,ef)
+			self.listemsgstr[self.transtabview.Selection()].trnsl.Insert(test,len(test),ei)
 			
 		elif msg.what == 9631:
 			#ris=msg.FindInt16('index')
