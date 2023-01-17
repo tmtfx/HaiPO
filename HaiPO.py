@@ -2571,7 +2571,7 @@ class srcTextView(BTextView):
 			a_hex=[hex(x) for x in a]
 			if deb:
 				print bob,index,a_hex,self.ByteAt(index),"lungh.str.:",self.TextLength()
-			print "a_hex[0]:",a_hex[0],ci.encode('utf-8')
+			#print "a_hex[0]:",a_hex[0],ci.encode('utf-8')
 			if len(a_hex)>1:
 				i=0
 				stmp=""
@@ -2581,7 +2581,6 @@ class srcTextView(BTextView):
 				if deb:
 					print "abbiamo un carattere multibyte",stmp
 				if stmp in self.spaces:
-					print "passo quassu"
 					foundo=self.Text().find(ci.encode('utf-8'),foundo)
 					asd=self.PointAt(foundo)
 					foundo+=1
@@ -2594,7 +2593,6 @@ class srcTextView(BTextView):
 	 		else:
 	 			mum="\\"+a_hex[0][1:]
 	 			if mum in self.spaces:
-	 				print "mum è:",mum
 		 			foundo=self.Text().find(ci.encode('utf-8'),foundo)
 	 				asd=self.PointAt(foundo)
 	 				foundo+=1
@@ -2602,7 +2600,6 @@ class srcTextView(BTextView):
 	 					a=bytearray(lis[index+1].encode('utf-8'))
 		 				a_hex=[hex(x) for x in a]
 		 				if len(a_hex)==1:
-	 						print "passo di là"
 	 						stmp="\\"+a_hex[0][1:]
 	 						if stmp in self.spaces:
 	 							color = (200,0,0,0)
@@ -2646,6 +2643,9 @@ class srcTextView(BTextView):
 		 				color = (0,0,0,0)
 	 					self.SetHighColor(color)
 	 			elif mum=="\\xa":
+	 				foundo=self.Text().find(ci.encode('utf-8'),foundo)
+	 				asd=self.PointAt(foundo)
+	 				foundo+=1
 	 				color = (200,0,0,0)
 			 		self.SetHighColor(color)
 		 			self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
