@@ -1502,7 +1502,7 @@ class TranslatorComment(BWindow):
 		bckpmsg.AddInt8('savetype',3)
 		bckpmsg.AddInt32('tvindex',self.listindex)
 		bckpmsg.AddInt32('tabview',self.indextab)
-		bckpmsg.AddString('tcomment',self.item.tcomment)
+		bckpmsg.AddString('tcomment',self.item.tcomment.encode(self.encoding)) ################### TODO verificare se va bene encode utf-8
 		bckpmsg.AddString('bckppath',cursel.backupfile)
 		BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
 		
@@ -4675,7 +4675,10 @@ class PoWindow(BWindow):
 			ef=msg.FindInt16("ef")
 			test=msg.FindString("subs")
 			self.listemsgstr[self.transtabview.Selection()].trnsl.Delete(ei,ef)
-			self.listemsgstr[self.transtabview.Selection()].trnsl.Insert(test,len(test),ei)
+			self.listemsgstr[self.transtabview.Selection()].trnsl.Insert(ei,test)
+			self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
+			BApplication.be_app.WindowAt(0).PostMessage(12343)
+			return
 			
 		elif msg.what == 9631:
 			#ris=msg.FindInt16('index')
