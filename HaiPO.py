@@ -1953,7 +1953,8 @@ class MsgStrItem(BListItem):
 	
 	def __init__(self, msgids,msgstrs,entry,comments,context,state,encoding,plural):
 		if plural:
-			self.text = msgids[0].encode(encoding)  #(english) should this always be utf-8?
+			self.text = msgids[0].encode(encoding)
+			self.textpl = msgids[1].encode(encoding)
 		else:
 			self.text = msgids.encode(encoding)
 		self.comments = comments
@@ -2954,7 +2955,7 @@ class POEditorBBox(BBox):
 						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encodo)))
 					if entry.previous_msgid_plural:
 						item.SetPrevious(True)
-						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural.encode(self.encodo)))
 					if entry.previous_msgctxt:
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encodo)))
@@ -2976,7 +2977,7 @@ class POEditorBBox(BBox):
 						item.SetPreviousMsgs(("msgid",entry.previous_msgid.encode(self.encodo)))
 					if entry.previous_msgid_plural:
 						item.SetPrevious(True)
-						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural.encode(self.encodo)))
 					if entry.previous_msgctxt:
 						item.SetPrevious(True)
 						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt.encode(self.encodo)))
@@ -5496,7 +5497,7 @@ class PoWindow(BWindow):
 			print "end highlightlater"
 		
 			
-	def  loadPOfile(self,pathtofile,bounds,pofile,encodo):
+	def loadPOfile(self,pathtofile,bounds,pofile,encodo):
 			# add a tab in the editor's tabview
 			head, tail = os.path.split(pathtofile)
 			startTime = time.time()
