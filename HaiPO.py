@@ -710,9 +710,10 @@ class TMSettings(BWindow):
 		bounds=self.Bounds()
 		l,t,r,b = bounds
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		h=round(self.underframe.GetFontHeight()[0])
 		self.AddChild(self.underframe)
 		Config.read(confile)
-		self.enablecheck = BCheckBox((5,5,r-5,18),'enabcheck', 'Enable/Disable translation memory', BMessage(222))
+		self.enablecheck = BCheckBox((5,5,r-5,h+6),'enabcheck', 'Enable/Disable translation memory', BMessage(222))
 		if tm:
 			self.enablecheck.SetValue(1)
 		else:
@@ -722,13 +723,15 @@ class TMSettings(BWindow):
 			bret = ConfigSectionMap(usero)['tmxsrv']
 		except:
 			bret = "127.0.0.1"
-		self.tmxsrvBTC = BTextControl((5,27,r-5,49),'tmxsrv','Server address:',bret,BMessage(8080))
+		self.tmxsrvBTC = BTextControl((5,h+15,r-5,2*h+25),'tmxsrv','Server address:',bret,BMessage(8080))
 		try:
 			usero = ConfigSectionMap("Users")['default']
 			bret = ConfigSectionMap(usero)['tmxprt']
 		except:
 			bret = "2022"
-		self.tmxprtBTC = BTextControl((5,51,r-5,73),'tmxprt','Server port:',bret,BMessage(8086))
+		self.tmxprtBTC = BTextControl((5,2*h+26,r-5,3*h+37),'tmxprt','Server port:',bret,BMessage(8086))
+		self.underframe.ResizeTo(r,3*h+42)
+		self.ResizeTo(r,3*h+42)
 		self.underframe.AddChild(self.enablecheck)
 		self.underframe.AddChild(self.tmxsrvBTC)
 		self.underframe.AddChild(self.tmxprtBTC)
