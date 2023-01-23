@@ -4977,7 +4977,10 @@ class PoWindow(BWindow):
 						# reinsert commented lines
 						#try:
 							self.encoding ="utf-8"
-							self.pof = polib.pofile(txtpath,encoding=self.encoding)
+							try:
+								self.pof = polib.pofile(txtpath,encoding=self.encoding)
+							except:
+								self.pof = polib.pofile(txtpath)
 							if mimeinstalled:
 								say = BAlert('oops', "The file is ok, but there's no gettext mimetype installed in your system", 'Ok',None, None, None, 3)
 								say.Go()
