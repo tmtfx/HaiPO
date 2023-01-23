@@ -385,10 +385,14 @@ class ImpostazionsUtent(BWindow):
 		l,t,r,b = bounds
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(self.underframe)
+		
 		h=round(self.underframe.GetFontHeight()[0])
-		self.userstabview = BTabView((5.0, 5.0, r-5, t+6*h+190), 'tabview')
+		self.userstabview = BTabView((5.0, 5.0, r-5, 6*h+190), 'tabview')
+		self.ResizeTo(r,6*h+260)
+		bounds=self.Bounds()
+		l,t,r,b = bounds
 		altece = self.userstabview.TabHeight()
-		tfr = (10.0, 10.0, r-25, t+6*h+170 - altece)
+		tfr = (10.0, 10.0, r-25, 6*h+170 - altece)
 		trc = (0.0, 0.0, tfr[2] - tfr[0], tfr[3] - tfr[1])
 		self.tabslabels=[]
 		self.userviewlist=[]
@@ -421,11 +425,11 @@ class ImpostazionsUtent(BWindow):
 				self.userstabview.AddTab(self.userviewlist[x], self.tabslabels[x])
 				x=x+1
 			self.underframe.AddChild(self.userstabview)
-			kButtonFrame1 = (r/4+5, t+6*h+200, r/2-5, b-5)
+			kButtonFrame1 = (r/4+5, t+6*h+200, r/2-5, b-10)
 			kButtonName1 = "Remove user"
-			kButtonFrame2 = (r*3/4+5, t+6*h+200, r-5, b-5)
+			kButtonFrame2 = (r*3/4+5, t+6*h+200, r-5, b-10)
 			kButtonName2 = "Add user"
-			kButtonFrame3 = (r/2+5, t+6*h+200, r*3/4-5, b-5)
+			kButtonFrame3 = (r/2+5, t+6*h+200, r*3/4-5, b-10)
 			kButtonName3 = "Set default"
 			self.gjaveBtn = BButton(kButtonFrame1, kButtonName1, kButtonName1, BMessage(50250))
 			self.zonteBtn = BButton(kButtonFrame2, kButtonName2, kButtonName2, BMessage(550250))
@@ -775,9 +779,10 @@ class SpellcheckSettings(BWindow):
 		bounds=self.Bounds()
 		l,t,r,b = bounds
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		h=round(self.underframe.GetFontHeight()[0])
 		self.AddChild(self.underframe)
 		Config.read(confile)
-		self.enablecheck = BCheckBox((5,5,r-5,18),'enabcheck', 'Enable/Disable spellcheck', BMessage(222))
+		self.enablecheck = BCheckBox((5,5,r-5,h+4),'enabcheck', 'Enable/Disable spellcheck', BMessage(222))
 		if showspell:
 			self.enablecheck.SetValue(1)
 		else:
@@ -786,27 +791,28 @@ class SpellcheckSettings(BWindow):
 			bret = ConfigSectionMap("Settings")['spell_path'] #it's ascii
 		except:
 			bret = "hunspell-x86"
-		self.splchker = BTextControl((5,27,r-5,49),'spellchecker','Spellchecker command:',bret,BMessage(8080))
+		self.splchker = BTextControl((5,h+14,r-5,2*h+25),'spellchecker','Spellchecker command:',bret,BMessage(8080))
 		try:
 			usero = ConfigSectionMap("Users")['default']
 			bret = ConfigSectionMap(usero)['spell_dictionary'] #it's ascii
 		except:
 			bret = "/boot/system/data/hunspell/en_US"
 			
-		self.diz = BTextControl((5,51,r-5,73),'dictionary','Dictionary path:',bret,BMessage(8086))
+		self.diz = BTextControl((5,2*h+27,r-5,3*h+37),'dictionary','Dictionary path:',bret,BMessage(8086))
 		try:
 			usero = ConfigSectionMap("Users")['default']
 			bret = ConfigSectionMap(usero)['spell_inclusion']
 		except:
 			bret = ""
-		self.inclus = BTextControl((5,75,r-5,97),'inclusion','Chars included in words:',bret,BMessage(8087))
+		self.inclus = BTextControl((5,3*h+39,r-5,4*h+49),'inclusion','Chars included in words:',bret,BMessage(8087))
 		try:
 			usero = ConfigSectionMap("Users")['default']
 			bret = ConfigSectionMap(usero)['spell_esclusion']
 		except:
 			bret = ""
-		self.esclus = BTextControl((5,99,r-5,121),'inclusion','Chars-categories escluded in words:',bret,BMessage(8088))
+		self.esclus = BTextControl((5,4*h+51,r-5,5*h+61),'inclusion','Chars-categories escluded in words:',bret,BMessage(8088))
 		self.esclus.SetText("Pc,Pd,Pe,Pi,Po,Ps,Cc,Pf")
+		self.ResizeTo(r,5*h+71)
 		self.underframe.AddChild(self.splchker)
 		self.underframe.AddChild(self.enablecheck)
 		self.underframe.AddChild(self.diz)
