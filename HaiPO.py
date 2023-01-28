@@ -5116,10 +5116,12 @@ class PoWindow(BWindow):
 
 		elif msg.what == 12343:
 			if self.editorslist[self.postabview.Selection()].list.lv.CurrentSelection()>-1:
+				self.Looper().Lock()
 				try:
 					self.listemsgstr[self.transtabview.Selection()].trnsl.CheckSpell()
 				except:
 					pass
+				self.Looper().Unlock()
 
 		elif msg.what == 54173:
 			#Save as 
