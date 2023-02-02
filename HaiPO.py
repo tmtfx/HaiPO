@@ -53,8 +53,9 @@ def ConfigSectionMap(section):
     return dict1
 
 firstrun=False
-global evstyle,deb
+global evstyle,deb,tm
 deb=False
+tm=False
 evstyle=threading.Semaphore()
 global confile,setencoding
 confile=os.path.join(sys.path[0],'config.ini')
