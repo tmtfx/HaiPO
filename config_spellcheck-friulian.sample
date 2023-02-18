@@ -20,5 +20,5 @@ team = Friulian
 pe-mail = f.t.public@gmail.com
 te-mail = f.t.public@gmail.com
 spell_dictionary = /boot/system/data/hunspell/fur_IT
-spell_inclusion = û
+spell_inclusion = û,Ç,Â
 spell_esclusion = Pc,Pd,Pe,Pi,Po,Ps,Cc,Pf
