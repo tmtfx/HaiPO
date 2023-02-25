@@ -77,7 +77,7 @@ else:
 	firstrun = True
 
 if not firstrun:
-	global tm,tmxsrv,tmxprt,tmsocket
+	global tmxsrv,tmxprt,tmsocket
 	try:
 		Config.read(confile)
 		try:
@@ -5674,7 +5674,15 @@ class HaiPOApp(BApplication.BApplication):
 					static = BMimeType()
 					mime = static.GuessMimeType(self.txtpath)
 					mimetype = repr(mime.Type()).replace('\'','')
-					supertype,subtype = mimetype.split('/')
+					if deb:
+						print mimetype
+					try:
+						supertype,subtype = mimetype.split('/')
+					except:
+						say = BAlert('Warn', 'This is a workaround, cannot detect correctly the file\'s mimetype', 'Ok',None, None, None, 3)
+						say.Go()
+						supertype = "text"
+						subtype = "x-gettext-translation"
 					smesg=BMessage(445380)
 					smesg.AddString("path",self.txtpath)
 					smesg.AddString("extension",file_extension)
