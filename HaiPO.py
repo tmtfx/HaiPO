@@ -20,6 +20,7 @@ from Be.StorageDefs import node_flavor
 from Be.TypeConstants import *
 from Be.Accelerant import display_mode
 from Be.GraphicsDefs import rgb_color
+from Be.TabView import tab_side
 
 import configparser,struct,threading,os,polib,re#,babel
 from babel import Locale
@@ -326,7 +327,10 @@ class EventTextView(BTextView):
 #		self.telptst=self.oldtext
 		self.oldtextloaded=False
 		self.tosave=False
-		BTextView.__init__(self,frame,name,textRect,resizingMode,flags)
+		fin=be_plain_font
+		fin.SetSize(superself.oldsize)
+		color=rgb_color()
+		BTextView.__init__(self,frame,name,textRect,fin,color,resizingMode,flags)
 		self.mousemsg=struct.unpack('!l', b'_MMV')[0]
 		self.dragmsg=struct.unpack('!l', b'MIME')[0]
 		self.dragndrop = False
@@ -838,7 +842,7 @@ class srcTextView(BTextView):
 			a=bytearray(ci.encode('utf-8'))
 			bob=self.PointAt(index)
 			a_hex=[hex(x) for x in a]
-			print(a_hex)
+			#print(a_hex)
 			#print "a_hex[0]:",a_hex[0],ci.encode('utf-8')
 			if len(a_hex)>1:
 				i=0
@@ -1210,6 +1214,22 @@ class LangListItem(BListItem):
 		owner.DrawString(self.txt,None)
 		owner.SetLowColor(255,255,255,255)
 
+class infoTab(BTab):
+	def __init__(self,contentsView):
+		self.notify=False
+		BTab.__init__(self,contentsView)
+	def DrawLabel(self, owner, frame):
+		if self.notify:
+			fon = be_bold_font
+		else:
+			fon = be_plain_font
+		#owner.GetFont(fon)
+		fon.SetSize(10)
+		owner.SetFont(fon)
+		#owner.SetHighColor(200,200,0,0)
+		#owner.SetLowColor(255,255,255,255)
+		BTab.DrawLabel(self,owner,frame)
+
 class MainWindow(BWindow):
 	iwheel=0
 	alerts=[]
@@ -1231,6 +1251,8 @@ class MainWindow(BWindow):
 		bckgnd_bounds=self.bckgnd.Bounds()
 		self.drop = threading.Semaphore()
 		self.poview=[True,True,True,False]
+		fon=BFont()
+		self.oldsize=fon.Size()
 		#perc=BPath()
 		#find_directory(directory_which.B_USER_NONPACKAGED_DATA_DIRECTORY,perc,False,None)
 		#datapath=BDirectory(perc.Path()+"/HaiPO2")
@@ -1426,7 +1448,7 @@ class MainWindow(BWindow):
 		self.infoboxwidth=self.infobox.Bounds().Width()
 		self.infoboxheight=self.infobox.Bounds().Height()
 		self.bckgnd.AddChild(self.infobox,None)
-		fon=BFont()
+		
 		self.infobox.GetFont(fon)
 		s="100000"
 		x=fon.StringWidth(s)
@@ -1437,25 +1459,39 @@ class MainWindow(BWindow):
 		self.infobox.AddChild(self.valueln,None)
 		self.infobox.AddChild(self.infoln,None)
 		self.msgstabview = BTabView(BRect(5.0, 60.0, self.infobox.Bounds().right-5.0, self.infobox.Bounds().bottom-fon.Size()-15.0), 'msgs_tabview',button_width.B_WIDTH_FROM_LABEL,B_FOLLOW_LEFT_RIGHT)
+		fun=BFont()
+		
+		fun.SetSize(10)
+		self.msgstabview.SetFont(fun)
 		self.msgstablabels=[]
 		self.listemsgs=[]
-		self.listemsgs.append(previoustabbox((3,3,self.msgstabview.Bounds().Width()-3,self.msgstabview.Bounds().Height()-3),self))
-		self.listemsgs.append(contexttabbox((3,3,self.msgstabview.Bounds().Width()-3,self.msgstabview.Bounds().Height()-3),self))
-		self.listemsgs.append(commenttabbox((3,3,self.msgstabview.Bounds().Width()-3,self.msgstabview.Bounds().Height()-3),self))
-		self.listemsgs.append(tcommenttabbox((3,3,self.msgstabview.Bounds().Width()-3,self.msgstabview.Bounds().Height()-3),self))
+		self.msgsRect=(3,3,self.msgstabview.Bounds().Width()-3,self.msgstabview.Bounds().Height()-3)
+		self.listemsgs.append(previoustabbox(self.msgsRect,self))
+		self.listemsgs.append(contexttabbox(self.msgsRect,self))
+		self.listemsgs.append(commenttabbox(self.msgsRect,self))
+		self.listemsgs.append(tcommenttabbox(self.msgsRect,self))
 		for i in self.listemsgs:
-			self.msgstablabels.append(BTab(None))
+			self.msgstablabels.append(infoTab(None))#BTab(None))
 		i=0
 		while i < len(self.listemsgs):
 			self.msgstabview.AddTab(self.listemsgs[i], self.msgstablabels[i])
 			i+=1
+		#for i in self.msgstablabels:
+		#	print(type(i))
+		#br=self.infobox.Bounds()
+		#self.scrollbtabs=BScrollBar(BRect(5,br.bottom-25,br.right-5,br.bottom-5),'tabview_ScrollBar',self.msgstabview,0.0,200.0,orientation.B_HORIZONTAL)
+		
+		self.msgstabview.SetTabSide(tab_side.kBottomSide)
 		self.infobox.AddChild(self.msgstabview,None)
-		print(arg)
+		#self.infobox.AddChild(self.scrollbtabs,None)
+		self.msgstabview.Select(2)
+		#self.msgstabview.Select(0)
+		#print(arg)
 		if arg!="":
 			f=os.path.abspath(arg)
 			if BEntry(f).Exists():
 				self.OpenPOFile(f)
-				
+	
 	def NichilizeTabs(self):
 		for i in self.listemsgstr:
 			i.trnsl.SelectAll()
@@ -1463,7 +1499,16 @@ class MainWindow(BWindow):
 		for i in self.listemsgid:
 			i.src.SelectAll()
 			i.src.Clear()
-			
+
+	def NichilizeMsgs(self):
+		ww=len(self.listemsgs)-1
+		while ww>-1:
+			tabboz = self.msgstabview.RemoveTab(ww)
+			self.listemsgs.pop(ww)
+			self.msgstablabels.pop(ww)
+			del tabboz
+			ww-=1
+		print(self.listemsgs,self.msgstablabels)
 	def NichilizeTM(self):
 		if tm:
 			self.tmscrollsugj.Clear()
@@ -1896,6 +1941,7 @@ class MainWindow(BWindow):
 		elif msg.what == 54: #selected sourcestring item
 			altece2 = self.transtabview.TabHeight()
 			tabrc2=(3.0, 3.0, self.transtabview.Bounds().Width() - 3, self.transtabview.Bounds().Height()-altece2)
+			#self.NichilizeMsgs()
 			if self.sourcestrings.lv.CurrentSelection()>-1:
 				item=self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection())
 				if item.hasplural:
@@ -1942,92 +1988,42 @@ class MainWindow(BWindow):
 					#self.srctabview.Select(0)
 					self.srctabview.Draw(self.srctabview.Bounds())
 				self.valueln.SetText(str(item.linenum))
-				if item.comments!="":
-					try:
-						self.commentview.RemoveSelf()
-						self.scrollcomment.RemoveSelf()
-						self.headlabel.RemoveSelf()
-					except:
-						pass
-					fon=BFont()
-					self.infobox.GetFont(fon)
-					frr=self.progressinfo.Frame()
-					self.headlabel=BStringView(BRect(4,15+frr.bottom,self.infobox.Bounds().right-4,fon.Size()+frr.bottom+20),"Header","Comments:",B_FOLLOW_TOP|B_FOLLOW_LEFT)
-					frr2=self.headlabel.Frame()
-					self.commentview=BTextView(BRect(4,frr2.bottom+5,self.infobox.Bounds().right-4,190),"commentview",BRect(4,4,179,187),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)
-					self.commentview.MakeEditable(False)
-					self.infobox.AddChild(self.headlabel,None)
-					self.scrollcomment=BScrollBar(BRect(self.infobox.Bounds().right-24,5+frr2.bottom,self.infobox.Bounds().right-4,190),'commentview_ScrollBar',self.commentview,0.0,0.0,B_VERTICAL)
-					self.infobox.AddChild(self.scrollcomment,None)
-					self.infobox.AddChild(self.commentview,None)
-					self.commentview.SetText(item.comments,None)
-				else:
-					try:
-						self.commentview.RemoveSelf()
-						self.scrollcomment.RemoveSelf()
-						self.headlabel.RemoveSelf()
-					except:
-						pass
-				if item.context!="":
-					try:
-						self.contextview.RemoveSelf()
-						self.scrollcontext.RemoveSelf()
-						self.contextlabel.RemoveSelf()
-					except:
-						pass
-					self.contextlabel=BStringView((4,208,dfg-4,hig+208),"Context","Context:",B_FOLLOW_TOP|B_FOLLOW_LEFT)
-					self.infobox.AddChild(self.contextlabel,None)
-					self.contextview=BTextView((8,hig+208,dfg-26,300),"contextview",(4,4,179,292),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)
-					self.contextview.MakeEditable(False)
-					self.scrollcontext=BScrollBar((dfg-24,hig+208,dfg-8,300),'contextview_ScrollBar',self.contextview,0.0,0.0,B_VERTICAL)
-					self.infobox.AddChild(self.scrollcontext,None)
-					self.infobox.AddChild(self.contextview,None)
-					self.contextview.SetText(item.context,None)
-				else:
-					try:
-						self.contextview.RemoveSelf()
-						self.scrollcontext.RemoveSelf()
-						self.contextlabel.RemoveSelf()
-					except:
-						pass
 				if item.tcomment!="":
-					try:
-						self.tcommentview.RemoveSelf()
-						self.scrolltcomment.RemoveSelf()
-						self.tcommentlabel.RemoveSelf()
-					except:
-						pass
-					self.tcommentlabel=BStringView((4,408,dfg-4,hig+408),"Tcomment","Translator comment:",B_FOLLOW_TOP|B_FOLLOW_LEFT)
-					self.infobox.AddChild(self.tcommentlabel,None)
-					self.tcommentview=BTextView((8,hig+408,dfg-26,500),"tcommentview",(4,4,179,292),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT)
-					self.tcommentview.MakeEditable(False)
-					self.scrolltcomment=BScrollBar((dfg-24,hig+408,dfg-8,500),'tcommentview_ScrollBar',self.tcommentview,0.0,0.0,B_VERTICAL)
-					self.infobox.AddChild(self.scrolltcomment,None)
-					self.infobox.AddChild(self.tcommentview,None)
-					self.tcommentview.SetText(item.tcomment,None)#.encode(self.encoding))################ TODO: non deve essere self.encoding ma l'encoding associato alla scheda aperta (vedi scheda.encodo)
-					
-					#self.tcommentview.Draw(self.tcommentview.Bounds())
+					for n,i in enumerate(self.msgstablabels):
+						if i.Label()=="tcomment":
+							i.notify=True
+							self.listemsgs[n].tcomment.SetText(item.tcomment,None)
 				else:
-					try:
-						self.tcommentview.RemoveSelf()
-						self.scrolltcomment.RemoveSelf()
-						self.tcommentlabel.RemoveSelf()
-					except:
-						pass
+					for n,i in enumerate(self.msgstablabels):
+						if i.Label()=="tcomment":
+							i.notify=False
+							self.listemsgs[n].tcomment.SelectAll()
+							self.listemsgs[n].tcomment.Clear()
+				if item.comments!="":
+					for n,i in enumerate(self.msgstablabels):
+						if i.Label()=="comment":
+							i.notify=True
+							self.listemsgs[n].comment.SetText(item.comments,None)
+							self.msgstabview.Select(n)
+				else:
+					for n,i in enumerate(self.msgstablabels):
+						if i.Label()=="comment":
+							i.notify=False
+							self.listemsgs[n].comment.SelectAll()
+							self.listemsgs[n].comment.Clear()
+				if item.context!="":
+					for n,i in enumerate(self.msgstablabels):
+						if i.Label()=="context":
+							i.notify=True
+							self.listemsgs[n].context.SetText(item.context,None)
+							self.msgstabview.Select(n)
+				else:
+					for n,i in enumerate(self.msgstablabels):
+						if i.Label()=="context":
+							i.notify=False
+							self.listemsgs[n].context.SelectAll()
+							self.listemsgs[n].context.Clear()
 				if item.previous:
-					try:
-						self.previousview.RemoveSelf()
-						self.scrollprevious.RemoveSelf()
-						self.labelprevious.RemoveSelf()
-					except:
-						pass
-					
-					self.labelprevious=BStringView(BRect(4,308,self.infobox.Bounds().right-4,308),"Previous","Previous:",B_FOLLOW_TOP|B_FOLLOW_LEFT)
-					self.infobox.AddChild(self.labelprevious,None)
-					self.previousview=BTextView(BRect(8,308,self.infobox.Bounds().right-26,400),"previousview",BRect(4,4,self.infobox.Bounds().right-36,self.infobox.Bounds().bottom/3-8),B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT,B_WILL_DRAW)
-					self.previousview.MakeEditable(False)
-					self.scrollprevious=BScrollBar(BRect(self.infobox.Bounds().right-24,308,self.infobox.Bounds().right-8,400),'previousview_ScrollBar',self.previousview,0.0,0.0,B_VERTICAL)
-					self.infobox.AddChild(self.scrollprevious,None)
 					resultxt=""
 					bolds=[]
 					plain=[]
@@ -2037,23 +2033,20 @@ class MainWindow(BWindow):
 					for items in item.previousmsgs:
 						actualtxt= items[0]+":\n"+items[1]+"\n"
 						resultxt += actualtxt
-						minornum=resultxt.find(actualtxt)
-						mid=actualtxt.find(items[1])
-						plainadd=minornum+mid
-						command.append((minornum,be_bold_font, color1))
-						command.append((plainadd,be_plain_font, color2))
-					self.previousview.SetStylable(1)
-					self.previousview.SetText(resultxt, None)#command)
-					self.infobox.AddChild(self.previousview,None)
+					for n,i in enumerate(self.msgstablabels):
+						if i.Label()=="prev_msgid":
+							i.notify=True
+							self.listemsgs[n].prev.SetText(resultxt,None)
+							self.msgstabview.Select(n)
 				else:
-					try:
-						self.previousview.RemoveSelf()
-						self.scrollprevious.RemoveSelf()
-						self.labelprevious.RemoveSelf()
-					except:
-						pass
+					for n,i in enumerate(self.msgstablabels):
+						if i.Label()=="prev_msgid":
+							i.notify=False
+							self.listemsgs[n].prev.SelectAll()
+							self.listemsgs[n].prev.Clear()
+				self.infobox.Hide()
 				self.listemsgstr[0].trnsl.MakeFocus()
-
+				self.infobox.Show()
 #							beta=len(sorted(entry.msgstr_plural.keys()))
 				
 				############################ GO TO THE END OF THE TEXT #############################
