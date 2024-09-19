@@ -1295,7 +1295,7 @@ class FindRepTrans(BWindow):
 	kWindowFrame = (250, 150, 755, 297)
 	kWindowName = "Find/Replace translation"
 	def __init__(self):
-		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
+		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
 		bounds=self.Bounds()
 		l,t,r,b = bounds
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
@@ -1476,6 +1476,104 @@ class FindRepTrans(BWindow):
 			self.looktv.SetText(msg.FindString('txt'))
 			return
 		return
+
+class POmetadata(BWindow):
+	kWindowFrame = BRect(150, 150, 585, 480)
+	kWindowName = "POSettings"
+	
+	def __init__(self,pofile,ordereddata):
+		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
+		bounds=self.Bounds()
+		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		self.AddChild(self.underframe,None)
+		self.listBTextControl=[]
+		self.pofile = pofile
+		self.metadata = ordereddata
+		self.LoadMe()
+		print("finito caricamento POmetadata Window")
+		#self.indexroot=BApplication.be_app.WindowAt(0).postabview.Selection()
+	def LoadMe(self):
+		conta=self.underframe.CountChildren()
+		while conta > 0:
+			self.underframe.ChildAt(conta).RemoveSelf()
+			conta=conta-1
+
+		#self.metadata = self.pofile.ordered_metadata()
+		
+		rect = [10,10,425,30]
+		step = 34
+		
+		indexstring=0
+		for item in self.metadata:
+			modmsg=BMessage(51973)
+			modmsg.AddString('itemstring',item[0])
+			modmsg.AddInt8('itemindex',indexstring)
+			self.listBTextControl.append(BTextControl(BRect(rect[0],rect[1]+step*indexstring,rect[2],rect[3]+step*indexstring),'txtctrl'+str(indexstring),item[0],item[1],modmsg))
+			indexstring+=1
+
+		if self.kWindowFrame.Height()< rect[3]+step*(indexstring):
+			self.ResizeTo(self.Bounds().right,float(rect[3]+step*(indexstring)-20))
+			
+		for element in self.listBTextControl:
+			self.underframe.AddChild(element,None)
+	def MessageReceived(self, msg):
+		#if msg.what == 99111: # elaborate pofile
+		#	conta=self.underframe.CountChildren()
+		#	while conta > 0:
+		#		self.underframe.ChildAt(conta).RemoveSelf()
+		#		conta=conta-1
+#
+#			self.metadata = self.pofile.ordered_metadata()
+#			
+#			rect = [10,10,425,30]
+#			step = 34
+#			
+#			indexstring=0
+#			for item in self.metadata:
+#				modmsg=BMessage(51973)
+#				modmsg.AddString('itemstring',item[0])
+#				modmsg.AddInt8('itemindex',indexstring)
+#				self.listBTextControl.append(BTextControl(BRect(rect[0],rect[1]+step*indexstring,rect[2],rect[3]+step*indexstring),'txtctrl'+str(indexstring),item[0],item[1],modmsg))
+#				indexstring+=1
+
+#			if self.kWindowFrame.Height()< rect[3]+step*(indexstring):
+#				self.ResizeTo(self.Bounds().right,float(rect[3]+step*(indexstring)-20))
+				
+#			for element in self.listBTextControl:
+#				self.underframe.AddChild(element,None)
+
+		if msg.what == 51973:
+			# save metadata to self.pofile
+			ind=msg.FindString('itemstring')
+			indi=msg.FindInt8('itemindex')
+			self.pofile.metadata[ind]=self.listBTextControl[indi].Text()#.decode(BApplication.be_app.WindowAt(0).encoding)   ################### possible error? check encoding
+			# save self.pofile to backup file
+			smesg=BMessage(16893)
+			smesg.AddInt8('savetype',2)
+			#smesg.AddInt8('indexroot',self.indexroot)
+			pth=be_app.WindowAt(0).backupfile
+			print("salvo su backup pth:",pth)
+			smesg.AddString('bckppath',be_app.WindowAt(0).backupfile)
+			be_app.WindowAt(0).PostMessage(smesg)
+
+
+			#entry = self.pofile.metadata_as_entry()
+#		self.po.metadata = {
+ #           'Project-Id-Version': "%s %s" % (release.description, release.version),
+  #          'Report-Msgid-Bugs-To': '',
+   #         'POT-Creation-Date': now,
+    #        'PO-Revision-Date': now,
+     #       'Last-Translator': '',
+      #      'Language-Team': '',
+       #     'MIME-Version': '1.0',
+        #    'Content-Type': 'text/plain; charset=UTF-8',
+         #   'Content-Transfer-Encoding': '',
+          #  'Plural-Forms': '',
+        #} 
+        
+
+#			poobj.metadata["Content-Type"] = "text/plain; charset=UTF-8"
+		
 
 class MainWindow(BWindow):
 	iwheel=0
@@ -2705,6 +2803,35 @@ class MainWindow(BWindow):
 					thisBlistitem=self.sourcestrings.lv.ItemAt(listsel)
 					self.tcommentdialog=TranslatorComment(listsel,thisBlistitem)
 					self.tcommentdialog.Show()
+			return
+		elif msg.what == 42:
+			# PO metadata
+			if self.sourcestrings.lv.CountItems()>0:
+				self.POMetadata = POmetadata(self.pofile,self.orderedmetadata)
+				self.POMetadata.Show()
+
+				#self.POMetadata.pofile = self.pofile
+				#self.POMetadata.orderedmetadata = self.orderedmetadata
+				#self.POMetadata.LoadMe()
+				#i = 1
+				#w = be_app.CountWindows()
+				#print("numero finestre:",w)
+				##self.Looper().Lock()
+				#thiswindow=-1
+				#while w > i:
+				#	print("controllo {0} di {1}".format(i, w))
+				#	c=be_app.WindowAt(i)
+				#	if type(c)==BWindow:
+				#		if c.Title()=="POSettings":
+				#			thiswindow=i
+				#			break
+				#	i+=1
+				##self.Looper().Unlock()
+				#if thiswindow>-1:
+				#	be_app.WindowAt(thiswindow).PostMessage(99111)
+				#else:
+				#	print("error")
+			return
 		elif msg.what == 66:
 			# wheel-alive
 			self.iwheel+=1
