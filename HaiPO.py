@@ -109,9 +109,10 @@ class TranslatorComment(BWindow):
 	kWindowName = "Translator comment"
 	
 	#def __init__(self,listindex,indextab,item,encoding):
-	def __init__(self,listindex,item):
+	def __init__(self,listindex,item,backupfile):
 		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
 		bounds=self.Bounds()
+		self.backupfile=backupfile
 		ix=bounds.left
 		iy=bounds.top
 		fx=bounds.right
@@ -132,22 +133,26 @@ class TranslatorComment(BWindow):
 		
 	def Save(self):
 		bckpmsg=BMessage(16893)
-		cursel=be_app.WindowAt(0)
+		#cursel=be_app.WindowAt(0)
 		bckpmsg.AddInt8('savetype',3)
 		bckpmsg.AddInt32('tvindex',self.listindex)
 		#bckpmsg.AddInt32('tabview',self.indextab)
 		bckpmsg.AddString('tcomment',str(self.item.tcomment))#.encode(self.encoding)))#.decode(self.encoding)) ################### TODO verificare se va bene encode utf-8
-		bckpmsg.AddString('bckppath',cursel.backupfile)
+		bckpmsg.AddString('bckppath',self.backupfile)
 		be_app.WindowAt(0).PostMessage(bckpmsg)
 		
 
 	def MessageReceived(self, msg):
 		if msg.what == 5252:
-			self.item.tcomment=self.tcommentview.Text()#.decode(self.encoding)
+			self.item.tcomment=self.tcommentview.Text()
 			self.Save()
-			#BApplication.be_app.WindowAt(0).postabview.Select(self.indextab)
-			be_app.WindowAt(0).sourcestrings.lv.DeselectAll()
-			be_app.WindowAt(0).sourcestrings.lv.Select(self.listindex)
+			mxg=BMessage(7484)
+			msg.AddBool("First_step",True)
+			be_app.WindowAt(0).PostMessage(mxg)
+			mxg=BMessage(7484)
+			msg.AddBool("First_step",False)
+			msg.AddInt32('tvindex',self.listindex)
+			be_app.WindowAt(0).PostMessage(mxg)
 			self.Quit()
 		else:	
 			return BWindow.MessageReceived(self, msg)
@@ -1489,16 +1494,14 @@ class POmetadata(BWindow):
 		self.listBTextControl=[]
 		self.pofile = pofile
 		self.metadata = ordereddata
+		
 		self.LoadMe()
-		print("finito caricamento POmetadata Window")
-		#self.indexroot=BApplication.be_app.WindowAt(0).postabview.Selection()
+		
 	def LoadMe(self):
 		conta=self.underframe.CountChildren()
 		while conta > 0:
 			self.underframe.ChildAt(conta).RemoveSelf()
 			conta=conta-1
-
-		#self.metadata = self.pofile.ordered_metadata()
 		
 		rect = [10,10,425,30]
 		step = 34
@@ -1508,7 +1511,12 @@ class POmetadata(BWindow):
 			modmsg=BMessage(51973)
 			modmsg.AddString('itemstring',item[0])
 			modmsg.AddInt8('itemindex',indexstring)
-			self.listBTextControl.append(BTextControl(BRect(rect[0],rect[1]+step*indexstring,rect[2],rect[3]+step*indexstring),'txtctrl'+str(indexstring),item[0],item[1],modmsg))
+			tc=BTextControl(BRect(rect[0],rect[1]+step*indexstring,rect[2],rect[3]+step*indexstring),'txtctrl'+str(indexstring),item[0],item[1],modmsg)
+			fon=BFont()
+			self.underframe.GetFont(fon)
+			fon.SetSize(14)
+			tc.SetFont(fon)
+			self.listBTextControl.append(tc)
 			indexstring+=1
 
 		if self.kWindowFrame.Height()< rect[3]+step*(indexstring):
@@ -1552,7 +1560,6 @@ class POmetadata(BWindow):
 			smesg.AddInt8('savetype',2)
 			#smesg.AddInt8('indexroot',self.indexroot)
 			pth=be_app.WindowAt(0).backupfile
-			print("salvo su backup pth:",pth)
 			smesg.AddString('bckppath',be_app.WindowAt(0).backupfile)
 			be_app.WindowAt(0).PostMessage(smesg)
 
@@ -1574,7 +1581,50 @@ class POmetadata(BWindow):
 
 #			poobj.metadata["Content-Type"] = "text/plain; charset=UTF-8"
 		
+class HeaderWindow(BWindow):
+	kWindowFrame = BRect(150, 150, 500, 600)
+	kWindowName = "Po header"
+	
+	def __init__(self,pofile,backupfile):
+		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
+		bounds=self.Bounds()
+		self.backupfile=backupfile
+		ix=bounds.left
+		iy=bounds.top
+		fx=bounds.right
+		fy=bounds.bottom
+		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		self.AddChild(self.underframe,None)
+		self.headerview=BTextView(BRect(4,4,fx-4,fy-50),"headerview",BRect(4,4,fx-12,fy-48),B_FOLLOW_ALL_SIDES)
+		fon=BFont()
+		self.headerview.GetFont(fon)
+		fon.SetSize(14)
+		self.headerview.SetFontAndColor(fon,set_font_mask.B_FONT_ALL,rgb_color())
+		self.underframe.AddChild(self.headerview,None)
+		kButtonFrame = BRect(fx-150, fy-40, fx-10, fy-10)
+		kButtonName = "Save header"
+		self.savebtn = BButton(kButtonFrame, kButtonName, kButtonName, BMessage(5252))
+		self.underframe.AddChild(self.savebtn,None)
+		self.pofile=pofile
+		if self.pofile.header!="":
+			self.headerview.SetText(self.pofile.header,None)
+		
+	def Save(self):
+		bckpmsg=BMessage(16893)
+		#cursel=BApplication.be_app.WindowAt(0).editorslist[self.indextab]
+		bckpmsg.AddInt8('savetype',4)
+		#bckpmsg.AddInt32('tabview',self.indextab)
+		bckpmsg.AddString('header',self.headerview.Text())#.decode(self.encoding))
+		bckpmsg.AddString('bckppath',self.backupfile)
+		BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
+		
 
+	def MessageReceived(self, msg):
+		if msg.what == 5252:
+			self.Save()
+			self.Quit()
+		else:
+			return BWindow.MessageReceived(self, msg)
 class MainWindow(BWindow):
 	iwheel=0
 	alerts=[]
@@ -2801,7 +2851,7 @@ class MainWindow(BWindow):
 				listsel=self.sourcestrings.lv.CurrentSelection()
 				if listsel>-1:
 					thisBlistitem=self.sourcestrings.lv.ItemAt(listsel)
-					self.tcommentdialog=TranslatorComment(listsel,thisBlistitem)
+					self.tcommentdialog=TranslatorComment(listsel,thisBlistitem,self.backupfile)
 					self.tcommentdialog.Show()
 			return
 		elif msg.what == 42:
@@ -2831,6 +2881,12 @@ class MainWindow(BWindow):
 				#	be_app.WindowAt(thiswindow).PostMessage(99111)
 				#else:
 				#	print("error")
+			return
+		elif msg.what == 43:
+			#Po header
+			if self.sourcestrings.lv.CountItems()>0:
+				self.HeaderWindow = HeaderWindow(self.pofile,self.backupfile)#self.encoding)
+				self.HeaderWindow.Show()
 			return
 		elif msg.what == 66:
 			# wheel-alive
@@ -3112,6 +3168,14 @@ class MainWindow(BWindow):
 				#############################################
 				self.listemsgid[0].src.SelectAll()
 				self.listemsgid[0].src.Clear()
+			return
+		elif msg.what == 7484:
+			b=msg.FindBool("First_step")
+			if b:
+				self.sourcestrings.lv.DeselectAll()
+			else:
+				tv=msg.FindInt32("tvindex")
+				self.sourcestrings.lv.Select(tv)
 			return
 		elif msg.what == 74:
 			if not(self.bar.FindItem("Fuzzy").IsMarked()):
