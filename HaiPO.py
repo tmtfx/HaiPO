@@ -64,6 +64,235 @@ class ScrollView:
 	def Clear(self):
 		self.lv.DeselectAll()
 		self.lv.MakeEmpty()
+	def reload(self,arrayview,pofile,encoding):
+		self.occumemo=[]
+		i=0
+		self.Clear()
+		#self.lv.DeselectAll()
+		#while self.lv.CountItems()>i:
+		#	self.lv.RemoveItem(self.lv.ItemAt(0))
+		if arrayview[0]:
+			for entry in pofile.fuzzy_entries():
+				if entry and entry.msgid_plural:
+					if entry.comment:
+						comments=entry.comment
+					else:
+						comments = ""
+					if entry.msgctxt:
+						context = entry.msgctxt
+					else:
+						context = ""
+					msgids=[entry.msgid,entry.msgid_plural]
+					lenmsgstr=len(entry.msgstr_plural)
+					msgstrs=[]
+					xu=0
+					while xu<lenmsgstr:
+						msgstrs.append(entry.msgstr_plural[xu])
+						xu+=1
+					item = MsgStrItem(msgids,msgstrs,entry,comments,context,2,encoding,True)
+					if entry.tcomment:
+						item.SetTranslatorComment(entry.tcomment)
+					if entry.previous_msgid:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid))#.encode(encoding)))
+					if entry.previous_msgid_plural:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+					if entry.previous_msgctxt:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt))#.encode(encoding)))
+					item.SetLineNum(entry.linenum)
+				else:
+					if entry.comment:
+						comments=entry.comment
+					else:
+						comments = ""
+					if entry.msgctxt:
+						context = entry.msgctxt
+					else:
+						context = ""
+					item = MsgStrItem(entry.msgid,entry.msgstr,entry,comments,context,2,encoding,False)
+					if entry.tcomment:
+						item.SetTranslatorComment(entry.tcomment)
+					if entry.previous_msgid:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid))#.encode(encoding)))
+					if entry.previous_msgid_plural:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+					if entry.previous_msgctxt:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt))#.encode(encoding)))
+					item.SetLineNum(entry.linenum)
+				self.lv.AddItem(item)
+		if arrayview[1]:
+			for entry in pofile.untranslated_entries():
+				if entry and entry.msgid_plural:
+					if entry.comment:
+						comments=entry.comment
+					else:
+						comments = ""
+					if entry.msgctxt:
+						context = entry.msgctxt
+					else:
+						context = ""
+					msgids=[entry.msgid,entry.msgid_plural]
+					lenmsgstr=len(entry.msgstr_plural)
+					msgstrs=[]
+					xu=0
+					while xu<lenmsgstr:
+						msgstrs.append(entry.msgstr_plural[xu])
+						xu+=1
+					item = MsgStrItem(msgids,msgstrs,entry,comments,context,0,encoding,True)
+					if entry.tcomment:
+						item.SetTranslatorComment(entry.tcomment)
+					if entry.previous_msgid:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid))#.encode(encoding)))
+					if entry.previous_msgid_plural:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+					if entry.previous_msgctxt:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt))#.encode(encoding)))
+					item.SetLineNum(entry.linenum)
+				else:
+					if entry.comment:
+						comments=entry.comment
+					else:
+						comments = ""
+					if entry.msgctxt:
+						context = entry.msgctxt
+					else:
+						context = ""
+					item = MsgStrItem(entry.msgid,entry.msgstr,entry,comments,context,0,encoding,False)
+					if entry.tcomment:
+						item.SetTranslatorComment(entry.tcomment)
+					if entry.previous_msgid:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid))#.encode(encoding)))
+					if entry.previous_msgid_plural:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+					if entry.previous_msgctxt:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt))#.encode(encoding)))
+					item.SetLineNum(entry.linenum)				
+				self.lv.AddItem(item)
+		if arrayview[2]:
+			for entry in pofile.translated_entries():
+				if entry and entry.msgid_plural:
+					if entry.comment:
+						comments=entry.comment
+					else:
+						comments = ""
+					if entry.msgctxt:
+						context = entry.msgctxt
+					else:
+						context = ""
+					msgids=[entry.msgid,entry.msgid_plural]
+					lenmsgstr=len(entry.msgstr_plural)
+					msgstrs=[]
+					xu=0
+					while xu<lenmsgstr:
+						msgstrs.append(entry.msgstr_plural[xu])
+						xu+=1
+					item = MsgStrItem(msgids,msgstrs,entry,comments,context,1,encoding,True)
+					if entry.tcomment:
+						item.SetTranslatorComment(entry.tcomment)
+					if entry.previous_msgid:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid))#.encode(encoding)))
+					if entry.previous_msgid_plural:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+					if entry.previous_msgctxt:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt))#.encode(encoding)))
+					item.SetLineNum(entry.linenum)					
+				else:
+					if entry.comment:
+						comments=entry.comment
+					else:
+						comments = ""
+					if entry.msgctxt:
+						context = entry.msgctxt
+					else:
+						context = ""
+					item = MsgStrItem(entry.msgid,entry.msgstr,entry,comments,context,1,encoding,False)
+					if entry.tcomment:
+						item.SetTranslatorComment(entry.tcomment)
+					if entry.previous_msgid:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid))#.encode(encoding)))
+					if entry.previous_msgid_plural:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+					if entry.previous_msgctxt:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt))#.encode(encoding)))
+					item.SetLineNum(entry.linenum)					
+				self.lv.AddItem(item)
+		if arrayview[3]:
+			for entry in pofile.obsolete_entries():
+				if entry and entry.msgid_plural:
+					if entry.comment:
+						comments=entry.comment
+					else:
+						comments = ""
+					if entry.msgctxt:
+						context = entry.msgctxt
+					else:
+						context = ""
+					msgids=[entry.msgid,entry.msgid_plural]
+					lenmsgstr=len(entry.msgstr_plural)
+					msgstrs=[]
+					xu=0
+					while xu<lenmsgstr:
+						msgstrs.append(entry.msgstr_plural[xu])
+						xu+=1
+					item = MsgStrItem(msgids,msgstrs,entry,comments,context,3,encoding,True)
+					if entry.tcomment:
+						item.SetTranslatorComment(entry.tcomment)
+					if entry.previous_msgid:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid))#.encode(encoding)))
+					if entry.previous_msgid_plural:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+					if entry.previous_msgctxt:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt))#.encode(encoding)))
+					item.SetLineNum(entry.linenum)					
+				else:
+					if entry.comment:
+						comments=entry.comment
+					else:
+						comments = ""
+					if entry.msgctxt:
+						context = entry.msgctxt
+					else:
+						context = ""
+					item = MsgStrItem(entry.msgid,entry.msgstr,entry,comments,context,3,encoding,False)
+					if entry.tcomment:
+						item.SetTranslatorComment(entry.tcomment)
+					if entry.previous_msgid:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid",entry.previous_msgid))#.encode(encoding)))
+					if entry.previous_msgid_plural:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgid_plural",entry.previous_msgid_plural))
+					if entry.previous_msgctxt:
+						item.SetPrevious(True)
+						item.SetPreviousMsgs(("msgctxt",entry.previous_msgctxt))#.encode(encoding)))
+					item.SetLineNum(entry.linenum)					
+				self.lv.AddItem(item)
+			
+
+		
+	def SelectedText(self):
+			return self.lv.ItemAt(self.lv.CurrentSelection()).Text()
+
 def Ent_config():
 	perc=BPath()
 	find_directory(directory_which.B_USER_NONPACKAGED_DATA_DIRECTORY,perc,False,None)
@@ -277,7 +506,7 @@ class MsgStrItem(BListItem):
 	untranslated = 0
 	translated = 1
 	fuzzy = 2
-	obslete = 3
+	obsolete = 3
 	hasplural = False
 	frame=[0,0,0,0]
 	tosave=False
@@ -1906,7 +2135,6 @@ class SpellcheckSettings(BWindow):
 class HeaderWindow(BWindow):
 	kWindowFrame = BRect(150, 150, 500, 600)
 	kWindowName = "Po header"
-	
 	def __init__(self,pofile,backupfile,oldsize):
 		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
 		bounds=self.Bounds()
@@ -1931,7 +2159,7 @@ class HeaderWindow(BWindow):
 		self.pofile=pofile
 		if self.pofile.header!="":
 			self.headerview.SetText(self.pofile.header,None)
-		
+
 	def Save(self):
 		bckpmsg=BMessage(16893)
 		#cursel=BApplication.be_app.WindowAt(0).editorslist[self.indextab]
@@ -1940,7 +2168,6 @@ class HeaderWindow(BWindow):
 		bckpmsg.AddString('header',self.headerview.Text())#.decode(self.encoding))
 		bckpmsg.AddString('bckppath',self.backupfile)
 		BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
-		
 
 	def MessageReceived(self, msg):
 		if msg.what == 5252:
@@ -1948,6 +2175,7 @@ class HeaderWindow(BWindow):
 			self.Quit()
 		else:
 			return BWindow.MessageReceived(self, msg)
+
 class MainWindow(BWindow):
 	iwheel=0
 	alerts=[]
@@ -2173,32 +2401,60 @@ class MainWindow(BWindow):
 		self.bar = BMenuBar(bckgnd_bounds, 'Bar')
 		x, barheight = self.bar.GetPreferredSize()
 		self.viewarr = []
+		#for menu, items in self.Menus:
+		#	menu = BMenu(menu)
+		#	for k, name in items:
+		#		if k is None:
+		#				menu.AddItem(BSeparatorItem())
+		#		else:
+		#				mitm=BMenuItem(name, BMessage(k), name[1],0)
+		#				if name == "Fuzzy":
+		#					if self.sort == 0:
+		#						mitm.SetMarked(True)
+		#					self.viewarr.append(mitm)
+		#				elif name == "Untranslated":
+		#					if self.sort == 1:
+		#						mitm.SetMarked(True)
+		#					self.viewarr.append(mitm)
+		#				elif name == "Translated":
+		#					if self.sort == 2:
+		#						mitm.SetMarked(True)
+		#					self.viewarr.append(mitm)
+		#				elif name == "Obsolete":
+		#					if self.sort == 3:
+		#						mitm.SetMarked(True)
+		#					self.viewarr.append(mitm)
+		#				menu.AddItem(mitm)
+		#	self.bar.AddItem(menu)
+		
 		for menu, items in self.Menus:
+			if menu == "View":
+				savemenu=True
+			else:
+				savemenu=False
 			menu = BMenu(menu)
 			for k, name in items:
 				if k is None:
 						menu.AddItem(BSeparatorItem())
 				else:
-						mitm=BMenuItem(name, BMessage(k), name[1],0)
+						menuitem=BMenuItem(name, BMessage(k), name[1],0)
+						#in base a Settings
 						if name == "Fuzzy":
-							if self.sort == 0:
-								mitm.SetMarked(True)
-							self.viewarr.append(mitm)
+							menuitem.SetMarked(self.poview[0])
 						elif name == "Untranslated":
-							if self.sort == 1:
-								mitm.SetMarked(True)
-							self.viewarr.append(mitm)
+							menuitem.SetMarked(self.poview[1])
 						elif name == "Translated":
-							if self.sort == 2:
-								mitm.SetMarked(True)
-							self.viewarr.append(mitm)
+							menuitem.SetMarked(self.poview[2])
 						elif name == "Obsolete":
-							if self.sort == 3:
-								mitm.SetMarked(True)
-							self.viewarr.append(mitm)
-						menu.AddItem(mitm)
-						
-			self.bar.AddItem(menu)
+							menuitem.SetMarked(self.poview[3])
+						self.viewarr.append(menuitem)
+						menu.AddItem(menuitem)
+			if savemenu:
+				self.savemenu = menu
+				self.bar.AddItem(self.savemenu)
+			else:
+				self.bar.AddItem(menu)
+		
 		self.upperbox = BBox(BRect(0,barheight+2,bckgnd_bounds.Width(),bckgnd_bounds.Height()/2-1),"Under_upperbox",B_FOLLOW_TOP,border_style.B_FANCY_BORDER)#0x0202|0x0404
 		self.lowerbox = BBox(BRect(0,bckgnd_bounds.Height()/2+1,bckgnd_bounds.Width()*2/3,bckgnd_bounds.Height()),"Under_lowerbox",B_FOLLOW_BOTTOM,border_style.B_FANCY_BORDER)#0x0202|0x0404
 		self.spaceright=bckgnd_bounds.Width()/3
@@ -2434,8 +2690,15 @@ class MainWindow(BWindow):
 		
 		ent,confile=Ent_config()
 		Config.read(confile)
-		mimecheck = ConfigSectionMap("General")['mimecheck']
-		if mimecheck == "True":
+		try:
+			mimecheck = Config.getboolean('General','mimecheck')
+		except:
+			cfgfile = open(confile,'w')
+			Config.set('General','mimecheck', "True")
+			Config.write(cfgfile)
+			mimecheck=True
+			cfgfile.close()
+		if mimecheck:
 			static = BMimeType()
 			mime = BMimeType.GuessMimeType(f,static)
 			mimetype = repr(static.Type()).replace('\'','')
@@ -2472,6 +2735,11 @@ class MainWindow(BWindow):
 						boolgo=True
 				else:
 					return
+		else:
+			if file_extension in [".po", ".pot", ".mo"]:
+				boolgo=True
+			else:
+				return
 		if boolgo:
 			# file correctly detected ... so open...
 			# check user accepted languages
@@ -3249,6 +3517,71 @@ class MainWindow(BWindow):
 				self.iwheel=0
 			#SetText(self.steps[self.iwheel])
 			return
+		elif msg.what == 70:
+			# Done and next
+			if self.sourcestrings.lv.CountItems()>0:
+				if self.sourcestrings.lv.CurrentSelection()>-1:
+					lung=len(self.listemsgstr)
+					pick=0
+					gonogo=False
+					while pick<lung:
+						thistranslEdit=self.listemsgstr[pick].trnsl
+						if thistranslEdit.tosave:
+							gonogo=True
+						pick+=1
+					thistranslEdit=self.listemsgstr[self.transtabview.Selection()].trnsl
+					if gonogo:
+						
+						thisBlistitem=self.sourcestrings.lv.ItemAt(cursel.list.lv.CurrentSelection())
+						thisBlistitem.tosave=True
+						tabs=len(self.listemsgstr)-1
+						bckpmsg=BMessage(16893)
+						bckpmsg.AddInt8('savetype',1)
+						bckpmsg.AddInt32('tvindex',self.sourcestrings.lv.CurrentSelection())
+						bckpmsg.AddInt8('plurals',tabs)
+						#bckpmsg.AddInt32('tabview',self.postabview.Selection())
+						if tabs == 0:   #->      if not thisBlistitem.hasplural:                         <-------------------------- or this?
+							thisBlistitem.txttosave=thistranslEdit.Text()#.decode(self.encoding)		 <----- reinsert this
+							bckpmsg.AddString('translation',thisBlistitem.txttosave)
+						else:
+							thisBlistitem.txttosavepl=[]
+							thisBlistitem.txttosave=self.listemsgstr[0].trnsl.Text()#.decode(self.encoding)     <----- reinsert this
+							bckpmsg.AddString('translation',thisBlistitem.txttosave)
+							cox=1
+							while cox < tabs+1:
+								thisBlistitem.txttosavepl.append(self.listemsgstr[1].trnsl.Text())
+								bckpmsg.AddString('translationpl'+str(cox-1),self.listemsgstr[cox].trnsl.Text())
+								cox+=1
+						bckpmsg.AddString('bckppath',self.backupfile)
+						be_app.WindowAt(0).PostMessage(bckpmsg)
+					kmesg=BMessage(130550)
+					kmesg.AddInt8('movekind',4)
+					be_app.WindowAt(0).PostMessage(kmesg)
+			return
+		elif msg.what == 72:
+			# previous without saving
+			if self.sourcestrings.lv.CountItems()>0:
+				if self.sourcestrings.lv.CurrentSelection()>-1:
+					thistranslEdit=self.listemsgstr[self.transtabview.Selection()].trnsl
+					if thistranslEdit.tosave:
+						thisBlistitem=self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection())
+						thisBlistitem.tosave=False
+						thisBlistitem.txttosave=""
+					kmesg=BMessage(130550)
+					kmesg.AddInt8('movekind',1)
+					be_app.WindowAt(0).PostMessage(kmesg)
+		elif msg.what == 73:
+			# next without saving
+			if self.sourcestrings.lv.CountItems()>0:
+				if self.sourcestrings.lv.CurrentSelection()>-1:
+					thistranslEdit=self.listemsgstr[self.transtabview.Selection()].trnsl
+					if thistranslEdit.tosave:
+						thisBlistitem=self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection())
+						thisBlistitem.tosave=False
+						thisBlistitem.txttosave=""
+					kmesg=BMessage(130550)
+					kmesg.AddInt8('movekind',0)
+					be_app.WindowAt(0).PostMessage(kmesg)
 		elif msg.what == 16893:
 			try:
 				Config.read(confile)
@@ -3532,20 +3865,89 @@ class MainWindow(BWindow):
 				self.sourcestrings.lv.Select(tv)
 			return
 		elif msg.what == 74:
-			if not(self.bar.FindItem("Fuzzy").IsMarked()):
+			#this is slow due to reload
+			say = BAlert('Save unsaved work', 'To proceed you need to save this file first, proceed?', 'Yes','No', None, button_width.B_WIDTH_AS_USUAL , alert_type.B_WARNING_ALERT)
+			self.alerts.append(say)
+			out=say.Go()
+			if out == 0:
+				#save first
+				be_app.WindowAt(0).PostMessage(2)
 				self.setMark(0)
+			#	if self.poview[0]:
+			#	#try:
+			#		ent,confile=Ent_config()
+			#		Config.read(confile)
+			#		sezpresent = False
+			#		men=self.savemenu.FindItem(74)
+			#		men.SetMarked(0)
+			#		sezioni=Config.sections()
+			#		for x in sezioni:
+			#			if x == "Listing":
+			#				sezpresent = True
+			#		if not sezpresent:
+			#			Config.add_section('Listing')
+			#		cfgfile = open(confile,'w')
+			#		Config.set('Listing','Fuzzy',False)
+			#		Config.write(cfgfile)
+			#		cfgfile.close()
+			#		self.poview[0]=False
+			#	else:
+			#		Config.read(confile)
+			#		sezpresent = False
+			#		men=self.savemenu.FindItem(74)
+			#		men.SetMarked(1)
+			#		sezioni=Config.sections()
+			#		for x in sezioni:
+			#			if x == "Listing":
+			#				sezpresent = True
+			#		if not sezpresent:
+			#			Config.add_section('Listing')
+			#		cfgfile = open(confile,'w')
+			#		Config.set('Listing','Fuzzy',True)
+			#		Config.write(cfgfile)
+			#		cfgfile.close()
+			#		self.poview[0]=True
+			#	for b in self.editorslist:
+			#		b.list.reload(self.poview,b.pofile,b.encodo)#self.encoding)
 			return
+			#if not(self.bar.FindItem("Fuzzy").IsMarked()):
+			#	self.setMark(0)
+			#return
 		elif msg.what == 75:
-			if not(self.bar.FindItem("Untranslated").IsMarked()):
+			#this is slow due to reload
+			say = BAlert('Save unsaved work', 'To proceed you need to save this file first, proceed?', 'Yes','No', None, button_width.B_WIDTH_AS_USUAL , alert_type.B_WARNING_ALERT)
+			self.alerts.append(say)
+			out=say.Go()
+			if out == 0:
+				#save first
+				be_app.WindowAt(0).PostMessage(2)
 				self.setMark(1)
+			#if not(self.bar.FindItem("Untranslated").IsMarked()):
+			#	self.setMark(1)
 			return
 		elif msg.what == 76:
-			if not(self.bar.FindItem("Translated").IsMarked()):
+			#this is slow due to reload
+			say = BAlert('Save unsaved work', 'To proceed you need to save this file first, proceed?', 'Yes','No', None, button_width.B_WIDTH_AS_USUAL , alert_type.B_WARNING_ALERT)
+			self.alerts.append(say)
+			out=say.Go()
+			if out == 0:
+				#save first
+				be_app.WindowAt(0).PostMessage(2)
 				self.setMark(2)
+			#if not(self.bar.FindItem("Translated").IsMarked()):
+			#	self.setMark(2)
 			return
 		elif msg.what == 77:
-			if not(self.bar.FindItem("Obsolete").IsMarked()):
+			#this is slow due to reload
+			say = BAlert('Save unsaved work', 'To proceed you need to save this file first, proceed?', 'Yes','No', None, button_width.B_WIDTH_AS_USUAL , alert_type.B_WARNING_ALERT)
+			self.alerts.append(say)
+			out=say.Go()
+			if out == 0:
+				#save first
+				be_app.WindowAt(0).PostMessage(2)
 				self.setMark(3)
+			#if not(self.bar.FindItem("Obsolete").IsMarked()):
+			#	self.setMark(3)
 			return
 		elif msg.what == 45371:
 			percors=msg.FindString("path")
@@ -3827,29 +4229,44 @@ class MainWindow(BWindow):
 		Config.read(confile)
 
 	def setMark(self,index):
-		x=0
-		while x!=len(self.viewarr):
-			if x==index:
-				self.viewarr[x].SetMarked(1)
-			else:
-				self.viewarr[x].SetMarked(0)
-			x+=1
-		self.sort=index
-		#perc=BPath()
-		#find_directory(directory_which.B_USER_NONPACKAGED_DATA_DIRECTORY,perc,False,None)
-		#datapath=BDirectory(perc.Path()+"/HaiPO2")
-		#ent=BEntry(datapath,perc.Path()+"/HaiPO2")
-		#ent.GetPath(perc)
-		#confile=BPath(perc.Path()+'/config.ini',None,False)
 		ent,confile=Ent_config()
 		Config.read(confile)
+		sezioni=Config.sections()
 		cfgfile = open(confile,'w')
-		if not ("General" in Config.sections()):
-			Config.add_section("General")
-		Config.set('General','sort', str(self.sort))
+		dict={0:'fuzzy',1:'untranslated',2:'translated',3:'obsolete'}
+		if not "Listing" in sezioni:
+			Config.add_section('Listing')
+		if self.poview[index]:
+			men=self.savemenu.FindItem(index+74)
+			men.SetMarked(0)
+			Config.set('Listing',dict[index],"False")
+			self.poview[index]=False
+		else:
+			men=self.savemenu.FindItem(index+74)
+			men.SetMarked(1)
+			Config.set('Listing',dict[index],"True")
+			self.poview[0]=True
 		Config.write(cfgfile)
 		cfgfile.close()
-		Config.read(confile)
+		#self.sourcestrings.reload(self.poview,self.pofile,self.encoding)
+	#	x=0
+	#	while x!=len(self.viewarr):
+	#		if x==index:
+	#			self.viewarr[x].SetMarked(1)
+	#		else:
+	#			self.viewarr[x].SetMarked(0)
+	#		x+=1
+	#	self.sort=index
+	#	ent,confile=Ent_config()
+	#	Config.read(confile)
+	#	cfgfile = open(confile,'w')
+	#	if not ("General" in Config.sections()):
+	#		Config.add_section("General")
+	#	Config.set('General','sort', str(self.sort))
+	#	Config.write(cfgfile)
+	#	cfgfile.close()
+	#	Config.read(confile)
+	#	self.sourcestrings.reload(self.poview,self.pofile,self.encoding)
 
 class CustomISO(BWindow):
 	def __init__(self):

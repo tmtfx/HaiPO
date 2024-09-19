@@ -11,3 +11,9 @@ faster methods for handling the requests; this is provided just to show what sho
 
 tmserver.py
 for tranlation memory uses translate-toolkit (use pip translate-toolkit) after installing from haikudepot lxml_devel lxml2_devel lxslt_devel CMake and some others...I'll define them later
+
+pip
+rapidfuzz
+skbuild -> aggiungere in platforms bsd "haiku"
+Levenshtein <- scaricare da pip e compilare da terminale python3 setup.py install 
+

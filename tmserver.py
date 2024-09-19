@@ -10,6 +10,7 @@ if len(sys.argv)>1:
 HEADER = 4096
 hostn=socket.gethostname()
 IP = socket.gethostbyname(hostn)
+print(IP)
 PORT = 2022
 keeperoftheloop=True
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
