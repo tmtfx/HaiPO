@@ -109,7 +109,7 @@ class TranslatorComment(BWindow):
 	kWindowName = "Translator comment"
 	
 	#def __init__(self,listindex,indextab,item,encoding):
-	def __init__(self,listindex,item,backupfile):
+	def __init__(self,listindex,item,backupfile,oldsize):
 		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
 		bounds=self.Bounds()
 		self.backupfile=backupfile
@@ -119,6 +119,7 @@ class TranslatorComment(BWindow):
 		fy=bounds.bottom
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(self.underframe,None)
+		be_plain_font.SetSize(14)
 		self.tcommentview=BTextView(BRect(4,4,fx-4,fy-50),"commentview",BRect(4,4,fx-12,fy-48),B_FOLLOW_ALL_SIDES)
 		self.underframe.AddChild(self.tcommentview,None)
 		kButtonFrame = BRect(fx-150, fy-40, fx-10, fy-10)
@@ -130,6 +131,7 @@ class TranslatorComment(BWindow):
 		self.listindex=listindex
 		if self.item.tcomment!="":
 			self.tcommentview.SetText(self.item.tcomment,None)#.encode(self.encoding))
+		be_plain_font.SetSize(oldsize)
 		
 	def Save(self):
 		bckpmsg=BMessage(16893)
@@ -1486,7 +1488,7 @@ class POmetadata(BWindow):
 	kWindowFrame = BRect(150, 150, 585, 480)
 	kWindowName = "POSettings"
 	
-	def __init__(self,pofile,ordereddata):
+	def __init__(self,pofile,ordereddata,oldsize):
 		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
 		bounds=self.Bounds()
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
@@ -1494,7 +1496,7 @@ class POmetadata(BWindow):
 		self.listBTextControl=[]
 		self.pofile = pofile
 		self.metadata = ordereddata
-		
+		self.oldsize=oldsize
 		self.LoadMe()
 		
 	def LoadMe(self):
@@ -1507,6 +1509,7 @@ class POmetadata(BWindow):
 		step = 34
 		
 		indexstring=0
+		be_plain_font.SetSize(12)
 		for item in self.metadata:
 			modmsg=BMessage(51973)
 			modmsg.AddString('itemstring',item[0])
@@ -1516,6 +1519,7 @@ class POmetadata(BWindow):
 			self.underframe.GetFont(fon)
 			fon.SetSize(14)
 			tc.SetFont(fon)
+			
 			self.listBTextControl.append(tc)
 			indexstring+=1
 
@@ -1524,6 +1528,7 @@ class POmetadata(BWindow):
 			
 		for element in self.listBTextControl:
 			self.underframe.AddChild(element,None)
+		be_plain_font.SetSize(self.oldsize)
 	def MessageReceived(self, msg):
 		#if msg.what == 99111: # elaborate pofile
 		#	conta=self.underframe.CountChildren()
@@ -1580,12 +1585,329 @@ class POmetadata(BWindow):
         
 
 #			poobj.metadata["Content-Type"] = "text/plain; charset=UTF-8"
+
+class GeneralSettings(BWindow):
+	kWindowFrame = BRect(250, 150, 755, 297)
+	kWindowName = "General Settings"
+	def __init__(self):
+		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
+		bounds=self.Bounds()
+		l=bounds.left
+		t=bounds.top
+		r=bounds.right
+		b=bounds.bottom
+		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		self.AddChild(self.underframe,None)
+		#self.encustenc = BCheckBox(BRect(5,49,r-15,74),'customenc', 'Check for custom encoding', BMessage(222))
+		self.langcheck = BCheckBox(BRect(5,79,r-15,104),'langcheck', 'Check language compliance between pofile and user', BMessage(242))
+		self.mimecheck = BCheckBox(BRect(5,109,r-15,134),'mimecheck', 'Check mimetype of file', BMessage(262))
+		#self.underframe.AddChild(self.encustenc)
+		self.underframe.AddChild(self.langcheck,None)
+		self.underframe.AddChild(self.mimecheck,None)
+		ent,confile=Ent_config()
+		Config.read(confile)
+		#try:
+		#	custenccheck = Config.getboolean('Settings','customenc')
+		#	if custenccheck:
+		#		self.encustenc.SetValue(1)
+		#	else:
+		#		self.encustenc.SetValue(0)
+		#except:
+		#	print "eccezione creo customenc in config.ini"
+		#	cfgfile = open(confile,'w')
+		#	if setencoding:
+		#		Config.set('Settings','customenc', "True")
+		#	else:
+		#		Config.set('Settings','customenc', "False")
+		#	Config.write(cfgfile)
+		#	self.encustenc.SetValue(setencoding)
+		#	cfgfile.close()
+		try:
+			#langcheck
+			checklang = Config.getboolean('General','checklang')
+			if checklang:
+				self.langcheck.SetValue(1)
+			else:
+				self.langcheck.SetValue(0)
+		except:
+			# "eccezione creo checklang in config.ini"
+			cfgfile = open(confile,'w')
+			Config.set('General','checklang', "True")
+			Config.write(cfgfile)
+			self.langcheck.SetValue(1)
+			cfgfile.close()
+		try:
+			mimecheck = Config.getboolean('General','mimecheck')
+			if mimecheck:
+				self.mimecheck.SetValue(1)
+			else:
+				self.mimecheck.SetValue(0)
+		except:
+			#"eccezione creo mimecheck in config.ini"
+			cfgfile = open(confile,'w')
+			Config.set('General','mimecheck', "True")
+			Config.write(cfgfile)
+			self.mimecheck.SetValue(1)
+			cfgfile.close()
+
+	def MessageReceived(self, msg):
+		#if msg.what == 222:
+		#	Config.read(confile)
+		#	cfgfile = open(confile,'w')
+		#	try:
+		#		if self.encustenc.Value():
+		#			Config.set('Settings','customenc', "True")
+		#			Config.write(cfgfile)
+		#			setencoding = True
+		#		else:
+		#			Config.set('Settings','customenc', "False")
+		#			Config.write(cfgfile)
+		#			setencoding = False
+		#	except:
+		#		print "Error setting up custom encoding, missing config section?"
+		#	cfgfile.close()
+		if msg.what == 242:
+			ent,confile=Ent_config()
+			Config.read(confile)
+			cfgfile = open(confile,'w')
+			try:
+				if self.langcheck.Value():
+					Config.set('General','checklang', "True")
+					Config.write(cfgfile)
+				else:
+					Config.set('General','checklang', "False")
+					Config.write(cfgfile)
+			except:
+				print("Error enabling language compliance check, missing config section?")
+			cfgfile.close()
+		elif msg.what == 262:
+			ent,confile=Ent_config()
+			cfgfile = open(confile,'w')
+			try:
+				if self.mimecheck.Value():
+					Config.set('General','mimecheck', "True")
+					Config.write(cfgfile)
+				else:
+					Config.set('General','mimecheck', "False")
+					Config.write(cfgfile)
+			except:
+				print("Error enabling mimechecking, missing config section?")
+			cfgfile.close()
+
+class TMSettings(BWindow):
+	kWindowFrame = BRect(250, 150, 755, 240)
+	kWindowName = "Translation Memory Settings"
+	def __init__(self):
+		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
+		bounds=self.Bounds()
+		l=bounds.left
+		t=bounds.top
+		r=bounds.right
+		b=bounds.bottom
+		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		#h=round(self.underframe.GetFontHeight()[0])
+		be_plain_font.SetSize(16)
+		h=be_plain_font.Size()
+		self.AddChild(self.underframe,None)
+		self.enablecheck = BCheckBox(BRect(5,5,r-5,h+6),'enabcheck', 'Enable/Disable translation memory', BMessage(222))
+		if tm:
+			self.enablecheck.SetValue(1)
+		else:
+			self.enablecheck.SetValue(0)
+		ent,confile=Ent_config()
+		Config.read(confile)
+		try:
+			bret = ConfigSectionMap("TMSettings")['tmxsrv']
+		except (configparser.NoSectionError):
+			cfgfile = open(confile,'w')
+			Config.add_section('TMSettings')
+			Config.set('TMSettings','tmxsrv',"127.0.0.1")
+			Config.write(cfgfile)
+			cfgfile.close()
+			bret = "127.0.0.1"
+		except (configparser.NoOptionError):
+			cfgfile = open(confile,'w')
+			Config.set('TMSettings','tmxsrv',"127.0.0.1")
+			Config.write(cfgfile)
+			cfgfile.close()
+			bret = "127.0.0.1"
+		self.tmxsrvBTC = BTextControl(BRect(5,h+15,r-5,2*h+25),'tmxsrv','Server address:',bret,BMessage(8080))
+		try:
+			bret = ConfigSectionMap("TMSettings")['tmxprt']
+		except:
+			cfgfile = open(confile,'w')
+			Config.set('TMSettings','tmxprt',"2022")
+			Config.write(cfgfile)
+			cfgfile.close()
+			bret = "2022"
+		self.tmxprtBTC = BTextControl(BRect(5,2*h+26,r-5,3*h+37),'tmxprt','Server port:',bret,BMessage(8086))
+		self.underframe.ResizeTo(r,3*h+42)
+		self.ResizeTo(r,3*h+42)
+		self.underframe.AddChild(self.enablecheck,None)
+		self.underframe.AddChild(self.tmxsrvBTC,None)
+		self.underframe.AddChild(self.tmxprtBTC,None)
+
+	def MessageReceived(self, msg):
+		if msg.what == 222:
+			ent,confile=Ent_config()
+			cfgfile = open(confile,'w')
+			try:
+				if self.enablecheck.Value():
+					Config.set('General','tm', "True")
+					Config.write(cfgfile)
+					tm=True
+				else:
+					Config.set('General','tm', "False")
+					Config.write(cfgfile)
+					tm=False
+			except:
+				print("Error writing tm setting in config.ini, missing config section?")
+			cfgfile.close()
+		elif msg.what == 8080:
+			ent,confile=Ent_config()
+			cfgfile = open(confile,'w')
+			try:
+				Config.set("TMSettings",'tmxsrv',self.tmxsrvBTC.Text())
+				Config.write(cfgfile)
+				tmxsrv=self.tmxsrvBTC.Text()
+			except:
+				print("Cannot save TM server address")
+			cfgfile.close()
+		elif msg.what == 8086:
+			ent,confile=Ent_config()
+			cfgfile = open(confile,'w')
+			try:
+				tmxprt=int(self.tmxprtBTC.Text())
+				Config.set("TMSettings",'tmxprt',self.tmxprtBTC.Text())
+				Config.write(cfgfile)
+			except:
+				print("Cannot save TM server port. Port value:",self.tmxprtBTC.Text())
+			cfgfile.close()
+
+class SpellcheckSettings(BWindow):
+	kWindowFrame = BRect(250, 150, 755, 297)
+	kWindowName = "Spellchecking Settings"
+	def __init__(self,showspell,oldsize):
+		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
+		bounds=self.Bounds()
+		l = bounds.left
+		t = bounds.top
+		r = bounds.right
+		b = bounds.bottom
+		be_plain_font.SetSize(oldsize)
+		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		h=oldsize
+		#h=round(self.underframe.GetFontHeight()[0])
+		self.AddChild(self.underframe,None)
+		ent,confile=Ent_config()
+		self.enablecheck = BCheckBox(BRect(5,5,r-5,h+4),'enabcheck', 'Enable/Disable spellcheck', BMessage(222))
 		
+		if ent.Exists():
+			Config.read(confile)
+			if showspell:
+				self.enablecheck.SetValue(1)
+			else:
+				self.enablecheck.SetValue(0)
+			try:
+				bret = ConfigSectionMap("General")['spell_path'] #it's ascii
+			except:
+				showspell=False
+				self.enablecheck.SetValue(0)
+				#bret = "hunspell-x86"
+			self.splchker = BTextControl(BRect(5,h+14,r-5,2*h+25),'spellchecker','Spellchecker command:',bret,BMessage(8080))
+			try:
+				bret = ConfigSectionMap("Translator")['spell_dictionary'] #it's ascii
+			except:
+				bret = "/boot/system/data/hunspell/en_US"
+				
+			self.diz = BTextControl(BRect(5,2*h+27,r-5,3*h+37),'dictionary','Dictionary path:',bret,BMessage(8086))
+			try:
+				bret = ConfigSectionMap("Translator")['spell_inclusion']
+			except:
+				bret = ""
+			self.inclus = BTextControl(BRect(5,3*h+39,r-5,4*h+49),'inclusion','Chars included in words:',bret,BMessage(8087))
+			try:
+				bret = ConfigSectionMap("Translator")['spell_esclusion']
+			except:
+				bret = ""
+		self.esclus = BTextControl(BRect(5,4*h+51,r-5,5*h+61),'inclusion','Chars-categories escluded in words:',bret,BMessage(8088))
+		self.esclus.SetText("Pc,Pd,Pe,Pi,Po,Ps,Cc,Pf")
+		self.ResizeTo(r,5*h+71)
+		self.underframe.AddChild(self.splchker,None)
+		self.underframe.AddChild(self.enablecheck,None)
+		self.underframe.AddChild(self.diz,None)
+		self.underframe.AddChild(self.inclus,None)
+		self.underframe.AddChild(self.esclus,None)
+		
+	def MessageReceived(self, msg):
+		if msg.what == 222:
+			ent,confile=Ent_config()
+			cfgfile = open(confile,'w')
+			try:
+				if self.enablecheck.Value():
+					Config.set('General','spellchecking', "True")
+					Config.write(cfgfile)
+				else:
+					Config.set('General','spellchecking', "False")
+					Config.write(cfgfile)
+			except:
+				print("Error enabling spellcheck, missing config section?")
+			cfgfile.close()
+		elif msg.what == 8080:
+			if find_executable(self.splchker.Text()):
+				cfgfile = open(confile,'w')
+				try:
+					Config.set('General','spell_path',self.splchker.Text())
+					Config.write(cfgfile)
+				except:
+					print("Cannot save spellchecker path")
+				cfgfile.close()
+		elif msg.what == 8086:
+			ent=BEntry(self.diz.Text()+".dic")
+			if ent.Exists():
+				Config.read(confile)
+				try:
+					cfgfile = open(confile,'w')
+					try:
+						Config.set("Translator",'spell_dictionary',self.diz.Text())
+						Config.write(cfgfile)
+					except:
+						print("Cannot save dictionary path")
+					cfgfile.close()
+				except:
+					print("there's no users saved")
+			else:
+				print("wrong path")
+		elif msg.what == 8087:
+				Config.read(confile)
+				cfgfile = open(confile,'w')
+				try:
+					Config.set("Translator",'spell_inclusion',self.inclus.Text())
+					Config.write(cfgfile)
+				except:
+					print("Cannot save inclusion chars")
+				cfgfile.close()
+				Config.read(confile)
+				inctxt=ConfigSectionMap("Translator")['spell_inclusion']
+				inclusion = inctxt.split(",")
+		elif msg.what == 8088:
+				Config.read(confile)
+				cfgfile = open(confile,'w')
+				try:
+					Config.set("Translator",'spell_esclusion',self.esclus.Text())
+					Config.write(cfgfile)
+				except:
+					print("Cannot save esclusion chars")
+				cfgfile.close()
+				Config.read(confile)
+				esctxt=ConfigSectionMap("Translator")['spell_esclusion']
+				esclusion=esctxt.split(",")
+
 class HeaderWindow(BWindow):
 	kWindowFrame = BRect(150, 150, 500, 600)
 	kWindowName = "Po header"
 	
-	def __init__(self,pofile,backupfile):
+	def __init__(self,pofile,backupfile,oldsize):
 		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
 		bounds=self.Bounds()
 		self.backupfile=backupfile
@@ -1595,11 +1917,12 @@ class HeaderWindow(BWindow):
 		fy=bounds.bottom
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(self.underframe,None)
+		be_plain_font.SetSize(oldsize)
 		self.headerview=BTextView(BRect(4,4,fx-4,fy-50),"headerview",BRect(4,4,fx-12,fy-48),B_FOLLOW_ALL_SIDES)
-		fon=BFont()
-		self.headerview.GetFont(fon)
-		fon.SetSize(14)
-		self.headerview.SetFontAndColor(fon,set_font_mask.B_FONT_ALL,rgb_color())
+		#fon=BFont()
+		#self.headerview.GetFont(fon)
+		#fon.SetSize(14)
+		#self.headerview.SetFontAndColor(fon,set_font_mask.B_FONT_ALL,rgb_color())
 		self.underframe.AddChild(self.headerview,None)
 		kButtonFrame = BRect(fx-150, fy-40, fx-10, fy-10)
 		kButtonName = "Save header"
@@ -1650,7 +1973,7 @@ class MainWindow(BWindow):
 		self.sem = threading.Semaphore()
 		self.poview=[True,True,True,False]
 		fon=BFont()
-		self.oldsize=fon.Size()
+		self.oldsize=be_plain_font.Size()
 		#perc=BPath()
 		#find_directory(directory_which.B_USER_NONPACKAGED_DATA_DIRECTORY,perc,False,None)
 		#datapath=BDirectory(perc.Path()+"/HaiPO2")
@@ -2108,25 +2431,48 @@ class MainWindow(BWindow):
 		
 		#2)controllo mimetype
 		filename, file_extension = os.path.splitext(f)
-		static = BMimeType()
-		mime = BMimeType.GuessMimeType(f,static)
-		mimetype = repr(static.Type()).replace('\'','')
-		boolgo=False
-		try:
-			supertype,subtype = mimetype.split('/')
-			boolgo=True
-		except:
-			say = BAlert('Warn', 'This is a workaround, cannot detect correctly the file\'s mimetype', 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
-			self.alerts.append(say)
-			say.Go()
-			supertype = "text"
-			subtype = "x-gettext-translation"
-		if not boolgo:
-			# mimetype not detected, check file extnsion
-			print(file_extension)
-			if not(file_extension in [".po", ".pot", ".mo"]):
-				return
-		else:
+		
+		ent,confile=Ent_config()
+		Config.read(confile)
+		mimecheck = ConfigSectionMap("General")['mimecheck']
+		if mimecheck == "True":
+			static = BMimeType()
+			mime = BMimeType.GuessMimeType(f,static)
+			mimetype = repr(static.Type()).replace('\'','')
+			boolgo=False
+			try:
+				supertype,subtype = mimetype.split('/')
+				if supertype=="text" and subtype=="x-gettext-translation":
+					boolgo=True
+				else:
+					say = BAlert('Warn', 'This is a workaround, the file\'s mimetype is not a x-gettext-translation. Do you want to open the file despite this?', 'Yes','No', None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+					self.alerts.append(say)
+					ret=say.Go()
+					if ret==0:
+						# mimetype not detected, check file extnsion
+						boolgo=False
+						if not(file_extension in [".po", ".pot", ".mo"]):
+							return
+						else:
+							boolgo=True
+					else:
+						return
+			except:
+				say = BAlert('Warn', 'This is a workaround, cannot detect correctly the file\'s mimetype. Do you want to open the file despite this?', 'Yes','No', None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+				self.alerts.append(say)
+				ret=say.Go()
+				if ret==0:
+					# mimetype not detected, check file extnsion
+					boolgo=False
+					supertype = "text"
+					subtype = "x-gettext-translation"
+					if not(file_extension in [".po", ".pot", ".mo"]):
+						return
+					else:
+						boolgo=True
+				else:
+					return
+		if boolgo:
 			# file correctly detected ... so open...
 			# check user accepted languages
 			fileenc = polib.detect_encoding(f)
@@ -2134,7 +2480,7 @@ class MainWindow(BWindow):
 			ordmdata=self.pof.ordered_metadata()
 			a,b = checklang(ordmdata)
 			#overwrite "a", controllo config.ini per info Traduttore
-			ent,confile=Ent_config()
+			#ent,confile=Ent_config() #chiamato sopra
 			Config.read(confile)
 			try:
 				self.tname=ConfigSectionMap("Translator")['name']
@@ -2851,13 +3197,13 @@ class MainWindow(BWindow):
 				listsel=self.sourcestrings.lv.CurrentSelection()
 				if listsel>-1:
 					thisBlistitem=self.sourcestrings.lv.ItemAt(listsel)
-					self.tcommentdialog=TranslatorComment(listsel,thisBlistitem,self.backupfile)
+					self.tcommentdialog=TranslatorComment(listsel,thisBlistitem,self.backupfile,self.oldsize)
 					self.tcommentdialog.Show()
 			return
 		elif msg.what == 42:
 			# PO metadata
 			if self.sourcestrings.lv.CountItems()>0:
-				self.POMetadata = POmetadata(self.pofile,self.orderedmetadata)
+				self.POMetadata = POmetadata(self.pofile,self.orderedmetadata,self.oldsize)
 				self.POMetadata.Show()
 
 				#self.POMetadata.pofile = self.pofile
@@ -2885,9 +3231,17 @@ class MainWindow(BWindow):
 		elif msg.what == 43:
 			#Po header
 			if self.sourcestrings.lv.CountItems()>0:
-				self.HeaderWindow = HeaderWindow(self.pofile,self.backupfile)#self.encoding)
+				self.HeaderWindow = HeaderWindow(self.pofile,self.backupfile,self.oldsize)#self.encoding)
 				self.HeaderWindow.Show()
 			return
+		elif msg.what == 44:
+			#spelcheck settings
+			self.splchset = SpellcheckSettings(showspell,self.oldsize)
+			self.splchset.Show()
+		elif msg.what == 45:
+			#Translation Memory settings
+			self.tmset = TMSettings()
+			self.tmset.Show()
 		elif msg.what == 66:
 			# wheel-alive
 			self.iwheel+=1
