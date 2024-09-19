@@ -7,3 +7,7 @@ It features some basic functions of normal po editors, as writing translations o
 comments and headers, but also integrates a rudimental spellchecking system if enabled and a Remote Translation Memory if
 enabled as well. A simple remote translation memory server is provided within this repository, but you can feel free to create
 faster methods for handling the requests; this is provided just to show what should be transmitted from and to the client.
+
+
+tmserver.py
+for tranlation memory uses translate-toolkit (use pip translate-toolkit) after installing from haikudepot lxml_devel lxml2_devel lxslt_devel CMake and some others...I'll define them later
