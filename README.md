@@ -10,10 +10,24 @@ faster methods for handling the requests; this is provided just to show what sho
 
 
 tmserver.py
-for tranlation memory uses translate-toolkit (use pip translate-toolkit) after installing from haikudepot lxml_devel lxml2_devel lxslt_devel CMake and some others...I'll define them later
+for tranlation memory uses translate-toolkit (use pip download translate-toolkit) after installing from haikudepot lxml_devel lxml2_devel lxslt_devel CMake and some others...I'll define them later
 
-pip
+pip install
 rapidfuzz
+pip download
 skbuild -> aggiungere in platforms bsd "haiku"
 Levenshtein <- scaricare da pip e compilare da terminale python3 setup.py install 
 
+per lo spellcheck utilizzare pyenchant e libreria enchant distribuiti in HaikuDepot
+sample code:
+     import enchant
+
+     d = enchant.Dict("it_IT")  # Italiano
+
+     word = "casa"
+     if d.check(word):
+         print(f"'{word}' è corretta")
+     else:
+         print(f"'{word}' non è corretta")
+         suggestions = d.suggest(word)
+         print("Suggerimenti:", suggestions)
