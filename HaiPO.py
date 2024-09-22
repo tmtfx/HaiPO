@@ -1066,6 +1066,7 @@ class EventTextView(BTextView):
 		
 		
 	def CheckSpell(self):
+		from Be.TextView import create_text_run,create_text_run_array
 		#l=[chr for chr in self.Text()]
 		#print(esclusion)
 		error_font=be_bold_font
@@ -1092,9 +1093,22 @@ class EventTextView(BTextView):
 		print(txtarr)
 		for w in txtarr:
 			if w[0]:
+				parola=w[1]
+				l=[chr for chr in parola]
+#			nl=[]
+				for n,c in enumerate(l):
+#				#nl.append((n,c,unicodedata.category(c)))
+					if c in inclusion:
+						pass #è un carattere da accettare
+					else:
+						if unicodedata.category(c) in esclusion:
+							if n+1==len(parola):
+								parola=parola[:n]
+							else:
+								parola=parola[:n]+" "+parola[n+1:]
 				#TODO, analizzare caratteri e rimuovere punteggiatura o includere caratteri
 				#prima di controllare l'ortografia
-				if not self.superself.spellchecker.check(w[1]):
+				if not self.superself.spellchecker.check(parola):
 					print(w[1])
 					TXT_ARR.append(text_run())
 					TXT_ARR[-1].offset=w[3]
@@ -1105,8 +1119,10 @@ class EventTextView(BTextView):
 					TXT_ARR[-1].font=normal_font
 					TXT_ARR[-1].color=normal_color
 				
-		my_txt_run_arr=text_run_array()
-		my_txt_run_arr.count=len(TXT_ARR)
+		#my_txt_run_arr=create_text_run_array()
+		my_txt_run_arr=BTextView.AllocRunArray(len(TXT_ARR))
+		#my_txt_run_arr=text_run_array()
+		#my_txt_run_arr.count=len(TXT_ARR)
 		my_txt_run_arr.runs=TXT_ARR
 		self.SetText(self.Text(),my_txt_run_arr)
 #		print(TXT_ARR)
