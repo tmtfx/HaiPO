@@ -1053,16 +1053,16 @@ class EventTextView(BTextView):
 	def Analisi(self):
 		return self.analisi
 	
-	def byte_count(self,stringa, encoding='utf-8'):
-		byte_counts = []
-		start = 0
-		total = 0
-		for char in stringa:
-			end = start + len(char.encode(encoding))
-			total+=(end- start)
-			byte_counts.append((char,end - start))
-			start = end
-		return (total,byte_counts)
+#	def byte_count(self,stringa, encoding='utf-8'):
+#		byte_counts = []
+#		start = 0
+#		total = 0
+#		for char in stringa:
+#			end = start + len(char.encode(encoding))
+#			total+=(end- start)
+#			byte_counts.append((char,end - start))
+#			start = end
+#		return (total,byte_counts)
 		
 		
 	def CheckSpell(self):
@@ -1090,7 +1090,7 @@ class EventTextView(BTextView):
 		#if len(sptext)>1:
 		byte_offset=0
 		txtarr=get_all_splits(txt)
-		print(txtarr)
+		#print(txtarr)
 		for w in txtarr:
 			if w[0]:
 				parola=w[1]
@@ -1103,13 +1103,16 @@ class EventTextView(BTextView):
 					else:
 						if unicodedata.category(c) in esclusion:
 							if n+1==len(parola):
+								eliso=parola[n:]
+								t,lc=byte_count(eliso)
 								parola=parola[:n]
+								newvalue=w[2]-t
+								w=(w[0],w[1],newvalue,w[3])
 							else:
 								parola=parola[:n]+" "+parola[n+1:]
 				#TODO, analizzare caratteri e rimuovere punteggiatura o includere caratteri
 				#prima di controllare l'ortografia
 				if not self.superself.spellchecker.check(parola):
-					print(w[1])
 					TXT_ARR.append(text_run())
 					TXT_ARR[-1].offset=w[3]
 					TXT_ARR[-1].font=error_font
