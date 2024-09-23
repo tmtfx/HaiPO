@@ -3274,9 +3274,6 @@ class MainWindow(BWindow):
 		self.progressinfo.SetMaxValue(self.potot)
 		self.progressinfo.Update(len(self.pofile.translated_entries()),None,str(self.pofile.percent_translated())+"%")
 		self.infobox.AddChild(self.progressinfo,None)
-		
-	def SaveAs(self, p):
-		pass
 	
 	def Save(self, path):
 		self.pofile.save(path)
@@ -3557,6 +3554,9 @@ class MainWindow(BWindow):
 				kmesg.AddInt8('movekind',0)
 				be_app.WindowAt(0).PostMessage(kmesg)
 			return
+		elif msg.what == 5:
+			if self.sourcestrings.lv.CountItems()>0:
+				self.fp.Show()
 		elif msg.what == 735157:
 			color=rgb_color()
 			color.green=150
@@ -3721,7 +3721,6 @@ class MainWindow(BWindow):
 						if traduzion != "":
 							be_app.WindowAt(0).PostMessage(12343)# TODO EVALUATE: usare 333111 sempre in modo da richiamare questo?
 				self.t1 = time.time()
-			print("poi")
 			self.indsteps+=1
 			if self.indsteps == len(self.steps):
 				self.indsteps=0
@@ -3748,7 +3747,6 @@ class MainWindow(BWindow):
 						bckpmsg.AddInt8('savetype',1)
 						bckpmsg.AddInt32('tvindex',self.sourcestrings.lv.CurrentSelection())
 						bckpmsg.AddInt8('plurals',tabs)
-						#bckpmsg.AddInt32('tabview',self.postabview.Selection())
 						if tabs == 0:   #->      if not thisBlistitem.hasplural:                         <-------------------------- or this?
 							thisBlistitem.txttosave=thistranslEdit.Text()#.decode(self.encoding)		 <----- reinsert this
 							bckpmsg.AddString('translation',thisBlistitem.txttosave)
@@ -3808,7 +3806,6 @@ class MainWindow(BWindow):
 				self.pofile.metadata['PO-Revision-Date']=now
 				self.pofile.metadata['X-Editor']=version
 				Thread(target=self.Save,args=(bckppath,)).start()
-				#thread.start_new_thread( self.Save, (bckppath,) )
 				#self.editorslist[self.postabview.Selection()].pofile.save(bckppath)
 				return
 			elif savetype == 2:
@@ -3819,7 +3816,6 @@ class MainWindow(BWindow):
 				self.pofile.metadata['PO-Revision-Date']=now
 				self.pofile.metadata['X-Editor']=version
 				Thread(target=self.Save,args=(bckppath,)).start()
-				#thread.start_new_thread( self.Save, (bckppath,) )
 				#self.editorslist[indexroot].pofile.save(bckppath)
 				return
 			elif savetype == 1:
@@ -3844,13 +3840,11 @@ class MainWindow(BWindow):
 						#TODO tmcommunicate si fa in locale
 						mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text(),self.listemsgstr[self.transtabview.Selection()].trnsl.Text())
 						Thread(target=self.tmcommunicate,args=(mx,)).start()
-						#thread.start_new_thread( self.tmcommunicate, (mx,) )
 
 
 				tvindex=msg.FindInt32('tvindex')
 				textsave=msg.FindString('translation')
 				tabbi=msg.FindInt8('plurals')
-				#intscheda=msg.FindInt32('tabview') #TODO rimuovere usato per multipli po files aperti
 				self.writter.acquire()
 				entry = self.sourcestrings.lv.ItemAt(tvindex).entry
 				if entry and entry.msgid_plural:
@@ -3885,7 +3879,6 @@ class MainWindow(BWindow):
 				self.pofile.metadata['PO-Revision-Date']=now
 				self.pofile.metadata['X-Editor']=version
 				Thread(target=self.Save,args=(bckppath,)).start()
-				#thread.start_new_thread( self.Save, (bckppath,) )
 				#scheda.pofile.save(bckppath)
 				self.sourcestrings.lv.ItemAt(tvindex).state=1
 				self.sourcestrings.lv.ItemAt(tvindex).tosave=False
@@ -3903,22 +3896,18 @@ class MainWindow(BWindow):
 				self.pofile.metadata['PO-Revision-Date']=now
 				self.pofile.metadata['X-Editor']=version
 				Thread(target=self.Save,args=(bckppath,)).start()
-				#thread.start_new_thread( self.Save, (bckppath,) )
 				#scheda.pofile.save(bckppath)
-				#self.postabview.Select(intscheda)
 				self.sourcestrings.lv.DeselectAll()
 				self.sourcestrings.lv.Select(tvindex)
 				return
 			elif savetype == 4:
 				textsave=msg.FindString('header')
-				#intscheda=msg.FindInt32('tabview') # TODO rimuovere non ci sono più multipli file aperti
 				self.writter.acquire()
 				self.pofile.header=textsave
 				self.pofile.metadata['Last-Translator']=defname
 				self.pofile.metadata['PO-Revision-Date']=now
 				self.pofile.metadata['X-Editor']=version
 				Thread(target=self.Save,args=(bckppath,)).start()
-				#thread.start_new_thread( self.Save, (bckppath,) )
 				#scheda.pofile.save(bckppath)
 				return
 			self.infoprogress.SetText(str(self.pofile.percent_translated()))
@@ -4292,7 +4281,8 @@ class MainWindow(BWindow):
 			return
 		elif msg.what == 54173:
 			#Save as 
-			txt=self.fp.GetPanelDirectory()
+			txt=entry_ref()
+			self.fp.GetPanelDirectory(txt)
 			perc=BPath()
 			BEntry(txt,True).GetPath(perc)
 			savepath=perc.Path()
@@ -4301,7 +4291,7 @@ class MainWindow(BWindow):
 			self.pofile.save(completepath)
 			self.name=e
 			self.percors=completepath
-			self.pofile= polib.pofile(completepath,self.encoding)
+			self.pofile= polib.pofile(completepath,encoding=self.encoding)#wrongo
 			self.filen, self.file_ext = os.path.splitext(completepath)
 			self.backupfile= self.filen+".temp"+self.file_ext
 			return
@@ -4442,6 +4432,7 @@ class MainWindow(BWindow):
 			be_app.WindowAt(0).PostMessage(selmex)
 			return
 		elif msg.what == 333111:
+			#set checktime for delayed checkspell
 			self.speloc.acquire()
 			self.intime=time.time()
 			self.speloc.release()
