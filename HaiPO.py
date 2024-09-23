@@ -669,7 +669,6 @@ class EventTextView(BTextView):
 	def __init__(self,superself,frame,name,textRect,resizingMode,flags):
 		self.superself=superself
 		self.oldtext=""
-#		self.telptst=self.oldtext
 		self.oldtextloaded=False
 		self.tosave=False
 		fin=be_plain_font
@@ -682,12 +681,9 @@ class EventTextView(BTextView):
 		self.event= threading.Event()
 		self.SetStylable(1)
 		self.evstile=[]
-		self.analisi=[]
-		self.analyzetxt=[]
 		self.pop = BPopUpMenu('popup')
 		
 	def Save(self):
-		#cursel=self.superself.editorslist[self.superself.postabview.Selection()]
 		thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
 		thisBlistitem.tosave=True
 		tabs=len(self.superself.listemsgstr)-1
@@ -695,23 +691,19 @@ class EventTextView(BTextView):
 		bckpmsg.AddInt8('savetype',1)
 		bckpmsg.AddInt32('tvindex',self.superself.sourcestrings.lv.CurrentSelection())
 		bckpmsg.AddInt8('plurals',tabs)
-		#bckpmsg.AddInt32('tabview',self.superself.postabview.Selection())
 		if tabs == 0:
 			thisBlistitem.txttosave=self.Text()
-			#thisBlistitem.msgstrs=self.Text().decode(self.superself.encoding)
-			thisBlistitem.msgstrs=self.Text()#.decode(self.superself.encoding)#let's do utf-8 by default?
+			thisBlistitem.msgstrs=self.Text()
 			bckpmsg.AddString('translation',thisBlistitem.txttosave)
 		else:
 			thisBlistitem.txttosavepl=[]
 			thisBlistitem.txttosave=self.superself.listemsgstr[0].trnsl.Text()
 			thisBlistitem.msgstrs=[]
-			#thisBlistitem.msgstrs.append(self.superself.listemsgstr[0].trnsl.Text().decode(self.superself.encoding))
-			thisBlistitem.msgstrs.append(self.superself.listemsgstr[0].trnsl.Text())#.decode(self.superself.encoding))
+			thisBlistitem.msgstrs.append(self.superself.listemsgstr[0].trnsl.Text())
 			bckpmsg.AddString('translation',thisBlistitem.txttosave)
 			cox=1
 			while cox < tabs+1:
-				#thisBlistitem.msgstrs.append(self.superself.listemsgstr[cox].trnsl.Text().decode(self.superself.encoding))
-				thisBlistitem.msgstrs.append(self.superself.listemsgstr[cox].trnsl.Text())#.decode(self.superself.encoding))
+				thisBlistitem.msgstrs.append(self.superself.listemsgstr[cox].trnsl.Text())
 				thisBlistitem.txttosavepl.append(self.superself.listemsgstr[cox].trnsl.Text())
 				bckpmsg.AddString('translationpl'+str(cox-1),self.superself.listemsgstr[cox].trnsl.Text())
 				cox+=1
@@ -794,14 +786,12 @@ class EventTextView(BTextView):
 		return BTextView.MouseUp(self,point)
 
 	def MessageReceived(self, msg):
-			
 		if msg.what in [B_CUT,B_PASTE]:
 			print("da EventTextView rilevato cut o paste")
 			#cursel=self.superself.editorslist[self.superself.postabview.Selection()]
 			thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
 			thisBlistitem.tosave=True
 			self.tosave=True
-			
 		if msg.what == self.mousemsg:
 			try:
 				mexico=msg.FindMessage('be:drag_message')
@@ -996,8 +986,10 @@ class EventTextView(BTextView):
 				thisBlistitem.tosave=False
 				thisBlistitem.txttosave=""
 				#print "Seleziono la fine?"
-				fine=len(self.oldtext)
+				#fine=len(self.oldtext)
+				fine,bca=byte_count(self.oldtext)
 				self.Select(fine,fine)
+				be_app.WindowAt(0).PostMessage(12343)
 				return
 			else:
 				if self.superself.sourcestrings.lv.CurrentSelection()>-1:
@@ -1042,23 +1034,9 @@ class EventTextView(BTextView):
 		self.oldtextloaded=True
 		self.SetText(text,None)
 		self.tosave=False
-	
-	def Analisi(self):
-		return self.analisi
-	
-#	def byte_count(self,stringa, encoding='utf-8'):
-#		byte_counts = []
-#		start = 0
-#		total = 0
-#		for char in stringa:
-#			end = start + len(char.encode(encoding))
-#			total+=(end- start)
-#			byte_counts.append((char,end - start))
-#			start = end
-#		return (total,byte_counts)
-		
 		
 	def CheckSpell(self):
+		indi,indf=self.GetSelection()
 		ret=True
 		error_font=be_bold_font
 		error_font.SetSize(self.superself.oldsize)
@@ -1107,237 +1085,9 @@ class EventTextView(BTextView):
 		my_txt_run_arr=BTextView.AllocRunArray(len(TXT_ARR))
 		my_txt_run_arr.runs=TXT_ARR
 		self.SetText(self.Text(),my_txt_run_arr)
+		self.Select(indi,indf)
 		return ret
-#		print(TXT_ARR)
-			
-		#i=0
-		#while i < len(txtarr):
-		#	n,arr=self.byte_count(txtarr[i])
-		#	outp=(txtarr[i],num_bytes,byte_offset)
-		#	byte_offset+=numbytes
-		#	if i+1<len(txtarr):
-		#		spacing=
-		#		#calcola lo spazio tra una parola e l'altra
-		#	i+=1
-		
-		
-		#for parola in :
-		#	#lc=[chr for chr in parola]
-		#	n,arr=self.byte_count(parola)
-		#	offset+=
-		#	outp=(parola,n,
-		#	if not self.superself.spellchecker.check(parola):
-		#		suggestions = self.superself.spellchecker.suggest(parola)
-		#		print(parola,suggestions)
-		
-		
-		
-		
-		
-		
-		############ old - not considering bytes ###########
-		# offset=0
-		# for parola in sptext:
-			# dist=txt.find(parola,offset)
-			# if dist != -1:
-				# offset = dist+len(parola)
-				# newarr.append((dist,parola))
-			# else:
-				# raise("Error, la parola c'è ma non c'è")
-#					#while True:
-#					#	dist=txt.find(parola,offset)
-#					#	if dist == -1:
-#					#		break
-#					#	if dist != -1:
-#					#		offset = distanza+len(parola)
-#					#		newarr.append(dist,parola)
-#					#		break
-#		#else:
-#		#	print(type(sptext),sptext)
-#		#	newarr=[(0,sptext[0])]
-#		print("NEWARR:",newarr)
-#		#procedi rifacendo quello che c'è qua sotto addattato a newarr
-#		#rifare qua sotto
-#		words=[]
-#		for ptxt in newarr:
-#			l=[chr for chr in ptxt[1]]
-#			nl=[]
-#			for n,c in enumerate(l):
-#				#nl.append((n,c,unicodedata.category(c)))
-#				if c in inclusion:
-#					pass #è un carattere da accettare
-#				else:
-#					if unicodedata.category(c) in esclusion:
-#						if n+1==len(ptxt[1]):
-#							ptxt=(ptxt[0],ptxt[1][:n]+" ")
-#						else:
-#							ptxt=(ptxt[0],ptxt[1][:n]+" "+ptxt[1][n+1:])
-#			parola=ptxt[1].split()
-#			words.append((ptxt[0],parola[0],ptxt[0]+len(parola[0])))#len(ptxt[1])
-#			if len(parola)>1:
-#				y=1
-#				offset=0
-#				while y<len(parola)+1:
-#					dist=ptxt[1].find(parola[y],offset)
-#					realdist=dist+ptxt[0]
-#					if dist==-1:
-#						print("errore: la parola c'è ma non c'è")
-#						break
-#					words.append((realdist,parola[y],realdist+len(parola[y])))
-#					offset=dist+len(parola[y])
-#					y+=1
-#		print("WORDS:",words)
-#		for w in words:
-#			if not self.superself.spellchecker.check(w[1]):
-#				print(w[1])
-#				TXT_ARR.append(text_run())
-#				TXT_ARR[-1].offset=w[0]
-#				TXT_ARR[-1].font=error_font
-#				TXT_ARR[-1].color=error_color
-#				TXT_ARR.append(text_run())
-#				TXT_ARR[-1].offset=w[2]
-#				TXT_ARR[-1].font=normal_font
-#				TXT_ARR[-1].color=normal_color
-#				
-#		my_txt_run_arr=text_run_array()
-#		my_txt_run_arr.count=len(TXT_ARR)
-#		my_txt_run_arr.runs=TXT_ARR
-#		print(TXT_ARR)
-##################### fine secondo tentativo #####################
-#		self.SetText(self.Text(),my_txt_run_arr)
-#				if not self.superself.spellchecker.check(p):
-#					suggestions = self.superself.spellchecker.suggest(p)
 
-			#if self.superself.spellchecker.check(ptxt):
-			#	print("testo corretto")
-			#else:
-			#	print("testo sbagliato")
-			#	suggestions = self.superself.spellchecker.suggest(ptxt)
-			#	print("Suggerimenti:", suggestions)
-#	def CheckSpell(self):
-#		print("eseguo checkspell")
-#		be_plain_font.SetSize(self.superself.oldsize)
-#		speller = Popen( comm, stdout=PIPE, stdin=PIPE, stderr=PIPE)
-#		eltxt=self.Text()
-#		l=[chr for chr in eltxt]
-#		self.analisi=[]
-#		sd=0
-#		se=len(l)
-#		while sd<se:
-#			#self.analisi.append((unicodedata.category(unichr(ord(l[sd]))),l[sd]))  # char by char examination category print
-#			self.analisi.append((unicodedata.category(chr(ord(l[sd]))),l[sd]))  # char by char examination category print
-#			if sd==0:
-#				try:
-#					if l[sd]+l[sd+1] in inclusion:
-#						pass
-#					else:
-#						#if unicodedata.category(unichr(ord(l[sd]))) in esclusion:
-#						if unicodedata.category(chr(ord(l[sd]))) in esclusion:
-#							l[sd]=" "
-#				except:
-#					print("errore checkspell sd==0")
-#			if sd==se-1:
-#				try:
-#					if l[sd-1]+l[sd] in inclusion:
-#						pass
-#					else:
-#						#if unicodedata.category(unichr(ord(l[sd]))) in esclusion:
-#						if unicodedata.category(chr(ord(l[sd]))) in esclusion:
-#							l[sd]=" "
-#				except:
-#					print("errore checkspell sd==se-1")
-#			if sd>0 and sd<se-1:
-#				try:
-#					if l[sd]+l[sd+1] in inclusion:
-#						pass
-#					elif l[sd-1]+l[sd] in inclusion:
-#						pass
-#					else:
-#						#if unicodedata.category(unichr(ord(l[sd]))) in esclusion:
-#						if unicodedata.category(chr(ord(l[sd]))) in esclusion:
-#							l[sd]=" "
-#				except:
-#					print("errore checkspell sd>0 and sd<se-1")
-#			sd+=1
-#		eltxt="".join(l)
-#		
-#		#diffeltxt=eltxt.decode(self.superself.encoding,errors='replace')
-#		diffeltxt=eltxt#.decode(self.superself.encoding,errors='replace')
-#		stdout_data = speller.communicate(input=eltxt.encode("utf-8"))[0]
-#		print(stdout_data)
-#		reallength=len(diffeltxt)
-#		areltxt=eltxt.split(" ")
-#		ardiffeltxt=diffeltxt.split(" ")
-#		whe=0
-#		whd=0
-#		cop=0
-#		newareltxt=[]
-#		while cop < len(areltxt):
-#			lparola = len(areltxt[cop])
-#			lparoladiff = len(ardiffeltxt[cop])
-#			val=(areltxt[cop],(whd,whd+len(ardiffeltxt[cop])),(whe,whe+len(areltxt[cop])))
-#			whe=whe+len(areltxt[cop])+1
-#			whd=whd+len(ardiffeltxt[cop])+1
-#			newareltxt.append(val)
-#			cop+=1
-#		errors = []
-#		self.analyzetxt = []
-#		stdout_data=stdout_data.decode("utf-8").split('\n')
-#		for s in stdout_data:
-#			if s != "":
-#				words=s.split()
-#				if s[0] == "&":
-#					# there are suggestions
-#					liw = s.find(words[3]) #string start-index that indicates the beginning of the number
-#					lun = len(words[3])-1  #string lenght except ":"
-#					iz = liw+len(words[3])+1 #string end of the number that indicates the beginning of solutions
-#					solutions = s[iz:]
-#					sugi = solutions.split(", ")
-#					outs = s[liw:liw+lun]   # <<<<------ number that hunspell indicates as where is the word to fix
-#					# here you check where is the correct byte for that hunspell-index
-#					for items in newareltxt:
-#						if items[1][0] == int(outs):
-#							realouts=items[2][0]
-#					t=word2fix(words[1],int(outs),realouts)
-#					x=0
-#					while x < int(words[2]):
-#						t.add(sugi[x])
-#						x+=1
-#					errors.append(t)
-#					self.analyzetxt.append(t)
-#				elif s[0] == "#":
-#					# no suggestions
-#					liw=s.find(words[2])
-#					lun=len(words[2])
-#					outs=s[liw:liw+lun]
-#					for items in newareltxt:
-#						if items[1][0] == int(outs):
-#							realouts=items[2][0]
-#							
-#					t=word2fix(words[1],int(outs),realouts)
-#					errors.append(t)
-#		#### Ricreo stringa colorata ####
-#		stile=[(0, be_plain_font, (0, 0, 0, 0))]
-#		if len(errors)>0:
-#			be_app.WindowAt(0).PostMessage(982757)
-#			#self.superself.checkres.SetText("☒")
-#			if errors[0].pos>0 or errors == []:
-#				stile.append((0, be_plain_font, (0, 0, 0, 0)))
-#				stile=startinserting(stile,errors)
-#			else:
-#				stile = startinserting(stile,errors)
-#		else:
-#			be_app.WindowAt(0).PostMessage(735157)
-#			#self.superself.checkres.SetText("☑")
-#		#print("default size per be_plain_font",be_plain_font.Size())
-#		evstyle.acquire()
-#		self.evstile=stile
-#		evstyle.release()
-#		posizion=self.GetSelection()
-#		mj=BMessage(222888)
-#		mj.AddInt32("start",posizion[0])
-#		mj.AddInt32("end",posizion[1])
-#		be_app.WindowAt(0).PostMessage(mj)
 def byte_count(stringa, encoding='utf-8'):
 		byte_counts = []
 		start = 0
@@ -1369,9 +1119,6 @@ def get_all_splits(text):
 		newarr.append((False,t,bc[0],byte_offset))#False = non analizzare con spellcheck
 		text=text[:text.find(words[0])]
 		byte_offset+=bc[0]
-	#newarr.append((True,words[0]))
-	
-	
 	while i<len(words)-1:
 		bc=byte_count(words[i])
 		newarr.append((True,words[i],bc[0],byte_offset))
@@ -1403,12 +1150,9 @@ class srcTextView(BTextView):
 	def Draw(self,suaze):
 		BTextView.Draw(self,suaze)
 		self.font = be_plain_font
-		hrdwrk= self.Text()
-		#multibyte spaces analisis
-		#text analisys for multiple whitespaces, tabulations, carriage returns...
-		#tst=hrdwrk.encode('utf-8')
-		#tst=unicode(hrdwrk,'utf-8')
-		tst=hrdwrk
+		tst=self.Text()
+		#hrdwrk= self.Text()
+		#tst=hrdwrk
 		lis = list(tst)
 		foundo = 0
 		for index,ci in enumerate(lis):
@@ -2375,143 +2119,17 @@ class ErrorItem(BListItem):
 		owner.SetFont(self.font)
 		owner.DrawString(self.text)
 
-class word2fix():
-	def __init__(self,word,opos,pos): # opos sarà da eliminare
-		self.word = word
-		self.sugg = []
-		self.pos = pos
-		self.opos = opos
-	def add(self,sugg):
-		self.sugg.append(sugg)
-	def many(self):
-		return len(self.sugg)
-	def position(self):
-		return self.pos
-	def strings(self):
-		return self.sugg
-
-class pairedListView(BListView):
-	def __init__(self, rect, name,paired):
-		BListView.__init__(self,rect, name, B_SINGLE_SELECTION_LIST,B_FOLLOW_ALL_SIDES,B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_FRAME_EVENTS)
-		self.pairedlv=paired
-	def SelectionChanged(self):
-		self.pairedlv.Select(self.CurrentSelection())
-		self.pairedlv.ScrollToSelection()
-
-class AnalyScrllVw1:
-	HiWhat = 83 #Doubleclick
-	Selmsgstr = 7755
-
-	def __init__(self, rect, name,paired):
-		self.lv = pairedListView(rect, name, paired)
-		msg=BMessage(self.Selmsgstr)
-		self.lv.SetSelectionMessage(msg)
-		msg = BMessage(self.HiWhat)
-		self.lv.SetInvocationMessage(msg)
-		self.sv = BScrollView('AnalysisScrollView', self.lv, B_FOLLOW_ALL_SIDES, B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_NAVIGABLE|B_FRAME_EVENTS, 0, 1, B_FANCY_BORDER)
-
-class AnalyScrllVw2:
-	HiWhat = 83 #Doubleclick
-	Selmsgstr = 7755
-
-	def __init__(self, rect, name):
-		self.lv = BListView(rect, name, B_SINGLE_SELECTION_LIST,B_FOLLOW_ALL_SIDES,B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_FRAME_EVENTS)
-		msg=BMessage(self.Selmsgstr)
-		self.lv.SetSelectionMessage(msg)
-		msg = BMessage(self.HiWhat)
-		self.lv.SetInvocationMessage(msg)
-		self.sv = BScrollView('AnalysisScrollView', self.lv, B_FOLLOW_ALL_SIDES, B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_NAVIGABLE|B_FRAME_EVENTS, 0, 1, B_FANCY_BORDER)
-
-class Analysis(BWindow):
-	Selmsgstr = 320
-	HiWhat =  684
-	def __init__(self,encoding):
-		kWindowFrame = BRect(250, 150, 755, 497)
-		kWindowName = "String analysis"
-		BWindow.__init__(self, kWindowFrame, kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
-		self.encoding = encoding
-		bounds=self.Bounds()
-		l=bounds.left
-		t=bounds.top
-		r=bounds.right
-		b=bounds.bottom
-		be_plain_font.SetSize(16)
-		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
-		self.AddChild(self.underframe,None)
-		self.achrin=[]
-		self.orig=AnalyScrllVw2(BRect(50,5,67,342),"Original-text")
-		self.ansv=AnalyScrllVw1(BRect(5,5,30,342),"Analysis-text",self.orig.lv)
-		self.underframe.AddChild(self.ansv.sv,None)
-		self.underframe.AddChild(self.orig.sv,None)
-		rect = BRect(85,5,r-5,150)
-		self.undertextview = BBox(rect, 'undertextview', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_FANCY_BORDER)
-		self.underframe.AddChild(self.undertextview,None)
-		self.cpytrnsl = BTextView(BRect(2,2,r-5-85-2,150-5-2),"copytext",BRect(4,4,rect.Width()-4,rect.Height()-4),B_FOLLOW_ALL_SIDES)
-		self.undertextview.AddChild(self.cpytrnsl,None)
-		rect = BRect(87,155,185,328)
-		self.plv = BListView(rect, 'PeraulisListView', B_SINGLE_SELECTION_LIST,B_FOLLOW_ALL_SIDES,B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_FRAME_EVENTS)
-		self.psv = BScrollView('PeraulisScrollView', self.plv, B_FOLLOW_ALL_SIDES, B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_NAVIGABLE|B_FRAME_EVENTS, 1, 1, B_FANCY_BORDER)
-		msg=BMessage(self.Selmsgstr)
-		self.plv.SetSelectionMessage(msg)
-		msg = BMessage(self.HiWhat)
-		self.plv.SetInvocationMessage(msg)
-		self.underframe.AddChild(self.psv,None)
-		rect = BRect(205,155,r-7,342)
-		self.swres = BTextView(rect,"SingleWordAnalysis",BRect(4,4,rect.Width()-4,rect.Height()-4),B_FOLLOW_ALL_SIDES)
-		self.swres.MakeEditable(0)
-		self.underframe.AddChild(self.swres,None)
-
-	def MessageReceived(self, msg):
-		if msg.what == 43285:
-			stringa=msg.FindString('word')
-			elemento=MyListItem(stringa)
-			self.ansv.lv.AddItem(elemento)
-		elif msg.what == 43250:
-			stringa=msg.FindString('word')
-			elemento=MyListItem(stringa)
-			self.orig.lv.AddItem(elemento)
-		elif msg.what == 43288:
-			self.plv.MakeEmpty()
-			stringa=msg.FindString('text')
-			self.cpytrnsl.SetText(stringa,None)
-			lungjece=self.cpytrnsl.TextLength()
-			i = 0
-			peraulis=[]
-			while i<lungjece:
-				p=self.cpytrnsl.FindWord(i)
-				peraule=self.cpytrnsl.Text()[p[0]:p[1]]
-				if peraule !=" ":
-					if peraule in peraulis:
-						pass
-					else:
-						element=MyListItem(peraule)
-						self.plv.AddItem(element)
-						peraulis.append(peraule)
-					i=p[1]
-				i+=1
-		elif msg.what == 320:
-			if showspell:
-				if self.swres.Text()!="":
-					self.swres.SelectAll()
-					self.swres.Clear()
-				txt=self.plv.ItemAt(self.plv.CurrentSelection()).Text()
-				speller = Popen( comm, stdout=PIPE, stdin=PIPE, stderr=PIPE)
-				stdout_data = speller.communicate(input=txt)[0]
-				self.swres.SetText(stdout_data,None)				
-			
-		
-		return BWindow.MessageReceived(self, msg)
-
 class GeneralSettings(BWindow):
 	kWindowFrame = BRect(250, 150, 755, 297)
 	kWindowName = "General Settings"
-	def __init__(self):
+	def __init__(self,oldsize):
 		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
 		bounds=self.Bounds()
 		l=bounds.left
 		t=bounds.top
 		r=bounds.right
 		b=bounds.bottom
+		be_plain_font.SetSize(oldsize)
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(self.underframe,None)
 		#self.encustenc = BCheckBox(BRect(5,49,r-15,74),'customenc', 'Check for custom encoding', BMessage(222))
@@ -2522,22 +2140,6 @@ class GeneralSettings(BWindow):
 		self.underframe.AddChild(self.mimecheck,None)
 		ent,confile=Ent_config()
 		Config.read(confile)
-		#try:
-		#	custenccheck = Config.getboolean('Settings','customenc')
-		#	if custenccheck:
-		#		self.encustenc.SetValue(1)
-		#	else:
-		#		self.encustenc.SetValue(0)
-		#except:
-		#	print "eccezione creo customenc in config.ini"
-		#	cfgfile = open(confile,'w')
-		#	if setencoding:
-		#		Config.set('Settings','customenc', "True")
-		#	else:
-		#		Config.set('Settings','customenc', "False")
-		#	Config.write(cfgfile)
-		#	self.encustenc.SetValue(setencoding)
-		#	cfgfile.close()
 		try:
 			#langcheck
 			checklang = Config.getboolean('General','checklang')
@@ -2567,21 +2169,6 @@ class GeneralSettings(BWindow):
 			cfgfile.close()
 
 	def MessageReceived(self, msg):
-		#if msg.what == 222:
-		#	Config.read(confile)
-		#	cfgfile = open(confile,'w')
-		#	try:
-		#		if self.encustenc.Value():
-		#			Config.set('Settings','customenc', "True")
-		#			Config.write(cfgfile)
-		#			setencoding = True
-		#		else:
-		#			Config.set('Settings','customenc', "False")
-		#			Config.write(cfgfile)
-		#			setencoding = False
-		#	except:
-		#		print "Error setting up custom encoding, missing config section?"
-		#	cfgfile.close()
 		if msg.what == 242:
 			ent,confile=Ent_config()
 			Config.read(confile)
@@ -2731,7 +2318,6 @@ class SpellcheckSettings(BWindow):
 				bret=""
 				showspell=False
 				self.enablecheck.SetValue(0)
-				#bret = "hunspell-x86"
 			self.splchker = BTextControl(BRect(5,h+14,r-5,2*h+25),'spellchecker','Spellchecker command:',bret,BMessage(8080))
 			try:
 				bret = ConfigSectionMap("Translator")['spell_dictionary'] #it's ascii
@@ -4168,7 +3754,7 @@ class MainWindow(BWindow):
 			self.About.Show()
 			return
 		elif msg.what == 40:
-			self.gensettings=GeneralSettings()
+			self.gensettings=GeneralSettings(self.oldsize)
 			self.gensettings.Show()
 			return
 		elif msg.what == 41:
@@ -4241,6 +3827,7 @@ class MainWindow(BWindow):
 					if len(self.listemsgstr)>0:
 						traduzion=self.listemsgstr[self.transtabview.Selection()].trnsl.Text()
 						if traduzion != "":
+							print("lancio controllo ortografico")
 							be_app.WindowAt(0).PostMessage(12343)
 				self.t1 = time.time()
 			self.indsteps+=1
@@ -4590,6 +4177,7 @@ class MainWindow(BWindow):
 				#############################################
 				self.listemsgid[0].src.SelectAll()
 				self.listemsgid[0].src.Clear()
+			be_app.WindowAt(0).PostMessage(12343)
 			return
 		elif msg.what == 7484:
 			self.spellabel.SetText(msg.FindString('graph'))
@@ -4673,28 +4261,6 @@ class MainWindow(BWindow):
 				be_app.WindowAt(0).PostMessage(2)
 				self.setMark(3)
 			return
-		elif msg.what == 8384:
-			self.analysisW=Analysis(self.encoding)
-			self.analysisW.Show()
-			i = 1
-			w = be_app.CountWindows()
-			while w > i:
-				if be_app.WindowAt(i).Title()=="String analysis":
-					thiswindow=i
-				i+=1
-			if self.sourcestrings.lv.CurrentSelection()>-1:
-				caratars=self.listemsgstr[self.transtabview.Selection()].trnsl.Analisi()
-				for items in caratars:
-					pmsg=BMessage(43285)
-					pmsg.AddString('word',items[0])
-					be_app.WindowAt(thiswindow).PostMessage(pmsg)
-					pmsg=BMessage(43250)
-					pmsg.AddString('word',items[1])
-					be_app.WindowAt(thiswindow).PostMessage(pmsg)
-				copytxt = self.listemsgstr[self.transtabview.Selection()].trnsl.Text()
-				pmsg=BMessage(43288)
-				pmsg.AddString('text',copytxt)
-				be_app.WindowAt(thiswindow).PostMessage(pmsg)
 		elif msg.what == 45371:
 			percors=msg.FindString("path")
 			self.OpenPOFile(percors)
@@ -4856,7 +4422,6 @@ class MainWindow(BWindow):
 		elif msg.what == 112118:
 			#launch a delayed check
 			oldtext=msg.FindString('oldtext')
-			#cursel=msg.FindInt8('cursel')
 			indexBlistitem=msg.FindInt32('indexBlistitem')
 			tabs=len(self.listemsgstr)-1
 			
@@ -4866,7 +4431,7 @@ class MainWindow(BWindow):
 			self.intime=time.time()
 			return
 		elif msg.what == 130550: # change listview selection
-			#print "changing selection"
+			#"changing selection"
 			movetype=msg.FindInt8('movekind')
 			#if tm:
 			#	for items in self.scrollsugj.lv:
@@ -4973,69 +4538,31 @@ class MainWindow(BWindow):
 			be_app.WindowAt(0).PostMessage(12343)
 			return
 		elif msg.what == 9631:
-			#ris=msg.FindInt16('index')
 			sugg=msg.FindString('sugg')
 			sorig=msg.FindString('sorig')
 			indi=msg.FindInt32('indi')
 			indf=msg.FindInt32('indf')
+			bct,bca=byte_count(sugg)
 			self.listemsgstr[self.transtabview.Selection()].trnsl.Delete(indi,indf)
-			self.listemsgstr[self.transtabview.Selection()].trnsl.Insert(indi,sugg,len(sugg),None)
+			#self.listemsgstr[self.transtabview.Selection()].trnsl.Insert(indi,sugg,len(sugg),None)
+			self.listemsgstr[self.transtabview.Selection()].trnsl.Insert(indi,sugg,bct,None)
 			self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
+			selmex=BMessage(888222)
+			selmex.AddInt32('indi',indi+bct)
+			selmex.AddInt32('indf',indi+bct)
 			be_app.WindowAt(0).PostMessage(12343)#(333111)
+			be_app.WindowAt(0).PostMessage(selmex)
 			return
 		elif msg.what == 333111:
 			self.speloc.acquire()
 			self.intime=time.time()
 			self.speloc.release()
 			return
-		elif msg.what == 222888:
-			# stylize eventtextview for checkspell
-			evstyle.acquire()
-			tra=text_run_array()
-			#these lines below give no errors but blank textview
-			#tra.count=len(self.listemsgstr[self.transtabview.Selection()].trnsl.evstile)
-			#i=0
-			#while i<tra.count:
-			#	tra.runs[i].offset=self.listemsgstr[self.transtabview.Selection()].trnsl.evstile[i][0]
-			#	a=self.listemsgstr[self.transtabview.Selection()].trnsl.evstile[i][1]
-			#	self.listemsgstr[self.transtabview.Selection()].trnsl.evstile[i][1]
-			#	tra.runs[i].color.red=self.listemsgstr[self.transtabview.Selection()].trnsl.evstile[i][2][0]
-			#	tra.runs[i].color.green=self.listemsgstr[self.transtabview.Selection()].trnsl.evstile[i][2][1]
-			#	tra.runs[i].color.blue=self.listemsgstr[self.transtabview.Selection()].trnsl.evstile[i][2][2]
-			#	tra.runs[i].color.alpha=self.listemsgstr[self.transtabview.Selection()].trnsl.evstile[i][2][3]
-			#	i+=1
-			#these lines below gives correct fonts & colors but errors on redraw/change of textview
-			runs=[]
-			for i in self.listemsgstr[self.transtabview.Selection()].trnsl.evstile:
-				a=text_run()
-				a.offset=i[0]
-				a.font=i[1]
-				c=rgb_color()
-				c.red=i[2][0]
-				c.green=i[2][1]
-				c.blue=i[2][2]
-				c.alpha=i[2][3]
-				a.color=c
-				runs.append(a)
-			tra.count=len(runs)
-			tra.runs=runs
-			#tra.count=len(self.listemsgstr[self.transtabview.Selection()].trnsl.evstile)
-			#for n,i in enumerate(self.listemsgstr[self.transtabview.Selection()].trnsl.evstile):
-			#	a=text_run()
-			#	a.offset=i[0]
-			#	a.font=i[1]
-			#	a.color.red=i[2][0]
-			#	a.color.green=i[2][1]
-			#	a.color.blue=i[2][2]
-			#	a.color.alpha=i[2][3]
-			#	tra.runs[n]=a
-			#print(tra.runs)
-			
-			self.listemsgstr[self.transtabview.Selection()].trnsl.SetText(self.listemsgstr[self.transtabview.Selection()].trnsl.Text(),tra)	#self.listemsgstr[self.transtabview.Selection()].trnsl.SetText(self.listemsgstr[self.transtabview.Selection()].trnsl.Text(),self.listemsgstr[self.transtabview.Selection()].trnsl.evstile)
-			evstyle.release()
-			self.listemsgstr[self.transtabview.Selection()].trnsl.Select(msg.FindInt32("start"),msg.FindInt32("end"))
-			self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
-			return
+		elif msg.what == 888222:
+			indi=msg.FindInt32('indi')
+			indf=msg.FindInt32('indf')
+			self.listemsgstr[self.transtabview.Selection()].trnsl.Select(indi,indf)
+			self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToOffset(indf)
 		#445380 huge check on older version look at that code
 		BWindow.MessageReceived(self, msg)
 	
