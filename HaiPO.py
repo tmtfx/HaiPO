@@ -391,7 +391,7 @@ class TranslatorComment(BWindow):
 	kWindowName = "Translator comment"
 	
 	#def __init__(self,listindex,indextab,item,encoding):
-	def __init__(self,listindex,item,backupfile,oldsize):
+	def __init__(self,listindex,item,backupfile):#,oldsize):
 		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
 		bounds=self.Bounds()
 		self.backupfile=backupfile
@@ -413,7 +413,7 @@ class TranslatorComment(BWindow):
 		self.listindex=listindex
 		if self.item.tcomment!="":
 			self.tcommentview.SetText(self.item.tcomment,None)#.encode(self.encoding))
-		be_plain_font.SetSize(oldsize)
+		#be_plain_font.SetSize(oldsize)
 		
 	def Save(self):
 		bckpmsg=BMessage(16893)
@@ -583,10 +583,10 @@ class MsgStrItem(BListItem):
 	
 	def __init__(self, msgids,msgstrs,entry,comments,context,state,encoding,plural):
 		if plural:
-			self.text = msgids[0]#.encode(encoding)
-			self.textpl = msgids[1]#.encode(encoding)
+			self.text = msgids[0]
+			self.textpl = msgids[1]
 		else:
-			self.text = msgids#.encode(encoding)
+			self.text = msgids
 		self.comments = comments
 		self.context = context
 		self.msgids = msgids
@@ -601,10 +601,7 @@ class MsgStrItem(BListItem):
 		BListItem.__init__(self)
 
 	def DrawItem(self, owner, frame,complete):
-		#self.frame = frame
-		#complete = True
-		if self.IsSelected() or complete: # 
-			#color = (200,200,200,255)
+		if self.IsSelected() or complete:
 			owner.SetHighColor(200,200,200,255)
 			owner.SetLowColor(200,200,200,255)
 			owner.FillRect(frame)
@@ -671,10 +668,8 @@ class EventTextView(BTextView):
 		self.oldtext=""
 		self.oldtextloaded=False
 		self.tosave=False
-		fin=be_plain_font
-		fin.SetSize(superself.oldsize)
 		color=rgb_color()
-		BTextView.__init__(self,frame,name,textRect,fin,color,resizingMode,flags)
+		BTextView.__init__(self,frame,name,textRect,be_plain_font,color,resizingMode,flags)
 		self.mousemsg=struct.unpack('!l', b'_MMV')[0]
 		self.dragmsg=struct.unpack('!l', b'MIME')[0]
 		self.dragndrop = False
@@ -1038,9 +1033,9 @@ class EventTextView(BTextView):
 			indi,indf=self.GetSelection()
 			ret=True
 			error_font=be_bold_font
-			error_font.SetSize(self.superself.oldsize)
+			#error_font.SetSize(self.superself.oldsize)
 			normal_font=be_plain_font
-			normal_font.SetSize(self.superself.oldsize)
+			#normal_font.SetSize(self.superself.oldsize)
 			error_color=rgb_color()
 			error_color.red=255
 			normal_color=rgb_color()
@@ -1410,13 +1405,12 @@ class CreateUserBox(BBox):
 	lli=[]
 	ali=[]
 	email_regex = re.compile(r"[^@]+@[^@]+\.[^@]+")
-	def __init__(self,frame,oldsize):#,metadata):
+	def __init__(self,frame):
 		BBox.__init__(self,frame,"UserBox",0x0202|0x0404,InterfaceDefs.border_style.B_NO_BORDER)
 		self.frame = frame
 		box=[10,10,frame.right-10,frame.bottom-10]
 		step = 34
 		fon=BFont()
-		be_plain_font.SetSize(oldsize)
 		self.name=BTextControl(BRect(box[0],box[1],box[2],box[1]+fon.Size()),"fullname","Full Name",None,BMessage(152))
 		self.mail=BTextControl(BRect(box[0],box[1]+fon.Size()+step,box[2],box[1]+fon.Size()*2+step),"mail","E-mail",None,BMessage(153))
 		self.lt=BTextControl(BRect(box[0],box[1]+fon.Size()*2+step*2,box[2],box[1]+fon.Size()*3+step*2),"lang_team","Language team",None,BMessage(154))
@@ -1513,9 +1507,6 @@ class LangListItem(BListItem):
 		else:
 			self.iso=None
 			self.txt=self.dn
-		#fon=BFont()
-		#self.font_height_value=font_height()
-		#fon.GetHeight(self.font_height_value)
 		BListItem.__init__(self)
 		
 	def DrawItem(self, owner, frame, complete):
@@ -1529,15 +1520,9 @@ class LangListItem(BListItem):
 			owner.SetHighColor(0,0,0,0)
 		owner.MovePenTo(5,frame.bottom-5)
 		if self.iso==None:
-			#be_bold_font.SetSize(owner.oldsize)
 			owner.SetFont(be_bold_font)
 		else:
-			#be_plain_font.SetSize(owner.oldsize)
 			owner.SetFont(be_plain_font)
-		#if self.unread:
-		#	owner.SetFont(be_bold_font)
-		#else:
-		#	owner.SetFont(be_plain_font)
 		owner.DrawString(self.txt,None)
 		owner.SetLowColor(255,255,255,255)
 
@@ -1945,7 +1930,7 @@ class POmetadata(BWindow):
 	kWindowFrame = BRect(150, 150, 585, 480)
 	kWindowName = "POSettings"
 	
-	def __init__(self,pofile,ordereddata,oldsize):
+	def __init__(self,pofile,ordereddata):
 		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
 		bounds=self.Bounds()
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
@@ -1953,7 +1938,6 @@ class POmetadata(BWindow):
 		self.listBTextControl=[]
 		self.pofile = pofile
 		self.metadata = ordereddata
-		self.oldsize=oldsize
 		self.LoadMe()
 		
 	def LoadMe(self):
@@ -1985,7 +1969,6 @@ class POmetadata(BWindow):
 			
 		for element in self.listBTextControl:
 			self.underframe.AddChild(element,None)
-		be_plain_font.SetSize(self.oldsize)
 	def MessageReceived(self, msg):
 		#if msg.what == 99111: # elaborate pofile
 		#	conta=self.underframe.CountChildren()
@@ -2143,20 +2126,17 @@ class ErrorItem(BListItem):
 class GeneralSettings(BWindow):
 	kWindowFrame = BRect(250, 150, 755, 297)
 	kWindowName = "General Settings"
-	def __init__(self,oldsize):
+	def __init__(self):
 		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
 		bounds=self.Bounds()
 		l=bounds.left
 		t=bounds.top
 		r=bounds.right
 		b=bounds.bottom
-		be_plain_font.SetSize(oldsize)
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(self.underframe,None)
-		#self.encustenc = BCheckBox(BRect(5,49,r-15,74),'customenc', 'Check for custom encoding', BMessage(222))
 		self.langcheck = BCheckBox(BRect(5,79,r-15,104),'langcheck', 'Check language compliance between pofile and user', BMessage(242))
 		self.mimecheck = BCheckBox(BRect(5,109,r-15,134),'mimecheck', 'Check mimetype of file', BMessage(262))
-		#self.underframe.AddChild(self.encustenc)
 		self.underframe.AddChild(self.langcheck,None)
 		self.underframe.AddChild(self.mimecheck,None)
 		ent,confile=Ent_config()
@@ -2767,7 +2747,7 @@ class MainWindow(BWindow):
 		
 		# check user accepted languages
 		#
-		self.overbox=CreateUserBox(self.bckgnd.Frame(),self.oldsize)#,ordmdata)
+		self.overbox=CreateUserBox(self.bckgnd.Frame())
 		self.AddChild(self.overbox,None)
 		self.overbox.Hide()
 		
@@ -3675,7 +3655,7 @@ class MainWindow(BWindow):
 			self.About.Show()
 			return
 		elif msg.what == 40:
-			self.gensettings=GeneralSettings(self.oldsize)
+			self.gensettings=GeneralSettings()
 			self.gensettings.Show()
 			return
 		elif msg.what == 41:
@@ -3690,13 +3670,13 @@ class MainWindow(BWindow):
 				listsel=self.sourcestrings.lv.CurrentSelection()
 				if listsel>-1:
 					thisBlistitem=self.sourcestrings.lv.ItemAt(listsel)
-					self.tcommentdialog=TranslatorComment(listsel,thisBlistitem,self.backupfile,self.oldsize)
+					self.tcommentdialog=TranslatorComment(listsel,thisBlistitem,self.backupfile)#,self.oldsize)
 					self.tcommentdialog.Show()
 			return
 		elif msg.what == 42:
 			# PO metadata
 			if self.sourcestrings.lv.CountItems()>0:
-				self.POMetadata = POmetadata(self.pofile,self.orderedmetadata,self.oldsize)
+				self.POMetadata = POmetadata(self.pofile,self.orderedmetadata)#,self.oldsize)
 				self.POMetadata.Show()
 			return
 		elif msg.what == 43:
