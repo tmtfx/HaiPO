@@ -1410,12 +1410,13 @@ class CreateUserBox(BBox):
 	lli=[]
 	ali=[]
 	email_regex = re.compile(r"[^@]+@[^@]+\.[^@]+")
-	def __init__(self,frame):#,metadata):
+	def __init__(self,frame,oldsize):#,metadata):
 		BBox.__init__(self,frame,"UserBox",0x0202|0x0404,InterfaceDefs.border_style.B_NO_BORDER)
 		self.frame = frame
 		box=[10,10,frame.right-10,frame.bottom-10]
 		step = 34
 		fon=BFont()
+		be_plain_font.SetSize(oldsize)
 		self.name=BTextControl(BRect(box[0],box[1],box[2],box[1]+fon.Size()),"fullname","Full Name",None,BMessage(152))
 		self.mail=BTextControl(BRect(box[0],box[1]+fon.Size()+step,box[2],box[1]+fon.Size()*2+step),"mail","E-mail",None,BMessage(153))
 		self.lt=BTextControl(BRect(box[0],box[1]+fon.Size()*2+step*2,box[2],box[1]+fon.Size()*3+step*2),"lang_team","Language team",None,BMessage(154))
@@ -1528,8 +1529,10 @@ class LangListItem(BListItem):
 			owner.SetHighColor(0,0,0,0)
 		owner.MovePenTo(5,frame.bottom-5)
 		if self.iso==None:
+			#be_bold_font.SetSize(owner.oldsize)
 			owner.SetFont(be_bold_font)
 		else:
+			#be_plain_font.SetSize(owner.oldsize)
 			owner.SetFont(be_plain_font)
 		#if self.unread:
 		#	owner.SetFont(be_bold_font)
@@ -1548,11 +1551,15 @@ class infoTab(BTab):
 		else:
 			fon = be_plain_font
 		#owner.GetFont(fon)
+		oldsize=fon.Size()
 		fon.SetSize(10)
 		owner.SetFont(fon)
 		#owner.SetHighColor(200,200,0,0)
 		#owner.SetLowColor(255,255,255,255)
 		BTab.DrawLabel(self,owner,frame)
+		fon.SetSize(oldsize)
+		owner.SetFont(fon)
+		
 
 class FindRepTrans(BWindow):
 	kWindowFrame = BRect(250, 150, 755, 317)
@@ -2760,7 +2767,7 @@ class MainWindow(BWindow):
 		
 		# check user accepted languages
 		#
-		self.overbox=CreateUserBox(self.bckgnd.Frame())#,ordmdata)
+		self.overbox=CreateUserBox(self.bckgnd.Frame(),self.oldsize)#,ordmdata)
 		self.AddChild(self.overbox,None)
 		self.overbox.Hide()
 		
@@ -3673,6 +3680,9 @@ class MainWindow(BWindow):
 			return
 		elif msg.what == 41:
 			#USER SETTINGS
+			self.bckgnd.Hide()
+			self.overbox.Show()
+			self.overbox.BtnCancel.Hide()
 			pass #TODO
 		elif msg.what == 53:#32:
 			#Double clic = translator comment
@@ -3888,7 +3898,6 @@ class MainWindow(BWindow):
 			elif savetype == 3:
 				tvindex=msg.FindInt32('tvindex')
 				textsave=msg.FindString('tcomment')
-				#intscheda=msg.FindInt32('tabview') #TODO Rimuovere non ci sono più multipli file aperti
 				self.writter.acquire()
 				entry = self.sourcestrings.lv.ItemAt(tvindex).entry
 				entry.tcomment=textsave
