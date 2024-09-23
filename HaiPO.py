@@ -808,7 +808,6 @@ class EventTextView(BTextView):
 	def KeyDown(self,char,bytes):
 		try:
 			ochar=ord(char)
-			print(ochar,B_PAGE_DOWN)
 			if ochar in (B_DOWN_ARROW,B_UP_ARROW,10,B_PAGE_UP,B_PAGE_DOWN,10,49,50,51,52,53): #B_ENTER =10?
 				self.superself.sem.acquire()
 				value=self.superself.modifier #CTRL pressed
@@ -1001,10 +1000,9 @@ class EventTextView(BTextView):
 							be_app.WindowAt(0).PostMessage(33)
 							return
 
-
 					BTextView.KeyDown(self,char,bytes)
 					if self.oldtext != self.Text():
-						thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self	.superself.sourcestrings.lv.CurrentSelection())
+						thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
 						thisBlistitem.tosave=True
 						tabs=len(self.superself.listemsgstr)-1
 						if tabs == 0:
@@ -1018,7 +1016,6 @@ class EventTextView(BTextView):
 								thisBlistitem.txttosavepl.append(self.superself.listemsgstr[cox].trnsl.Text())
 								cox+=1
 						self.tosave=True  # This says you should save the string before proceeding the same for blistitem.tosave doublecheck
-
 						be_app.WindowAt(0).PostMessage(333111)
 					return
 		except:
@@ -1037,6 +1034,7 @@ class EventTextView(BTextView):
 		
 	def CheckSpell(self):
 		try:
+			txt=self.Text()
 			indi,indf=self.GetSelection()
 			ret=True
 			error_font=be_bold_font
@@ -1052,7 +1050,7 @@ class EventTextView(BTextView):
 			TXT_ARR[-1].font=normal_font
 			TXT_ARR[-1].color=normal_color
 			
-			txt=self.Text()
+			
 			newarr=[]
 			txtarr=get_all_splits(txt)
 			for w in txtarr:
@@ -1085,12 +1083,12 @@ class EventTextView(BTextView):
 
 			my_txt_run_arr=BTextView.AllocRunArray(len(TXT_ARR))
 			my_txt_run_arr.runs=TXT_ARR
-			self.SetText(self.Text(),my_txt_run_arr)
+			self.SetText(txt,my_txt_run_arr)#self.Text(),my_txt_run_arr)
 			self.Select(indi,indf)
 			return ret
 		except:
 			#be_app.WindowAt(0).PostMessage(12343)
-			pass
+			return None
 		#return ret
 def find_byte(lookf,looka,offset=0):
 	retc=looka.find(lookf,offset)
@@ -2493,6 +2491,7 @@ class MainWindow(BWindow):
 		self.drop = threading.Semaphore()
 		self.sem = threading.Semaphore()
 		self.modifier=False
+		self.shortcut=False
 		self.poview=[True,True,True,False]
 		fon=BFont()
 		self.oldsize=be_plain_font.Size()
@@ -3718,9 +3717,11 @@ class MainWindow(BWindow):
 				if taft > self.t1:
 					if len(self.listemsgstr)>0:
 						traduzion=self.listemsgstr[self.transtabview.Selection()].trnsl.Text()
+						print("traduzione da controllare:",traduzion)
 						if traduzion != "":
-							be_app.WindowAt(0).PostMessage(12343)
+							be_app.WindowAt(0).PostMessage(12343)# TODO EVALUATE: usare 333111 sempre in modo da richiamare questo?
 				self.t1 = time.time()
+			print("poi")
 			self.indsteps+=1
 			if self.indsteps == len(self.steps):
 				self.indsteps=0
@@ -3847,7 +3848,6 @@ class MainWindow(BWindow):
 
 
 				tvindex=msg.FindInt32('tvindex')
-				print(tvindex)
 				textsave=msg.FindString('translation')
 				tabbi=msg.FindInt8('plurals')
 				#intscheda=msg.FindInt32('tabview') #TODO rimuovere usato per multipli po files aperti
@@ -4314,7 +4314,9 @@ class MainWindow(BWindow):
 			if indexBlistitem == self.sourcestrings.lv.CurrentSelection():
 				if self.listemsgstr[self.transtabview.Selection()].trnsl.oldtext != self.listemsgstr[self.transtabview.Selection()].trnsl.Text():  ### o è meglio controllare nel caso di plurale tutti gli eventtextview?
 					self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
+			self.speloc.acquire()
 			self.intime=time.time()
+			self.speloc.release()
 			return
 		elif msg.what == 130550: # change listview selection
 			#"changing selection"
