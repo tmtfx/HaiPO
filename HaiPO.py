@@ -729,75 +729,68 @@ class EventTextView(BTextView):
 			self.event.wait(0.1)
 			be_app.WindowAt(0).PostMessage(mes)
 
+#	def MouseDown(self,point):
+#		self.superself.sem.acquire()
+#		self.mod=self.superself.modifier
+#		self.superself.sem.release()
+#		return BTextView.MouseDown(self,point)
 
 	def MouseUp(self,point):
 		self.superself.drop.acquire()
 		if self.dragndrop:
-			#cursel=self.superself.postabview.Selection()
-			#selection=self.superself.editorslist[cursel]
 			indexBlistitem=self.superself.sourcestrings.lv.CurrentSelection()
 			name=time.time()
 			BTextView.MouseUp(self,point)
 			Thread(target=self.checklater,args=(str(name), self.Text(),indexBlistitem)).start()
-			#thread.start_new_thread( self.checklater, (str(name), self.Text(),cursel,indexBlistitem,) )
 			self.dragndrop = False
 			self.superself.drop.release()
 			return
 		self.superself.drop.release()
 		if showspell:
-			ubi1,ubi2=self.GetSelection()
-			if ubi1 == ubi2:
-				(ubi1,ubi2)= self.FindWord(ubi1)
-			perau = self.Text()[ubi1:ubi2]
-			if len(self.analyzetxt)>0:
-				for item in self.analyzetxt:
-					if item.word == perau:
-						menus=[]
-						sut=len(item.sugg)
-						ru=0
-						while ru <sut:
-							menus.append((ru, item.sugg[ru]))
-							ru+=1
-						self.pop = BPopUpMenu('popup')
-						for aelem in menus:
-							msz = BMessage(9631)
-							msz.AddInt16('index',aelem[0])
-							msz.AddString('sugg',aelem[1])
-							msz.AddString('sorig',perau)
-							msz.AddInt32('indi',ubi1)
-							msz.AddInt32('indf',ubi2)
-							self.pop.AddItem(BMenuItem(aelem[1], msz," ",0))
-						pointo=self.PointAt(ubi2)
-						self.ConvertToScreen(pointo[0])#overwrites pointo[0] with screen BPoint values
-						x = self.pop.Go(pointo[0], True,False,False)
-						if x:
-							self.superself.Looper().PostMessage(x.Message())
-					else:
-						fres= perau.find(item.word)
-						if fres>-1:
-							menus=[]
-							sut=len(item.sugg)
-							ru=0
-							while ru <sut:
-								menus.append((ru, item.sugg[ru]))
-								ru+=1
-							self.pop = BPopUpMenu('popup')
-							for aelem in menus:
-								msz = BMessage(9631)
-								msz.AddInt16('index',aelem[0])
-								msz.AddString('sugg',aelem[1])
-								msz.AddString('sorig',perau[:fres])
-								msz.AddInt32('indi',ubi1+fres)
-								msz.AddInt32('indf',ubi1+fres+len(item.word))
-								self.pop.AddItem(BMenuItem(aelem[1], msz," ",0))	
-							pointo=self.PointAt(ubi1+fres+len(item.word))
-							self.ConvertToScreen(pointo[0])#overwrites pointo[0] with screen BPoint values
-							x = self.pop.Go(pointo[0], True,False,False)
-							if x:
-								self.superself.Looper().PostMessage(x.Message())
-			#else:
-				#print "there's no analyzetxt"
-
+			self.superself.sem.acquire()
+			self.mod=self.superself.modifier
+			self.superself.sem.release()
+			if self.mod:
+				self.superself.sem.acquire()
+				self.superself.modifier=False
+				self.superself.sem.release()
+				ubi1,ubi2=self.GetSelection()
+				if ubi1 == ubi2:
+					(ubi1,ubi2)= self.FindWord(ubi1)
+				tot,bc=byte_count(self.Text())
+				i=0
+				counted=0
+				perau=""
+				#risali a posizione parola in base a bytes (ubi1 e ubi2 sono offsets in bytes)
+				while i<len(bc):
+					if counted>ubi1-1 and counted<ubi2+1:
+						perau=perau+bc[i][0]
+					counted+=bc[i][1]
+					if counted>ubi2:
+						break
+					i+=1
+				if perau!="":
+					sugg=self.superself.spellchecker.suggest(perau)
+					menus=[]
+					sut=len(sugg)
+					ru=0
+					while ru <sut:
+						menus.append((ru, sugg[ru]))
+						ru+=1
+					self.pop = BPopUpMenu('popup')
+					for aelem in menus:
+						msz = BMessage(9631)
+						msz.AddInt16('index',aelem[0])
+						msz.AddString('sugg',aelem[1])
+						msz.AddString('sorig',perau)
+						msz.AddInt32('indi',ubi1)
+						msz.AddInt32('indf',ubi2)
+						self.pop.AddItem(BMenuItem(aelem[1], msz," ",0))
+					pointo=self.PointAt(ubi2)
+					self.ConvertToScreen(pointo[0])#overwrites pointo[0] with screen BPoint values
+					x = self.pop.Go(pointo[0], True,False,False)
+					if x:
+						self.superself.Looper().PostMessage(x.Message())
 		return BTextView.MouseUp(self,point)
 
 	def MessageReceived(self, msg):
@@ -1066,9 +1059,7 @@ class EventTextView(BTextView):
 		
 		
 	def CheckSpell(self):
-		from Be.TextView import create_text_run,create_text_run_array
-		#l=[chr for chr in self.Text()]
-		#print(esclusion)
+		ret=True
 		error_font=be_bold_font
 		error_font.SetSize(self.superself.oldsize)
 		normal_font=be_plain_font
@@ -1083,21 +1074,13 @@ class EventTextView(BTextView):
 		TXT_ARR[-1].color=normal_color
 		
 		txt=self.Text()
-		#sptext=txt.split()
-		
-		#y=1
 		newarr=[]
-		#if len(sptext)>1:
-		byte_offset=0
 		txtarr=get_all_splits(txt)
-		#print(txtarr)
 		for w in txtarr:
 			if w[0]:
 				parola=w[1]
 				l=[chr for chr in parola]
-#			nl=[]
 				for n,c in enumerate(l):
-#				#nl.append((n,c,unicodedata.category(c)))
 					if c in inclusion:
 						pass #è un carattere da accettare
 					else:
@@ -1110,9 +1093,8 @@ class EventTextView(BTextView):
 								w=(w[0],w[1],newvalue,w[3])
 							else:
 								parola=parola[:n]+" "+parola[n+1:]
-				#TODO, analizzare caratteri e rimuovere punteggiatura o includere caratteri
-				#prima di controllare l'ortografia
 				if not self.superself.spellchecker.check(parola):
+					ret=False
 					TXT_ARR.append(text_run())
 					TXT_ARR[-1].offset=w[3]
 					TXT_ARR[-1].font=error_font
@@ -1121,13 +1103,11 @@ class EventTextView(BTextView):
 					TXT_ARR[-1].offset=w[3]+w[2]
 					TXT_ARR[-1].font=normal_font
 					TXT_ARR[-1].color=normal_color
-				
-		#my_txt_run_arr=create_text_run_array()
+
 		my_txt_run_arr=BTextView.AllocRunArray(len(TXT_ARR))
-		#my_txt_run_arr=text_run_array()
-		#my_txt_run_arr.count=len(TXT_ARR)
 		my_txt_run_arr.runs=TXT_ARR
 		self.SetText(self.Text(),my_txt_run_arr)
+		return ret
 #		print(TXT_ARR)
 			
 		#i=0
@@ -2910,6 +2890,7 @@ class MainWindow(BWindow):
 		bckgnd_bounds=self.bckgnd.Bounds()
 		self.drop = threading.Semaphore()
 		self.sem = threading.Semaphore()
+		self.modifier=False
 		self.poview=[True,True,True,False]
 		fon=BFont()
 		self.oldsize=be_plain_font.Size()
@@ -4161,7 +4142,10 @@ class MainWindow(BWindow):
 				self.Looper().Lock()
 				if True:
 				#try:
-					self.listemsgstr[self.transtabview.Selection()].trnsl.CheckSpell()
+					if self.listemsgstr[self.transtabview.Selection()].trnsl.CheckSpell():
+						be_app.WindowAt(0).PostMessage(735157)
+					else:
+						be_app.WindowAt(0).PostMessage(982757)
 				#except:
 				#	pass
 				self.Looper().Unlock()
@@ -5209,7 +5193,7 @@ class App(BApplication):
 			e = msg.FindString("name")
 			messaggio = BMessage(54173)
 			messaggio.AddString("name",e)
-			BApplication.be_app.WindowAt(0).PostMessage(messaggio)
+			be_app.WindowAt(0).PostMessage(messaggio)
 			return
 		BApplication.MessageReceived(self,msg)
 	def Pulse(self):
