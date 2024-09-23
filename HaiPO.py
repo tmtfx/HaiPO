@@ -421,7 +421,7 @@ class TranslatorComment(BWindow):
 		bckpmsg.AddInt8('savetype',3)
 		bckpmsg.AddInt32('tvindex',self.listindex)
 		#bckpmsg.AddInt32('tabview',self.indextab)
-		bckpmsg.AddString('tcomment',str(self.item.tcomment))#.encode(self.encoding)))#.decode(self.encoding)) ################### TODO verificare se va bene encode utf-8
+		bckpmsg.AddString('tcomment',str(self.item.tcomment))
 		bckpmsg.AddString('bckppath',self.backupfile)
 		be_app.WindowAt(0).PostMessage(bckpmsg)
 		
@@ -1036,58 +1036,69 @@ class EventTextView(BTextView):
 		self.tosave=False
 		
 	def CheckSpell(self):
-		indi,indf=self.GetSelection()
-		ret=True
-		error_font=be_bold_font
-		error_font.SetSize(self.superself.oldsize)
-		normal_font=be_plain_font
-		normal_font.SetSize(self.superself.oldsize)
-		error_color=rgb_color()
-		error_color.red=255
-		normal_color=rgb_color()
-		
-		TXT_ARR=[text_run()]
-		TXT_ARR[-1].offset=0
-		TXT_ARR[-1].font=normal_font
-		TXT_ARR[-1].color=normal_color
-		
-		txt=self.Text()
-		newarr=[]
-		txtarr=get_all_splits(txt)
-		for w in txtarr:
-			if w[0]:
-				parola=w[1]
-				l=[chr for chr in parola]
-				for n,c in enumerate(l):
-					if c in inclusion:
-						pass #è un carattere da accettare
-					else:
-						if unicodedata.category(c) in esclusion:
-							if n+1==len(parola):
-								eliso=parola[n:]
-								t,lc=byte_count(eliso)
-								parola=parola[:n]
-								newvalue=w[2]-t
-								w=(w[0],w[1],newvalue,w[3])
-							else:
-								parola=parola[:n]+" "+parola[n+1:]
-				if not self.superself.spellchecker.check(parola):
-					ret=False
-					TXT_ARR.append(text_run())
-					TXT_ARR[-1].offset=w[3]
-					TXT_ARR[-1].font=error_font
-					TXT_ARR[-1].color=error_color
-					TXT_ARR.append(text_run())
-					TXT_ARR[-1].offset=w[3]+w[2]
-					TXT_ARR[-1].font=normal_font
-					TXT_ARR[-1].color=normal_color
+		try:
+			indi,indf=self.GetSelection()
+			ret=True
+			error_font=be_bold_font
+			error_font.SetSize(self.superself.oldsize)
+			normal_font=be_plain_font
+			normal_font.SetSize(self.superself.oldsize)
+			error_color=rgb_color()
+			error_color.red=255
+			normal_color=rgb_color()
+			
+			TXT_ARR=[text_run()]
+			TXT_ARR[-1].offset=0
+			TXT_ARR[-1].font=normal_font
+			TXT_ARR[-1].color=normal_color
+			
+			txt=self.Text()
+			newarr=[]
+			txtarr=get_all_splits(txt)
+			for w in txtarr:
+				if w[0]:
+					parola=w[1]
+					l=[chr for chr in parola]
+					for n,c in enumerate(l):
+						if c in inclusion:
+							pass #è un carattere da accettare
+						else:
+							if unicodedata.category(c) in esclusion:
+								if n+1==len(parola):
+									eliso=parola[n:]
+									t,lc=byte_count(eliso)
+									parola=parola[:n]
+									newvalue=w[2]-t
+									w=(w[0],w[1],newvalue,w[3])
+								else:
+									parola=parola[:n]+" "+parola[n+1:]
+					if not self.superself.spellchecker.check(parola):
+						ret=False
+						TXT_ARR.append(text_run())
+						TXT_ARR[-1].offset=w[3]
+						TXT_ARR[-1].font=error_font
+						TXT_ARR[-1].color=error_color
+						TXT_ARR.append(text_run())
+						TXT_ARR[-1].offset=w[3]+w[2]
+						TXT_ARR[-1].font=normal_font
+						TXT_ARR[-1].color=normal_color
 
-		my_txt_run_arr=BTextView.AllocRunArray(len(TXT_ARR))
-		my_txt_run_arr.runs=TXT_ARR
-		self.SetText(self.Text(),my_txt_run_arr)
-		self.Select(indi,indf)
-		return ret
-
+			my_txt_run_arr=BTextView.AllocRunArray(len(TXT_ARR))
+			my_txt_run_arr.runs=TXT_ARR
+			self.SetText(self.Text(),my_txt_run_arr)
+			self.Select(indi,indf)
+			return ret
+		except:
+			#be_app.WindowAt(0).PostMessage(12343)
+			pass
+		#return ret
+def find_byte(lookf,looka,offset=0):
+	retc=looka.find(lookf,offset)
+	if retc>-1:
+		trunc=looka[:retc]
+		return byte_count(trunc)[0]
+	else:
+		return -1
 def byte_count(stringa, encoding='utf-8'):
 		byte_counts = []
 		start = 0
@@ -1107,6 +1118,7 @@ def is_text_before_first(text,word):
 		return(False,"")
 	else:
 		return(True,text[:r])
+
 def get_all_splits(text):
 	words = text.split()
 	newarr=[]
@@ -1634,7 +1646,8 @@ class FindRepTrans(BWindow):
 				deltamsg.AddFloat('delta',applydelta)
 				#be_app.WindowAt(self.thiswindow).PostMessage(deltamsg)
 				self.PostMessage(deltamsg)
-				tl = len(self.looktv.Text())
+				#tl = len(self.looktv.Text())
+				tl = byte_count(self.looktv.Text())[0]
 				max = total
 				now = indaco
 				lastvalue=now
@@ -1656,8 +1669,10 @@ class FindRepTrans(BWindow):
 							if self.casesens.Value():
 								if blister.hasplural:
 									for ident,items in enumerate(blister.msgstrs):#enumerate(values):
+										# TODO ERR: find ritorna la posizione del carattere non del byte
+										ret=find_byte(self.looktv.Text(),items)
 										#ret = items.encode(self.encoding).find(self.looktv.Text())
-										ret = items.find(self.looktv.Text())
+										#ret = items.find(self.looktv.Text())
 										if ret >-1:
 											scrollmsg.AddInt32("where",now)
 											be_app.WindowAt(0).PostMessage(scrollmsg)
@@ -1672,8 +1687,9 @@ class FindRepTrans(BWindow):
 											self.ef=ret+tl
 											break
 								else:
-									#ret = blister.msgstrs.encode(self.encoding).find(self.looktv.Text())
-									ret = blister.msgstrs.find(self.looktv.Text())
+									# TODO ERR: find ritorna la posizione del carattere non del byte
+									ret=find_byte(self.looktv.Text(),blister.msgstrs)	
+									#ret = blister.msgstrs.find(self.looktv.Text())
 									if ret >-1:
 										#lista.Select(now)
 										scrollmsg.AddInt32("where",now)
@@ -1744,7 +1760,7 @@ class FindRepTrans(BWindow):
 				repmsg=BMessage(10241)
 				repmsg.AddInt16("ei",self.ei)
 				repmsg.AddInt16("ef",self.ef)
-				repmsg.AddString("subs",self.reptv.Text())#.encode('utf-8'))
+				repmsg.AddString("subs",self.reptv.Text())
 				be_app.WindowAt(0).PostMessage(repmsg)
 				#wt=listar[BApplication.be_app.WindowAt(0).transtabview.Selection()].trnsl#.Text()
 				#wt.Delete(self.ei,self.ef)
@@ -2453,7 +2469,7 @@ class HeaderWindow(BWindow):
 			return BWindow.MessageReceived(self, msg)
 
 class MainWindow(BWindow):
-	iwheel=0
+	#iwheel=0
 	alerts=[]
 	Menus = (
 		('File', ((295485, 'Open'), (2, 'Save'), (1, 'Close'), (5, 'Save as...'),(None, None),(B_QUIT_REQUESTED, 'Quit'))),
@@ -2480,15 +2496,6 @@ class MainWindow(BWindow):
 		self.poview=[True,True,True,False]
 		fon=BFont()
 		self.oldsize=be_plain_font.Size()
-		#perc=BPath()
-		#find_directory(directory_which.B_USER_NONPACKAGED_DATA_DIRECTORY,perc,False,None)
-		#datapath=BDirectory(perc.Path()+"/HaiPO2")
-		#ent=BEntry(datapath,perc.Path()+"/HaiPO2")
-		#if not ent.Exists():
-		#	datapath.CreateDirectory(perc.Path()+"/HaiPO2", datapath)
-		#ent.GetPath(perc)
-		#confile=BPath(perc.Path()+'/config.ini',None,False)
-		#ent=BEntry(confile.Path())
 		ent,confile=Ent_config()
 		global tm,tmxsrv,tmxprt,tmsocket,showspell,comm,esclusion,inclusion
 		showspell = False
@@ -2577,45 +2584,12 @@ class MainWindow(BWindow):
 				Config.write(cfgfile)
 				cfgfile.close()
 				setspellcheck=False
-			# try:
-				# resu=ConfigSectionMap("Timer")['enabled']
-				# if resu == "True":
-					# self.enabletimer= True
-				# else:
-					# self.enabletimer=False
-			# except:
-				# cfgfile = open(confile,'w')
-				# Config.add_section('Timer')
-				# Config.set('Timer','enabled', "False")
-				# Config.set('Timer','timer', "300000000")
-				# self.timer=300000000
-				# self.enabletimer=False
-				# Config.write(cfgfile)
-				# cfgfile.close()
-				# Config.read(confile)
-			# if self.enabletimer:
-				# try:
-					# self.timer=int(ConfigSectionMap("Timer")['timer'])
-				# except:
-					# cfgfile = open(confile,'w')
-					# Config.set('Timer','timer', "300000000")
-					# self.timer=300000000
-					# Config.write(cfgfile)
-					# cfgfile.close()
-					# Config.read(confile)
-				# be_app.SetPulseRate(self.timer)
 		else:
 			#no file
 			cfgfile = open(confile,'w')
 			Config.add_section('General')
 			Config.set('General','sort', "0")
-			#Config.add_section('Timer')
-			#Config.set('Timer','enabled', "False")
-			#Config.set('Timer','timer', "300000000")
 			self.sort=0
-			#self.startmin=False
-			#self.enabletimer=False
-			#self.timer=300000000
 			Config.write(cfgfile)
 			cfgfile.close()
 			Config.read(confile)
@@ -2624,7 +2598,6 @@ class MainWindow(BWindow):
 			showspell=True
 			try:
 				global inclusion,esclusion
-				#usero=ConfigSectionMap("Translator")['default']
 				try:
 					inctxt=ConfigSectionMap("Translator")['spell_inclusion']
 					inclusion = inctxt.split(",")
@@ -2655,20 +2628,6 @@ class MainWindow(BWindow):
 				spelldict="/system/data/hunspell/en_US"
 				inclusion = []
 				esclusion = ["Pc","Pd","Pe","Pi","Po","Ps","Cc","Pf"]
-			#try:
-			#	exe=ConfigSectionMap("General")['spell_path']
-			#except:
-			#	#TODO in base ad architettura scegliere l'eseguibile
-			#	exe = "hunspell"#"hunspell-x86"
-			#	cfgfile = open(confile,'w')
-			#	Config.set("General",'spell_path', find_executable("hunspell"))
-			#	Config.write(cfgfile)
-			#	cfgfile.close()
-			#if setencoding:
-			#	comm = [exe,'-i',encoding,'-d',spelldict]
-			#else:
-			#	comm = [exe,'-d',spelldict]
-			#comm = [exe,'-d',spelldict]
 			ento=BEntry(spelldict+".dic")
 			if ento.Exists():
 				pth=BPath()
@@ -2687,33 +2646,7 @@ class MainWindow(BWindow):
 		self.ofp.SetPanelDirectory(osdir)
 		self.bar = BMenuBar(bckgnd_bounds, 'Bar')
 		x, barheight = self.bar.GetPreferredSize()
-		self.viewarr = []
-		#for menu, items in self.Menus:
-		#	menu = BMenu(menu)
-		#	for k, name in items:
-		#		if k is None:
-		#				menu.AddItem(BSeparatorItem())
-		#		else:
-		#				mitm=BMenuItem(name, BMessage(k), name[1],0)
-		#				if name == "Fuzzy":
-		#					if self.sort == 0:
-		#						mitm.SetMarked(True)
-		#					self.viewarr.append(mitm)
-		#				elif name == "Untranslated":
-		#					if self.sort == 1:
-		#						mitm.SetMarked(True)
-		#					self.viewarr.append(mitm)
-		#				elif name == "Translated":
-		#					if self.sort == 2:
-		#						mitm.SetMarked(True)
-		#					self.viewarr.append(mitm)
-		#				elif name == "Obsolete":
-		#					if self.sort == 3:
-		#						mitm.SetMarked(True)
-		#					self.viewarr.append(mitm)
-		#				menu.AddItem(mitm)
-		#	self.bar.AddItem(menu)
-		
+		self.viewarr = []		
 		for menu, items in self.Menus:
 			if menu == "View":
 				savemenu=True
@@ -2763,17 +2696,6 @@ class MainWindow(BWindow):
 		self.listemsgid.append(self.sourcebox)
 		self.srctablabels.append(BTab(None))
 		self.srctabview.AddTab(self.listemsgid[0], self.srctablabels[0])
-		# creare scheda con 
-		# scheda=BTab(None)
-		# scheda2=BTab(None)
-		# self.tabslabels.append(scheda)
-		# self.tabslabels.append(scheda2)
-		# self.tabslabels=[]
-		# self.tabsviews=[]
-		# self.tabsviews.append(self.panel) <- BView
-		# self.tabsviews.append(self.panel2) <- BView
-		# self.maintabview.AddTab(self.tabsviews[0],self.tabslabels[0])
-		# self.maintabview.AddTab(self.tabsviews[1],self.tabslabels[1])
 		self.transbox=trnsltabbox(tabrc2,'msgstr',altece,self)
 		self.listemsgstr.append(self.transbox)
 		self.transtablabels.append(BTab(None))
@@ -2797,15 +2719,10 @@ class MainWindow(BWindow):
 		self.tmscrollsugj=ScrollSugj(BRect(self.upperbox.Bounds().right*2/3+4,4,self.upperbox.Bounds().right-4,self.upperbox.Bounds().bottom-59), 'ScrollSugj')
 		
 		if showspell:
-			fo=BFont()
-			self.upperbox.GetFont(fo)
-			fo.SetSize(28)
-			l=fo.StringWidth("  ˺")
-			rectspellab=BRect(self.upperbox.Bounds().right*2/3+4,self.upperbox.Bounds().bottom-80,self.upperbox.Bounds().right*2/3+l+4,self.upperbox.Bounds().bottom-4)
-			self.spellabel= BStringView(rectspellab,"spellabel","",B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM)
-			self.upperbox.AddChild(self.spellabel,None)
-			#thread.start_new_thread( self.speloop, () )
-			#Thread(target=self.speloop,args=()).start()
+			#fo=BFont()
+			#self.upperbox.GetFont(fo)
+			#fo.SetSize(28)
+			#l=fo.StringWidth("  ˺")
 			rectcksp=BRect(self.upperbox.Bounds().right-55,self.upperbox.Bounds().bottom-55,self.upperbox.Bounds().right-4,self.upperbox.Bounds().bottom-4)
 			insetcksp=BRect(0,0,rectcksp.Width(),rectcksp.Height())
 			insetcksp.InsetBy(5,5)
@@ -2817,6 +2734,11 @@ class MainWindow(BWindow):
 			self.checkres.SetFontAndColor(self.font,set_font_mask.B_FONT_ALL,nocolor)
 			self.checkres.SetText("☐",None)
 			self.checkres.MakeEditable(False)
+			l=self.font.StringWidth("  ˺")
+			rectspellab=BRect(self.upperbox.Bounds().right*2/3+4,self.upperbox.Bounds().bottom-80,self.upperbox.Bounds().right*2/3+l+10,self.upperbox.Bounds().bottom-4)
+			self.spellabel= BStringView(rectspellab,"spellabel","",B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM)
+			self.spellabel.SetFont(self.font)
+			self.upperbox.AddChild(self.spellabel,None)
 			self.upperbox.AddChild(self.checkres,None)
 		else:
 			fo=BFont()
@@ -2875,17 +2797,10 @@ class MainWindow(BWindow):
 		while i < len(self.listemsgs):
 			self.msgstabview.AddTab(self.listemsgs[i], self.msgstablabels[i])
 			i+=1
-		#for i in self.msgstablabels:
-		#	print(type(i))
-		#br=self.infobox.Bounds()
-		#self.scrollbtabs=BScrollBar(BRect(5,br.bottom-25,br.right-5,br.bottom-5),'tabview_ScrollBar',self.msgstabview,0.0,200.0,orientation.B_HORIZONTAL)
 		
 		self.msgstabview.SetTabSide(tab_side.kBottomSide)
 		self.infobox.AddChild(self.msgstabview,None)
-		#self.infobox.AddChild(self.scrollbtabs,None)
 		self.msgstabview.Select(2)
-		#self.msgstabview.Select(0)
-		#print(arg)
 		self.writter = threading.Semaphore()
 		self.netlock=threading.Semaphore()
 		if arg!="":
@@ -2916,11 +2831,11 @@ class MainWindow(BWindow):
 			
 	def FrameResized(self,x,y):	
 		resiz=False
-		if x<1022:#4:
-			x=1022#4
+		if x<1022:
+			x=1022
 			resiz=True
-		if y<704:#768:
-			y=704#768
+		if y<704:
+			y=704
 			resiz=True
 		if resiz:
 			self.ResizeTo(x,y)
@@ -3774,33 +3689,11 @@ class MainWindow(BWindow):
 			if self.sourcestrings.lv.CountItems()>0:
 				self.POMetadata = POmetadata(self.pofile,self.orderedmetadata,self.oldsize)
 				self.POMetadata.Show()
-
-				#self.POMetadata.pofile = self.pofile
-				#self.POMetadata.orderedmetadata = self.orderedmetadata
-				#self.POMetadata.LoadMe()
-				#i = 1
-				#w = be_app.CountWindows()
-				#print("numero finestre:",w)
-				##self.Looper().Lock()
-				#thiswindow=-1
-				#while w > i:
-				#	print("controllo {0} di {1}".format(i, w))
-				#	c=be_app.WindowAt(i)
-				#	if type(c)==BWindow:
-				#		if c.Title()=="POSettings":
-				#			thiswindow=i
-				#			break
-				#	i+=1
-				##self.Looper().Unlock()
-				#if thiswindow>-1:
-				#	be_app.WindowAt(thiswindow).PostMessage(99111)
-				#else:
-				#	print("error")
 			return
 		elif msg.what == 43:
 			#Po header
 			if self.sourcestrings.lv.CountItems()>0:
-				self.HeaderWindow = HeaderWindow(self.pofile,self.backupfile,self.oldsize)#self.encoding)
+				self.HeaderWindow = HeaderWindow(self.pofile,self.backupfile,self.oldsize)
 				self.HeaderWindow.Show()
 			return
 		elif msg.what == 44:
@@ -3812,7 +3705,6 @@ class MainWindow(BWindow):
 			self.tmset = TMSettings()
 			self.tmset.Show()
 		elif msg.what == 66:
-			
 			self.speloc.acquire()
 			tbef = self.intime
 			self.speloc.release()
@@ -3827,17 +3719,11 @@ class MainWindow(BWindow):
 					if len(self.listemsgstr)>0:
 						traduzion=self.listemsgstr[self.transtabview.Selection()].trnsl.Text()
 						if traduzion != "":
-							print("lancio controllo ortografico")
 							be_app.WindowAt(0).PostMessage(12343)
 				self.t1 = time.time()
 			self.indsteps+=1
 			if self.indsteps == len(self.steps):
 				self.indsteps=0
-			# wheel-alive
-			#self.iwheel+=1
-			#if self.iwheel==4:
-			#	self.iwheel=0
-			#SetText(self.steps[self.iwheel])
 			return
 		elif msg.what == 70:
 			# Done and next
@@ -4009,10 +3895,10 @@ class MainWindow(BWindow):
 			elif savetype == 3:
 				tvindex=msg.FindInt32('tvindex')
 				textsave=msg.FindString('tcomment')
-				intscheda=msg.FindInt32('tabview') #TODO Rimuovere non ci sono più multipli file aperti
+				#intscheda=msg.FindInt32('tabview') #TODO Rimuovere non ci sono più multipli file aperti
 				self.writter.acquire()
 				entry = self.sourcestrings.lv.ItemAt(tvindex).entry
-				entry.tcomment=textsave#.decode(self.encoding) ##### TODO should be passed scheda.encodo as above
+				entry.tcomment=textsave
 				self.pofile.metadata['Last-Translator']=defname
 				self.pofile.metadata['PO-Revision-Date']=now
 				self.pofile.metadata['X-Editor']=version
@@ -4025,7 +3911,7 @@ class MainWindow(BWindow):
 				return
 			elif savetype == 4:
 				textsave=msg.FindString('header')
-				intscheda=msg.FindInt32('tabview') # TODO rimuovere non ci sono più multipli file aperti
+				#intscheda=msg.FindInt32('tabview') # TODO rimuovere non ci sono più multipli file aperti
 				self.writter.acquire()
 				self.pofile.header=textsave
 				self.pofile.metadata['Last-Translator']=defname
@@ -4533,7 +4419,7 @@ class MainWindow(BWindow):
 			ef=msg.FindInt16("ef")
 			test=msg.FindString("subs")
 			self.listemsgstr[self.transtabview.Selection()].trnsl.Delete(ei,ef)
-			self.listemsgstr[self.transtabview.Selection()].trnsl.Insert(ei,test)
+			self.listemsgstr[self.transtabview.Selection()].trnsl.Insert(ei,test,byte_count(test)[0],None)
 			self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
 			be_app.WindowAt(0).PostMessage(12343)
 			return
