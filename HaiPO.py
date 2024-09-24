@@ -1076,9 +1076,13 @@ class EventTextView(BTextView):
 						TXT_ARR[-1].font=normal_font
 						TXT_ARR[-1].color=normal_color
 
-			my_txt_run_arr=BTextView.AllocRunArray(len(TXT_ARR))
-			my_txt_run_arr.runs=TXT_ARR
-			self.SetText(txt,my_txt_run_arr)#self.Text(),my_txt_run_arr)
+			#Method 1: Maybe this creates memory leaks as my_txt_run_arr is not freed/destroyed?
+			#my_txt_run_arr=BTextView.AllocRunArray(len(TXT_ARR))
+			#my_txt_run_arr.runs=TXT_ARR
+			#self.SetText(txt,my_txt_run_arr)
+			#Method 2: Implemented in Haiku-PyAPI side text_run_array is automatically set and destroyed within SetText function
+			self.SetText(txt,TXT_ARR)
+			
 			self.Select(indi,indf)
 			return ret
 		except:
