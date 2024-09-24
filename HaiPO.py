@@ -70,7 +70,11 @@ def startinserting(stile,errors):
 			stile.append(((er.pos+len(er.word)), be_plain_font, (0,0,0,0)))
 	return stile
 
-
+def cstep(n,r,h):
+	s=5*(n+1)+(6+h)*n
+	sh=5*n+(6+h)*(n+1)		
+	return BRect(5,s,r-5,sh)
+		
 class ScrollView:
 	HiWhat = 53 #Doppioclick
 	SectionSelection = 54
@@ -1129,6 +1133,26 @@ def get_all_splits(text):
 
 	return newarr
 
+class CategoryTextView(BTextView):
+	def __init__(self,frame,name,textRect,resizingMode,flags):
+		BTextView.__init__(self,frame,name,textRect,resizingMode,flags)
+		self.MakeSelectable(0)
+		self.SetAlignment(alignment.B_ALIGN_CENTER)
+		self.SetStylable(1)
+		self.font = be_plain_font
+		oldsize=be_plain_font.Size()
+		self.font.SetSize(32)
+		txt_run=text_run()
+		txt_run.font=self.font
+		self.myruns=[txt_run]
+	def KeyDown(self,char,bytes):
+		myTXT=char+" ⇨ "+unicodedata.category(char)#→
+		self.SetText(myTXT,self.myruns)
+	#def Draw(self,suaze):
+	#	BTextView.Draw(self,suaze)
+		
+		#self.font.SetSize(oldsize)
+		#self.SetFont(self.font)
 
 class srcTextView(BTextView):
 	def __init__(self,frame,name,textRect,resizingMode,flags):
@@ -2071,10 +2095,8 @@ class TMSettings(BWindow):
 		#h=round(self.underframe.GetFontHeight()[0])
 		be_plain_font.SetSize(16)
 		h=be_plain_font.Size()
-		
 		self.AddChild(self.underframe,None)
-		#BRect(5,5,r-5,h+6)
-		self.enablecheck = BCheckBox(self.cstep(0,r,h),'enabcheck', 'Enable/Disable translation memory', BMessage(222))
+		self.enablecheck = BCheckBox(cstep(0,r,h),'enabcheck', 'Enable/Disable translation memory', BMessage(222))
 		if tm:
 			self.enablecheck.SetValue(1)
 		else:
@@ -2082,10 +2104,9 @@ class TMSettings(BWindow):
 		ent,confile=Ent_config()
 		Config.read(confile)
 		
-		self.builtinsrv = BCheckBox(self.cstep(1,r,h),'builtin_srv', 'Enable/Disable TM local server', BMessage(333))
+		self.builtinsrv = BCheckBox(cstep(1,r,h),'builtin_srv', 'Enable/Disable TM local server', BMessage(333))
 		try:
 			bret = Config.getboolean('TMSettings','builtinsrv')
-			#print(type(bret),bret)
 		except:
 			cfgfile = open(confile,'w')
 			Config.set('TMSettings','builtinsrv',"False")
@@ -2115,8 +2136,7 @@ class TMSettings(BWindow):
 			cfgfile.close()
 			Config.read(confile)
 			bret = "127.0.0.1"
-		#BRect(5,h+15,r-5,2*h+25)
-		self.tmxsrvBTC = BTextControl(self.cstep(2,r,h),'tmxsrv','Server address:',bret,BMessage(8080))	
+		self.tmxsrvBTC = BTextControl(cstep(2,r,h),'tmxsrv','Server address:',bret,BMessage(8080))	
 		try:
 			bret = ConfigSectionMap("TMSettings")['tmxprt']
 		except:
@@ -2126,8 +2146,7 @@ class TMSettings(BWindow):
 			cfgfile.close()
 			Config.read(confile)
 			bret = "2022"
-		#BRect(5,2*h+26,r-5,3*h+37)
-		self.tmxprtBTC = BTextControl(self.cstep(3,r,h),'tmxprt','Server port:',bret,BMessage(8086))
+		self.tmxprtBTC = BTextControl(cstep(3,r,h),'tmxprt','Server port:',bret,BMessage(8086))
 		try:
 			bret = ConfigSectionMap("TMSettings")['header']
 		except:
@@ -2137,9 +2156,8 @@ class TMSettings(BWindow):
 			cfgfile.close()
 			Config.read(confile)
 			bret = "2022"
-		#BRect(5,2*h+26,r-5,3*h+37)
-		self.headerBTC = BTextControl(self.cstep(4,r,h),'header_btc','Header size:',bret,BMessage(8088))
-		self.logsrv = BCheckBox(self.cstep(5,r,h),'log_srv', 'Enable/Disable local server log', BMessage(444))
+		self.headerBTC = BTextControl(cstep(4,r,h),'header_btc','Header size:',bret,BMessage(8088))
+		self.logsrv = BCheckBox(cstep(5,r,h),'log_srv', 'Enable/Disable local server log', BMessage(444))
 		try:
 			bret = Config.getboolean('TMSettings','logsrv')
 		except:
@@ -2153,9 +2171,9 @@ class TMSettings(BWindow):
 			self.logsrv.SetValue(1)
 		else:
 			self.logsrv.SetValue(0)
-		lastr=self.cstep(6,r,h)
-		self.underframe.ResizeTo(r,lastr.bottom)#3*h+42)
-		self.ResizeTo(r,lastr.bottom)#3*h+42)
+		lastr=cstep(6,r,h)
+		self.underframe.ResizeTo(r,lastr.bottom)
+		self.ResizeTo(r,lastr.bottom)
 		self.underframe.AddChild(self.enablecheck,None)
 		self.underframe.AddChild(self.builtinsrv,None)
 		self.underframe.AddChild(self.tmxsrvBTC,None)
@@ -2163,11 +2181,7 @@ class TMSettings(BWindow):
 		self.underframe.AddChild(self.headerBTC,None)
 		self.underframe.AddChild(self.logsrv,None)
 		
-	def cstep(self,n,r,h):
-		#5,5,r-5,h+6
-		s=5*(n+1)+(6+h)*n
-		sh=5*n+(6+h)*(n+1)		
-		return BRect(5,s,r-5,sh)
+	
 	def MessageReceived(self, msg):
 		if msg.what == 222:
 			ent,confile=Ent_config()
@@ -2268,7 +2282,8 @@ class SpellcheckSettings(BWindow):
 		#h=round(self.underframe.GetFontHeight()[0])
 		self.AddChild(self.underframe,None)
 		ent,confile=Ent_config()
-		self.enablecheck = BCheckBox(BRect(5,5,r-5,h+4),'enabcheck', 'Enable/Disable spellcheck', BMessage(222))
+		#BRect(5,5,r-5,h+4)
+		self.enablecheck = BCheckBox(cstep(0,r,h),'enabcheck', 'Enable/Disable spellcheck', BMessage(222))
 		
 		if ent.Exists():
 			Config.read(confile)
@@ -2280,24 +2295,39 @@ class SpellcheckSettings(BWindow):
 				bret = ConfigSectionMap("Translator")['spell_dictionary'] #it's ascii
 			except:
 				bret = "/boot/system/data/hunspell/en_US"
-				
-			self.diz = BTextControl(BRect(5,2*h+27,r-5,3*h+37),'dictionary','Dictionary path:',bret,BMessage(8086))
+			#BRect(5,2*h+27,r-5,3*h+37)
+			self.diz = BTextControl(cstep(1,r,h),'dictionary','Dictionary path:',bret,BMessage(8086))
 			try:
 				bret = ConfigSectionMap("Translator")['spell_inclusion']
 			except:
 				bret = ""
-			self.inclus = BTextControl(BRect(5,3*h+39,r-5,4*h+49),'inclusion','Chars included in words:',bret,BMessage(8087))
+			#BRect(5,3*h+39,r-5,4*h+49)
+			self.inclus = BTextControl(cstep(2,r,h),'inclusion','Chars included in words:',bret,BMessage(8087))
 			try:
 				bret = ConfigSectionMap("Translator")['spell_esclusion']
 			except:
 				bret = ""
-		self.esclus = BTextControl(BRect(5,4*h+51,r-5,5*h+61),'inclusion','Chars-categories escluded in words:',bret,BMessage(8088))
+		#BRect(5,4*h+51,r-5,5*h+61)
+		self.esclus = BTextControl(cstep(3,r,h),'inclusion','Chars-categories escluded in words:',bret,BMessage(8088))
 		self.esclus.SetText("Pc,Pd,Pe,Pi,Po,Ps,Cc,Pf")
-		self.ResizeTo(r,5*h+71)
+		topr=cstep(4,r,h)
+		botr=cstep(6,r,h)
+		fusionr=BRect(topr.left,topr.top+10,botr.right,botr.bottom+10)
+		del topr
+		del botr
+		innerfusion=BRect(0,0,fusionr.Width(),fusionr.Height())
+		innerfusion.InsetBy(5,5)
+		
+		self.getcat=CategoryTextView(fusionr,"Category_TextView",innerfusion,B_FOLLOW_ALL_SIDES,B_WILL_DRAW|B_FRAME_EVENTS)
+		
+		lastr=cstep(7,r,h)
+		self.ResizeTo(r,lastr.bottom)
 		self.underframe.AddChild(self.enablecheck,None)
 		self.underframe.AddChild(self.diz,None)
 		self.underframe.AddChild(self.inclus,None)
 		self.underframe.AddChild(self.esclus,None)
+		self.underframe.AddChild(self.getcat,None)
+		
 		#TODO integrare un rilevatore di categorie TextView a singolo carattere+StringView per indicare unicodedata.category
 	def MessageReceived(self, msg):
 		if msg.what == 222:
