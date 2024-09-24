@@ -371,7 +371,7 @@ class ScrollSugj:
 		self.lv = KListView(rect, name, list_view_type.B_SINGLE_SELECTION_LIST)
 		self.lv.SetInvocationMessage(BMessage(self.HiWhat))
 		self.lv.SetSelectionMessage(BMessage(self.SectionSelection))
-		self.sv = BScrollView('ScrollSugj', self.lv, B_FOLLOW_RIGHT|B_FOLLOW_TOP|B_FOLLOW_RIGHT, B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_NAVIGABLE|B_FRAME_EVENTS, True,True, border_style.B_FANCY_BORDER)#B_FOLLOW_ALL_SIDES
+		self.sv = BScrollView('ScrollSugj', self.lv, B_FOLLOW_RIGHT|B_FOLLOW_TOP|B_FOLLOW_RIGHT, B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_NAVIGABLE|B_FRAME_EVENTS, True,True, border_style.B_FANCY_BORDER)
 		
 	def SelectedText(self):
 		return self.lv.ItemAt(self.lv.CurrentSelection()).Text()
@@ -379,8 +379,6 @@ class ScrollSugj:
 	def Clear(self):
 		self.lv.DeselectAll()
 		self.lv.MakeEmpty()
-		#while self.lv.CountItems()>0:
-		#		self.lv.RemoveItem(self.lv.ItemAt(0))
 
 class TranslatorComment(BWindow):
 	kWindowFrame = BRect(150, 150, 450, 300)
@@ -696,7 +694,6 @@ class EventTextView(BTextView):
 				thisBlistitem.txttosavepl.append(self.superself.listemsgstr[cox].trnsl.Text())
 				bckpmsg.AddString('translationpl'+str(cox-1),self.superself.listemsgstr[cox].trnsl.Text())
 				cox+=1
-		#print("da eventtextview.Save backupfile:",self.superself.backupfile)
 		bckpmsg.AddString('bckppath',self.superself.backupfile)
 		be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
 		#self.superself.infoprogress.SetText(str(self.superself.pofile.percent_translated())) #reinsert if something doesn't work properly but it should write in 16892/3
@@ -704,17 +701,10 @@ class EventTextView(BTextView):
 
 	def checklater(self,name,oldtext,indexBlistitem):
 			mes=BMessage(112118)
-			#mes.AddInt8('cursel',cursel)#TODO: rimuovere non serve
 			mes.AddInt32('indexBlistitem',indexBlistitem)
 			mes.AddString('oldtext',oldtext)
 			self.event.wait(0.1)
 			be_app.WindowAt(0).PostMessage(mes)
-
-#	def MouseDown(self,point):
-#		self.superself.sem.acquire()
-#		self.mod=self.superself.modifier
-#		self.superself.sem.release()
-#		return BTextView.MouseDown(self,point)
 
 	def MouseUp(self,point):
 		self.superself.drop.acquire()
@@ -776,8 +766,6 @@ class EventTextView(BTextView):
 
 	def MessageReceived(self, msg):
 		if msg.what in [B_CUT,B_PASTE]:
-			#print("da EventTextView rilevato cut o paste")
-			#cursel=self.superself.editorslist[self.superself.postabview.Selection()]
 			thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
 			thisBlistitem.tosave=True
 			self.tosave=True
@@ -788,7 +776,6 @@ class EventTextView(BTextView):
 				self.dragndrop=True
 				self.superself.drop.release()
 				self.superself.listemsgstr[self.superself.transtabview.Selection()].trnsl.MakeFocus()
-				#print(mexico)
 			except:
 				pass
 
@@ -973,8 +960,6 @@ class EventTextView(BTextView):
 				thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
 				thisBlistitem.tosave=False
 				thisBlistitem.txttosave=""
-				#print "Seleziono la fine?"
-				#fine=len(self.oldtext)
 				fine,bca=byte_count(self.oldtext)
 				self.Select(fine,fine)
 				be_app.WindowAt(0).PostMessage(12343)
@@ -1154,8 +1139,6 @@ class srcTextView(BTextView):
 		BTextView.Draw(self,suaze)
 		self.font = be_plain_font
 		tst=self.Text()
-		#hrdwrk= self.Text()
-		#tst=hrdwrk
 		lis = list(tst)
 		foundo = 0
 		for index,ci in enumerate(lis):
@@ -1179,7 +1162,6 @@ class srcTextView(BTextView):
 			else:
 				mum="\\"+a_hex[0][1:]
 				if mum in self.spaces:
-					#foundo=self.Text().find(ci.encode('utf-8'),foundo)
 					foundo=self.Text().find(ci,foundo)
 					asd=self.PointAt(foundo)
 					foundo+=1
@@ -1226,7 +1208,7 @@ class srcTextView(BTextView):
 					self.SetHighColor(200,0,0,0)
 					fon=BFont()
 					self.GetFont(fon)
-					self.MovePenTo(BPoint(asd[0].x,asd[0].y+asd[1]-3))#(asd[0][0],asd[0][1]+asd[1]-3))
+					self.MovePenTo(BPoint(asd[0].x,asd[0].y+asd[1]-3))
 					self.DrawString('⏎',None)
 					self.SetHighColor(0,0,0,0)
 				elif mum=="\\x9":
@@ -1253,127 +1235,6 @@ class srcTextView(BTextView):
 								wst='↹·'
 					self.DrawString(wst,None)
 					self.SetHighColor(0,0,0,0)
-
-#		ii=0
-#		decor=[]
-#		while ii<len(hrdwrk):
-#	 		#if hrdwrk[ii] == ' ':
-#	 		zit = ii
-#	 		zed = ii+1
-#	 		if unicodedata.category(unichr(ord(hrdwrk[zit])))=='Zs': #spaces
-#	 			if zed==len(hrdwrk):
-#	 				asd=self.PointAt(zit)
-#	 				color = (200,0,0,0)
-#	 				self.SetHighColor(color)
-#	 				self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[zit])/2),asd[0][1]+asd[1]-3))
-#	 				self.DrawString(' ̳')#' ᪶ ')#'˽'
-#	 				color = (0,0,0,0)
-#	 				self.SetHighColor(color)
-#	 			elif unicodedata.category(unichr(ord(hrdwrk[zed])))=='Zs':
-#	 				asd=self.PointAt(zit)
-#	 				color = (200,0,0,0)
-#	 				self.SetHighColor(color)
-#	 				self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
-#	 				self.DrawString(' ̳')
-#	 				self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[zit])/2),asd[0][1]+self.font.GetHeight()[0]))
-#	 				self.DrawString('·')
-#	 				color = (0,0,0,0)
-#	 				self.SetHighColor(color)
-#	 			elif unicodedata.category(unichr(ord(hrdwrk[zed]))) in ['Cc','Zl','Zp']:#=='Cc':
-#	 				#zed=ii+1
-#	 				if hrdwrk[zed]=='\n':
-#	 					asd=self.PointAt(zit)
-#	 					color = (200,0,0,0)
-#	 					self.SetHighColor(color)
-#	 					self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
-#	 					self.DrawString(' ̳')
-#	 					color = (255,0,0,0)
-#						self.SetHighColor(color)
-#						self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[zit])),asd[0][1]+asd[1]))#+8 replaced with +(self.font.StringWidth(hrdwrk[zit])/2)
-#						self.DrawString('⏎')
-#	 					color = (0,0,0,0)
-#	 					self.SetHighColor(color)
-#	 					ii+=1
-#	 				elif hrdwrk[zed]=='\t':
-#	 					asd=self.PointAt(zit)
-#	 					color = (200,0,0,0)
-#	 					self.SetHighColor(color)
-#	 					self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
-#	 					self.DrawString(' ̳')
-#	 					color = (255,0,0,0)
-#						self.SetHighColor(color)
-#						self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[zit])/2),asd[0][1]+self.font.GetHeight()[0]))
-#						self.DrawString('↹')
-#	 					color = (0,0,0,0)
-#	 					self.SetHighColor(color)
-#	 					ii+=1
-	 			#elif hrdwrk[ii+1]=='\n':
-	 			#	asd=self.PointAt(ii)
-	 			#	color = (200,0,0,0)
-	 			#	self.SetHighColor(color)
-	 			#	self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
-	 			#	self.DrawString(' ̳')
-	 			#	color = (255,0,0,0)
-				#	self.SetHighColor(color)
-				#	self.MovePenTo((asd[0][0]+8,asd[0][1]+asd[1]))
-				#	self.DrawString('⏎')
-	 			#	color = (0,0,0,0)
-	 			#	self.SetHighColor(color)
-	 			#	ii+=1
-	 			#elif hrdwrk[ii+1]==' ':
-	 			#	asd=self.PointAt(ii)
-	 			#	color = (200,0,0,0)
-	 			#	self.SetHighColor(color)
-	 			#	self.MovePenTo((asd[0][0],asd[0][1]+asd[1]-3))
-	 			#	self.DrawString(' ̳')
-	 			#	self.MovePenTo((asd[0][0]+(self.font.StringWidth(hrdwrk[ii])/2),asd[0][1]+self.font.GetHeight()[0]))
-	 			#	self.DrawString('·')
-	 			#	color = (0,0,0,0)
-	 			#	self.SetHighColor(color)
-#	 		if unicodedata.category(unichr(ord(hrdwrk[zit])))=='Cc':
-#	 			if hrdwrk[zit] == '\n':
-#	 				asd=self.PointAt(zit)
-#		 			color = (255,0,0,0)
-#					self.SetHighColor(color)
-#	 				self.MovePenTo((asd[0][0],asd[0][1]+asd[1]))
-#	 				self.DrawString('⏎')
-#		 			color = (0,0,0,0)
-#		 			self.SetHighColor(color)
-#	 			elif hrdwrk[zit] == '\t':
-#	 				if zed==len(hrdwrk):
-#	 					asd=self.PointAt(zit)
-#		 				color = (255,0,0,0)
-#						self.SetHighColor(color)
-#	 					self.MovePenTo((asd[0][0],asd[0][1]+self.font.GetHeight()[0]))
-#	 					self.DrawString('↹')
-#		 				color = (0,0,0,0)
-#		 				self.SetHighColor(color)
-#	 				elif hrdwrk[zed] == '\n':
-#	 					asd=self.PointAt(zit)
-#	 					print "tab asd",asd,zit
-#		 				color = (255,0,0,0)
-#						self.SetHighColor(color)
-#	 					self.MovePenTo((asd[0][0],asd[0][1]+self.font.GetHeight()[0]))
-#	 					self.DrawString('↹')
-#		 				color = (0,0,0,0)
-#		 				self.SetHighColor(color)
-#		 				color = (255,0,0,0)
-#						self.SetHighColor(color)
-#						self.MovePenTo((asd[0][0]+self.font.StringWidth('w '),asd[0][1]+asd[1]))
-#						self.DrawString('⏎')
-#	 					color = (0,0,0,0)
-#	 					self.SetHighColor(color)
-#	 					ii+=1
-#		 			else:
-#		 				asd=self.PointAt(zit)
-#		 				color = (255,0,0,0)
-#						self.SetHighColor(color)
-#	 					self.MovePenTo((asd[0][0],asd[0][1]+self.font.GetHeight()[0]))
-#	 					self.DrawString('↹')
-#		 				color = (0,0,0,0)
-#		 				self.SetHighColor(color)
-#		 			
-#			ii+=1
 		return
 		
 def checklang(orderedata):
@@ -1579,7 +1440,6 @@ class FindRepTrans(BWindow):
 		self.reptv.SetDivider(60.0)
 		self.underframe.AddChild(self.reptv,None)
 		self.pb=BStatusBar(BRect(5,b-63,r-5,b-5),"searchpb",None,None)
-		#self.pb.SetBarHeight(float(24))
 		self.underframe.AddChild(self.pb,None)
 		lista=be_app.WindowAt(0).sourcestrings.lv
 		total=lista.CountItems()
@@ -1588,8 +1448,6 @@ class FindRepTrans(BWindow):
 		self.pb.Update(float(indaco),None,None)
 		self.ei=0
 		self.ef=0
-		#self.encoding=BApplication.be_app.WindowAt(0).encoding
-		#self.encoding = be_app.WindowAt(0).encoding
 		i = 1
 		#w = be_app.CountWindows()
 		#while w > i:
@@ -1659,7 +1517,6 @@ class FindRepTrans(BWindow):
 									for ident,items in enumerate(blister.msgstrs):#enumerate(values):
 										# TODO ERR: find ritorna la posizione del carattere non del byte
 										ret=find_byte(self.looktv.Text(),items)
-										#ret = items.encode(self.encoding).find(self.looktv.Text())
 										#ret = items.find(self.looktv.Text())
 										if ret >-1:
 											scrollmsg.AddInt32("where",now)
@@ -1753,7 +1610,6 @@ class FindRepTrans(BWindow):
 				#wt=listar[BApplication.be_app.WindowAt(0).transtabview.Selection()].trnsl#.Text()
 				#wt.Delete(self.ei,self.ef)
 		elif msg.what == 1010:
-#			lftxt=
 			self.looktv.SetText(msg.FindString('txt'))
 			return
 		return
@@ -1771,7 +1627,6 @@ class Findsource(BWindow):
 		b=bounds.bottom
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		self.AddChild(self.underframe,None)
-		#h=round(self.underframe.GetFontHeight()[0])
 		be_plain_font.SetSize(14)
 		h=be_plain_font.Size()
 		kButtonFrame1 = BRect(r/2+15,b-40,r-5,b-5)
@@ -1786,7 +1641,6 @@ class Findsource(BWindow):
 		self.underframe.AddChild(self.looktv,None)
 		self.looktv.MakeFocus()
 		self.encoding=be_app.WindowAt(0).encoding
-		#self.encoding = BApplication.be_app.WindowAt(0).encoding
 
 
 	def MessageReceived(self, msg):
@@ -1831,7 +1685,6 @@ class Findsource(BWindow):
 						if self.casesens.Value():
 							item = lista.ItemAt(now)
 							if item.hasplural:
-								#ret = item.msgids[0].encode(self.encoding).find(self.looktv.Text())
 								#ret = item.msgids[0].find(self.looktv.Text())
 								ret=find_byte(self.looktv.Text(),item.msgids[0])
 								if ret >-1:
@@ -1846,7 +1699,6 @@ class Findsource(BWindow):
 									#messace.AddInt8('index',0)
 									be_app.WindowAt(0).PostMessage(messace)
 									break
-								#ret = item.msgids[1].encode(self.encoding).find(self.looktv.Text())
 								#ret = item.msgids[1].find(self.looktv.Text())
 								ret=find_byte(self.looktv.Text(),item.msgids[1])
 								if ret >-1:
@@ -1861,7 +1713,6 @@ class Findsource(BWindow):
 									be_app.WindowAt(0).PostMessage(messace)
 									break
 							else:
-								#ret = item.msgids.encode(self.encoding).find(self.looktv.Text())
 								#ret = item.msgids.find(self.looktv.Text())
 								ret=find_byte(self.looktv.Text(),item.msgids)
 								if ret >-1:
@@ -4326,10 +4177,9 @@ class MainWindow(BWindow):
 			self.speloc.release()
 			return
 		elif msg.what == 130550: # change listview selection
-			#"changing selection"
 			movetype=msg.FindInt8('movekind')
 			if tm:
-				self.NichilizeTM() #AZZERAMENTO TM PANEL
+				self.NichilizeTM()
 			if movetype == 0:
 				#select one down
 				if (self.sourcestrings.lv.CurrentSelection()>-1) and (self.sourcestrings.lv.CurrentSelection()<self.sourcestrings.lv.CountItems()):
@@ -4418,7 +4268,6 @@ class MainWindow(BWindow):
 				pass
 			if self.listemsgstr[self.transtabview.Selection()].trnsl.Text()!="":
 				be_app.WindowAt(0).PostMessage(333111)
-			#NON AGGIUNGERE QUI RICHIESTA TM PANEL
 			return
 		elif msg.what == 10241:
 			ei=msg.FindInt16("ei")
