@@ -23,6 +23,7 @@ from Be.Accelerant import display_mode
 from Be.GraphicsDefs import rgb_color
 from Be.TabView import tab_side
 from Be.TextView import text_run,text_run_array
+from Be.Architecture import get_architecture
 
 import configparser,struct,threading,os,polib,re,datetime,time#,babel
 import enchant
@@ -491,7 +492,7 @@ class srctabbox(BBox):
 		self.AddChild(self.scrollbsrc,None)
 
 class trnsltabbox(BBox):
-	def __init__(self,playground2,name,altece,superself): #TODO rimuovere altece non viene usato
+	def __init__(self,playground2,name,superself):
 		self.name = name
 		BBox.__init__(self,BRect(0,0,playground2[2]-playground2[0],playground2[3]-playground2[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
 		self.trnsl = EventTextView(superself,BRect(playground2[0],playground2[1],playground2[2]-playground2[0]-18,playground2[3]-playground2[1]),name+'_translation_BTextView',BRect(5.0,5.0,playground2[2]-30,playground2[3]-5),B_FOLLOW_ALL_SIDES,B_WILL_DRAW|B_FRAME_EVENTS)
@@ -1148,11 +1149,6 @@ class CategoryTextView(BTextView):
 	def KeyDown(self,char,bytes):
 		myTXT=char+" ⇨ "+unicodedata.category(char)#→
 		self.SetText(myTXT,self.myruns)
-	#def Draw(self,suaze):
-	#	BTextView.Draw(self,suaze)
-		
-		#self.font.SetSize(oldsize)
-		#self.SetFont(self.font)
 
 class srcTextView(BTextView):
 	def __init__(self,frame,name,textRect,resizingMode,flags):
@@ -1538,10 +1534,8 @@ class FindRepTrans(BWindow):
 							blister=lista.ItemAt(now)
 							if self.casesens.Value():
 								if blister.hasplural:
-									for ident,items in enumerate(blister.msgstrs):#enumerate(values):
-										# TODO ERR: find ritorna la posizione del carattere non del byte
+									for ident,items in enumerate(blister.msgstrs):
 										ret=find_byte(self.looktv.Text(),items)
-										#ret = items.find(self.looktv.Text())
 										if ret >-1:
 											scrollmsg.AddInt32("where",now)
 											be_app.WindowAt(0).PostMessage(scrollmsg)
@@ -1556,9 +1550,7 @@ class FindRepTrans(BWindow):
 											self.ef=ret+tl
 											break
 								else:
-									# TODO ERR: find ritorna la posizione del carattere non del byte
-									ret=find_byte(self.looktv.Text(),blister.msgstrs)	
-									#ret = blister.msgstrs.find(self.looktv.Text())
+									ret=find_byte(self.looktv.Text(),blister.msgstrs)
 									if ret >-1:
 										#lista.Select(now)
 										scrollmsg.AddInt32("where",now)
@@ -1575,8 +1567,8 @@ class FindRepTrans(BWindow):
 							else:
 								if blister.hasplural:
 									for ident,items in enumerate(blister.msgstrs):
-										#ret = items.encode(self.encoding).lower().find(self.looktv.Text().lower())
-										ret = items.lower().find(self.looktv.Text().lower())
+										#ret = items.lower().find(self.looktv.Text().lower())
+										ret=find_byte(self.looktv.Text().lower(),items.lower())
 										if ret >-1:
 											#lista.Select(now)
 											scrollmsg.AddInt32("where",now)
@@ -1591,8 +1583,8 @@ class FindRepTrans(BWindow):
 											self.ef=ret+tl
 											break
 								else:
-									#ret = blister.msgstrs.encode(self.encoding).lower().find(self.looktv.Text().lower())
-									ret = blister.msgstrs.lower().find(self.looktv.Text().lower())
+									#ret = blister.msgstrs.lower().find(self.looktv.Text().lower())
+									ret=find_byte(self.looktv.Text().lower(),blister.msgstrs.lower())
 									if ret >-1:
 										#lista.Select(now)
 										scrollmsg.AddInt32("where",now)
@@ -2327,8 +2319,7 @@ class SpellcheckSettings(BWindow):
 		self.underframe.AddChild(self.inclus,None)
 		self.underframe.AddChild(self.esclus,None)
 		self.underframe.AddChild(self.getcat,None)
-		
-		#TODO integrare un rilevatore di categorie TextView a singolo carattere+StringView per indicare unicodedata.category
+
 	def MessageReceived(self, msg):
 		if msg.what == 222:
 			ent,confile=Ent_config()
@@ -2637,7 +2628,15 @@ class MainWindow(BWindow):
 				ento.GetPath(pth)
 				fuee=pth.Leaf()
 				filename, file_extension = os.path.splitext(fuee)
-				self.spellchecker = enchant.Dict(filename) # TODO check initialization (correctly loading dictionary)
+				try:
+					self.spellchecker = enchant.Dict(filename) # check initialization (correctly loading dictionary)
+				except:
+					showspell=False
+					cfgfile = open(confile,'w')
+					Config.set('General','spellchecking', 'False')
+					Config.write(cfgfile)
+					cfgfile.close()
+					Config.read(confile)
 		else:
 			showspell=False
 		
@@ -2699,7 +2698,7 @@ class MainWindow(BWindow):
 		self.listemsgid.append(self.sourcebox)
 		self.srctablabels.append(BTab(None))
 		self.srctabview.AddTab(self.listemsgid[0], self.srctablabels[0])
-		self.transbox=trnsltabbox(tabrc2,'msgstr',altece,self)
+		self.transbox=trnsltabbox(tabrc2,'msgstr',self)
 		self.listemsgstr.append(self.transbox)
 		self.transtablabels.append(BTab(None))
 		self.transtabview.AddTab(self.listemsgstr[0], self.transtablabels[0])
@@ -2901,16 +2900,12 @@ class MainWindow(BWindow):
 		self.listemsgstr.pop(0)
 		self.transtablabels.pop(0)
 		
-	def OpenPOFile(self, f):
-		#controllare mimetype se ok aprire
-		#altrimenti se mimetype non è corretto controllare estensione file e aprire con try
-		
+	def OpenPOFile(self, f):		
 		#1)pulire tutto
 		self.sourcestrings.Clear()
 		self.NichilizeTM()
 		self.NichilizeTabs()
 		#TODO pulire infobox
-		#Pulire scrollsugj
 		
 		#2)controllo mimetype
 		filename, file_extension = os.path.splitext(f)
@@ -3282,7 +3277,7 @@ class MainWindow(BWindow):
 				self.litms.append(item)
 				self.sourcestrings.lv.AddItem(self.litms[-1])
 				
-		self.progressinfo=BStatusBar(BRect(5,5,self.infobox.Bounds().right-5,35),'progress',"Progress:", None)#label,trailing_label
+		self.progressinfo=BStatusBar(BRect(5,5,self.infobox.Bounds().right-5,35),'progress',"Progress:", None)
 		self.potot=len(self.pofile.translated_entries())+len(self.pofile.untranslated_entries())+len(self.pofile.fuzzy_entries())
 		self.progressinfo.SetMaxValue(self.potot)
 		self.progressinfo.Update(len(self.pofile.translated_entries()),None,str(self.pofile.percent_translated())+"%")
@@ -3292,8 +3287,11 @@ class MainWindow(BWindow):
 		self.pofile.save(path)
 		svdlns=[]  #moved to fix reference before assignment
 		if path[-7:] != "temp.po":
-			#TODO rileva architettura -> msgfmt-x86 o msgfmt
-			execpath = find_executable("msgfmt")
+			#TODO2 trovare libreria invece di popen
+			if get_architecture() == "x86_64":
+				execpath = find_executable("msgfmt")
+			else:
+				execpath = find_executable("msgfmt-x86")
 			comtwo = execpath+" -c "+path
 			checker = Popen( comtwo.split(' '), stdout=PIPE,stderr=PIPE)
 			jessude,err= checker.communicate()
@@ -3493,7 +3491,7 @@ class MainWindow(BWindow):
 				#self.NichilizeMsgs()
 				altece2 = self.transtabview.TabHeight()
 				tabrc2 = (3.0, 3.0, self.transtabview.Bounds().Width() - 3, self.transtabview.Bounds().Height()-altece2)
-				self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece2,self))
+				self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',self))
 				self.transtablabels.append(BTab(None))
 				self.transtabview.AddTab(self.listemsgstr[0], self.transtablabels[0])
 				self.transtabview.Select(1)									###### bug fix
@@ -3681,7 +3679,7 @@ class MainWindow(BWindow):
 			self.bckgnd.Hide()
 			self.overbox.Show()
 			self.overbox.BtnCancel.Hide()
-			pass #TODO
+			return
 		elif msg.what == 53:#32:
 			#Double clic = translator comment
 			if self.sourcestrings.lv.CountItems()>0:
@@ -3842,8 +3840,7 @@ class MainWindow(BWindow):
 							#significa che ha problemi con la connessione magari gli elementi di tmscrollsugj.lv sono ErrorItem senza percent?
 							break
 					if needtopush:
-						#print "serve aggiungere a tmx"
-						#TODO tmcommunicate si fa in locale
+						#"serve aggiungere a tmx"
 						mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text(),self.listemsgstr[self.transtabview.Selection()].trnsl.Text())
 						Thread(target=self.tmcommunicate,args=(mx,)).start()
 
@@ -3926,7 +3923,7 @@ class MainWindow(BWindow):
 				if item.hasplural:
 					beta=len(item.msgstrs)
 					self.Nichilize()
-					self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr[0]',altece2,self))
+					self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr[0]',self))
 					self.transtablabels.append(BTab(None))
 					self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
 					self.listemsgid.append(srctabbox((3,3,self.listemsgid[0].Bounds()[2]+3,self.listemsgid[0].Bounds()[3]+3),'msgid_plural',altece2))
@@ -3947,13 +3944,13 @@ class MainWindow(BWindow):
 							self.transtabview.Select(x)
 							self.transtabview.Select(0)
 						else:
-							self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr['+str(ww)+']',altece2,self))
+							self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr['+str(ww)+']',self))
 							self.listemsgstr[ww].trnsl.SetPOReadText(item.msgstrs[ww])
 							self.transtabview.AddTab(self.listemsgstr[ww],self.transtablabels[ww])
 						ww=ww+1
 				else:
 					self.Nichilize()
-					self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece2,self))
+					self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',self))
 					self.transtablabels.append(BTab(None))
 					self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
 #######################################################################
@@ -4031,20 +4028,16 @@ class MainWindow(BWindow):
 				############################ GO TO THE END OF THE TEXT #############################
 				lngth=self.listemsgstr[self.transtabview.Selection()].trnsl.TextLength()
 				self.listemsgstr[self.transtabview.Selection()].trnsl.Select(lngth,lngth)
-#				num=self.listemsgstr[self.transtabview.Selection()].trnsl.CountLines()
-#				self.listemsgstr[self.transtabview.Selection()].trnsl.GoToLine(num)
 				self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
 				if tm:
-					#TODO: azzerare ScrollSugj
 					self.tmscrollsugj.Clear()
-					#print "eseguo riga: 4984"
 					riga=self.listemsgid[self.srctabview.Selection()].src.Text()
 					Thread(target=self.tmcommunicate,args=(riga,)).start()
 			else:
 				if tm:
 					self.NichilizeTM()
 				self.Nichilize()				
-				self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',altece2,self))
+				self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',self))
 				self.transtablabels.append(BTab(None))
 				self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
 				################### BUG? ###################
@@ -4591,7 +4584,7 @@ class MainWindow(BWindow):
 	#	cfgfile.close()
 	#	Config.read(confile)
 	#	self.sourcestrings.reload(self.poview,self.pofile,self.encoding)
-	def server(self,addr,PORT=2022,HEADER=4096,log=False):#addr if local addr = 127.0.0.1 elif remote: passed by variable
+	def server(self,addr,PORT=2022,HEADER=4096,log=False):
 		if log:
 			with open(flog, 'a') as des:
 				des.write("launching server...\n")
@@ -4606,9 +4599,7 @@ class MainWindow(BWindow):
 		flog=perc.Path()+'/log.txt'
 		tmp_ftmx=perc.Path()+'/tmp_outtmx.db'
 		old_ftmx=perc.Path()+'/old_outtmx.db'
-		#HEADER = 4096 #TODO pass variable from config
 		IP = socket.gethostbyname(addr)
-		#PORT = 2022 #TODO pass variable from config
 		self.keeperoftheloop=True
 		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
 			server_socket.bind((IP,PORT))
