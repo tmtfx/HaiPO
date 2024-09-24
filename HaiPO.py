@@ -412,7 +412,7 @@ class TranslatorComment(BWindow):
 		# self.indextab=indextab
 		self.listindex=listindex
 		if self.item.tcomment!="":
-			self.tcommentview.SetText(self.item.tcomment,None)#.encode(self.encoding))
+			self.tcommentview.SetText(self.item.tcomment,None)
 		#be_plain_font.SetSize(oldsize)
 		
 	def Save(self):
@@ -702,7 +702,7 @@ class EventTextView(BTextView):
 				thisBlistitem.txttosavepl.append(self.superself.listemsgstr[cox].trnsl.Text())
 				bckpmsg.AddString('translationpl'+str(cox-1),self.superself.listemsgstr[cox].trnsl.Text())
 				cox+=1
-		print("da eventtextview.Save backupfile:",self.superself.backupfile)
+		#print("da eventtextview.Save backupfile:",self.superself.backupfile)
 		bckpmsg.AddString('bckppath',self.superself.backupfile)
 		be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
 		#self.superself.infoprogress.SetText(str(self.superself.pofile.percent_translated())) #reinsert if something doesn't work properly but it should write in 16892/3
@@ -782,7 +782,7 @@ class EventTextView(BTextView):
 
 	def MessageReceived(self, msg):
 		if msg.what in [B_CUT,B_PASTE]:
-			print("da EventTextView rilevato cut o paste")
+			#print("da EventTextView rilevato cut o paste")
 			#cursel=self.superself.editorslist[self.superself.postabview.Selection()]
 			thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
 			thisBlistitem.tosave=True
@@ -794,7 +794,7 @@ class EventTextView(BTextView):
 				self.dragndrop=True
 				self.superself.drop.release()
 				self.superself.listemsgstr[self.superself.transtabview.Selection()].trnsl.MakeFocus()
-				print(mexico)
+				#print(mexico)
 			except:
 				pass
 
@@ -1033,9 +1033,9 @@ class EventTextView(BTextView):
 			indi,indf=self.GetSelection()
 			ret=True
 			error_font=be_bold_font
-			#error_font.SetSize(self.superself.oldsize)
+			error_font.SetSize(self.superself.oldsize)
 			normal_font=be_plain_font
-			#normal_font.SetSize(self.superself.oldsize)
+			normal_font.SetSize(self.superself.oldsize)
 			error_color=rgb_color()
 			error_color.red=255
 			normal_color=rgb_color()
@@ -2724,6 +2724,7 @@ class MainWindow(BWindow):
 			rectspellab=BRect(self.upperbox.Bounds().right*2/3+4,self.upperbox.Bounds().bottom-80,self.upperbox.Bounds().right*2/3+l+10,self.upperbox.Bounds().bottom-4)
 			self.spellabel= BStringView(rectspellab,"spellabel","",B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM)
 			self.spellabel.SetFont(self.font)
+			#self.font.SetSize(self.oldsize)
 			self.upperbox.AddChild(self.spellabel,None)
 			self.upperbox.AddChild(self.checkres,None)
 		else:
@@ -3485,7 +3486,7 @@ class MainWindow(BWindow):
 		elif msg.what == 2:
 			if True:     ###### FIX HERE check condition if file is loaded
 				if self.listemsgstr[self.transtabview.Selection()].trnsl.tosave:
-					print("eventtextvie è cambiato, si esegue save interno")
+					#print("eventtextvie è cambiato, si esegue save interno")
 					#eventtextview changed
 					self.listemsgstr[self.transtabview.Selection()].trnsl.Save()
 				try:
