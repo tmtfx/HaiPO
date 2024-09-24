@@ -2071,14 +2071,33 @@ class TMSettings(BWindow):
 		#h=round(self.underframe.GetFontHeight()[0])
 		be_plain_font.SetSize(16)
 		h=be_plain_font.Size()
+		
 		self.AddChild(self.underframe,None)
-		self.enablecheck = BCheckBox(BRect(5,5,r-5,h+6),'enabcheck', 'Enable/Disable translation memory', BMessage(222))
+		#BRect(5,5,r-5,h+6)
+		self.enablecheck = BCheckBox(self.cstep(0,r,h),'enabcheck', 'Enable/Disable translation memory', BMessage(222))
 		if tm:
 			self.enablecheck.SetValue(1)
 		else:
 			self.enablecheck.SetValue(0)
 		ent,confile=Ent_config()
 		Config.read(confile)
+		
+		self.builtinsrv = BCheckBox(self.cstep(1,r,h),'builtin_srv', 'Enable/Disable TM local server', BMessage(333))
+		try:
+			bret = Config.getboolean('TMSettings','builtinsrv')
+			#print(type(bret),bret)
+		except:
+			cfgfile = open(confile,'w')
+			Config.set('TMSettings','builtinsrv',"False")
+			Config.write(cfgfile)
+			cfgfile.close()
+			Config.read(confile)
+			bret = False
+		if bret:
+			self.builtinsrv.SetValue(1)
+		else:
+			self.builtinsrv.SetValue(0)
+			
 		try:
 			bret = ConfigSectionMap("TMSettings")['tmxsrv']
 		except (configparser.NoSectionError):
@@ -2087,14 +2106,17 @@ class TMSettings(BWindow):
 			Config.set('TMSettings','tmxsrv',"127.0.0.1")
 			Config.write(cfgfile)
 			cfgfile.close()
+			Config.read(confile)
 			bret = "127.0.0.1"
 		except (configparser.NoOptionError):
 			cfgfile = open(confile,'w')
 			Config.set('TMSettings','tmxsrv',"127.0.0.1")
 			Config.write(cfgfile)
 			cfgfile.close()
+			Config.read(confile)
 			bret = "127.0.0.1"
-		self.tmxsrvBTC = BTextControl(BRect(5,h+15,r-5,2*h+25),'tmxsrv','Server address:',bret,BMessage(8080))
+		#BRect(5,h+15,r-5,2*h+25)
+		self.tmxsrvBTC = BTextControl(self.cstep(2,r,h),'tmxsrv','Server address:',bret,BMessage(8080))	
 		try:
 			bret = ConfigSectionMap("TMSettings")['tmxprt']
 		except:
@@ -2102,14 +2124,50 @@ class TMSettings(BWindow):
 			Config.set('TMSettings','tmxprt',"2022")
 			Config.write(cfgfile)
 			cfgfile.close()
+			Config.read(confile)
 			bret = "2022"
-		self.tmxprtBTC = BTextControl(BRect(5,2*h+26,r-5,3*h+37),'tmxprt','Server port:',bret,BMessage(8086))
-		self.underframe.ResizeTo(r,3*h+42)
-		self.ResizeTo(r,3*h+42)
+		#BRect(5,2*h+26,r-5,3*h+37)
+		self.tmxprtBTC = BTextControl(self.cstep(3,r,h),'tmxprt','Server port:',bret,BMessage(8086))
+		try:
+			bret = ConfigSectionMap("TMSettings")['header']
+		except:
+			cfgfile = open(confile,'w')
+			Config.set('TMSettings','header',"4096")
+			Config.write(cfgfile)
+			cfgfile.close()
+			Config.read(confile)
+			bret = "2022"
+		#BRect(5,2*h+26,r-5,3*h+37)
+		self.headerBTC = BTextControl(self.cstep(4,r,h),'header_btc','Header size:',bret,BMessage(8088))
+		self.logsrv = BCheckBox(self.cstep(5,r,h),'log_srv', 'Enable/Disable local server log', BMessage(444))
+		try:
+			bret = Config.getboolean('TMSettings','logsrv')
+		except:
+			cfgfile = open(confile,'w')
+			Config.set('TMSettings','logsrv',"False")
+			Config.write(cfgfile)
+			cfgfile.close()
+			Config.read(confile)
+			bret = False
+		if bret:
+			self.logsrv.SetValue(1)
+		else:
+			self.logsrv.SetValue(0)
+		lastr=self.cstep(6,r,h)
+		self.underframe.ResizeTo(r,lastr.bottom)#3*h+42)
+		self.ResizeTo(r,lastr.bottom)#3*h+42)
 		self.underframe.AddChild(self.enablecheck,None)
+		self.underframe.AddChild(self.builtinsrv,None)
 		self.underframe.AddChild(self.tmxsrvBTC,None)
 		self.underframe.AddChild(self.tmxprtBTC,None)
-
+		self.underframe.AddChild(self.headerBTC,None)
+		self.underframe.AddChild(self.logsrv,None)
+		
+	def cstep(self,n,r,h):
+		#5,5,r-5,h+6
+		s=5*(n+1)+(6+h)*n
+		sh=5*n+(6+h)*(n+1)		
+		return BRect(5,s,r-5,sh)
 	def MessageReceived(self, msg):
 		if msg.what == 222:
 			ent,confile=Ent_config()
@@ -2126,6 +2184,39 @@ class TMSettings(BWindow):
 			except:
 				print("Error writing tm setting in config.ini, missing config section?")
 			cfgfile.close()
+			return
+		elif msg.what == 333:
+			ent,confile=Ent_config()
+			cfgfile = open(confile,'w')
+			try:
+				if self.builtinsrv.Value():
+					Config.set('TMSettings','builtinsrv', "True")
+					Config.write(cfgfile)
+					#restart app
+				else:
+					Config.set('TMSettings','builtinsrv', "False")
+					Config.write(cfgfile)
+					#restart app
+			except:
+				print("Error writing builtinsrv setting in config.ini, missing config section?")
+			cfgfile.close()
+			return
+		elif msg.what == 444:
+			ent,confile=Ent_config()
+			cfgfile = open(confile,'w')
+			try:
+				if self.logsrv.Value():
+					Config.set('TMSettings','logsrv', "True")
+					Config.write(cfgfile)
+					#restart app
+				else:
+					Config.set('TMSettings','logsrv', "False")
+					Config.write(cfgfile)
+					#restart app
+			except:
+				print("Error writing logsrv setting in config.ini, missing config section?")
+			cfgfile.close()
+			return
 		elif msg.what == 8080:
 			ent,confile=Ent_config()
 			cfgfile = open(confile,'w')
@@ -2136,6 +2227,7 @@ class TMSettings(BWindow):
 			except:
 				print("Cannot save TM server address")
 			cfgfile.close()
+			return
 		elif msg.what == 8086:
 			ent,confile=Ent_config()
 			cfgfile = open(confile,'w')
@@ -2146,6 +2238,18 @@ class TMSettings(BWindow):
 			except:
 				print("Cannot save TM server port. Port value:",self.tmxprtBTC.Text())
 			cfgfile.close()
+			return
+		elif msg.what == 8088:
+			ent,confile=Ent_config()
+			cfgfile = open(confile,'w')
+			try:
+				tmxprt=int(self.headerBTC.Text())
+				Config.set("TMSettings",'header',self.headerBTC.Text())
+				Config.write(cfgfile)
+			except:
+				print("Cannot save header size. Header value:",self.headerBTC.Text())
+			cfgfile.close()
+			return
 		BWindow.MessageReceived(self, msg)
 
 class SpellcheckSettings(BWindow):
