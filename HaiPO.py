@@ -2051,7 +2051,7 @@ class MyListItem(BListItem):
 		self.color = rgb_color()#self.nocolor
 		owner.SetHighColor(self.color)
 		owner.MovePenTo(l,b-2)
-		owner.DrawString(self.text)
+		owner.DrawString(self.text,None)
 		owner.SetLowColor(255,255,255,255)
 
 	def Text(self):
@@ -2063,12 +2063,14 @@ class SugjItem(BListItem):
 	def __init__(self,sugj,lev):
 		self.text=sugj
 		tl=len(sugj)
-		self.percent=(100*(tl-lev))/tl
+		self.percent=int(round((100*(tl-lev))/tl))
 		BListItem.__init__(self)
 
 	def DrawItem(self, owner, frame,complete):
 		self.frame = frame
 		l=frame.left
+		font_height_value=font_height()
+		be_plain_font.GetHeight(font_height_value)
 		#t=frame.top
 		#r=frame.right
 		b=frame.bottom
@@ -2077,29 +2079,30 @@ class SugjItem(BListItem):
 			owner.SetLowColor(200,200,200,255)
 			owner.FillRect(frame)
 		self.color = rgb_color()
-		owner.MovePenTo(l+5,b-2)
+		owner.MovePenTo(l+5,b-font_height_value.descent)#2)
 		tempcolor = rgb_color()
 		if self.percent == 100:
 			self.font = be_bold_font
+			self.font.SetSize(be_plain_font.Size())#16)
 			tempcolor.green=200
 			#(0,200,0,0)
 		else:
 			self.font = be_plain_font
-			tempcolor.red = 20
+			#self.font.SetSize(16)
+			tempcolor.red = 170
 			tempcolor.green = 20
-			tempcolor.blu = 20
-			#(20,20,20,0)
+			tempcolor.blue = 170
 		owner.SetHighColor(tempcolor)
 		owner.SetFont(self.font)
 		xtxt=str(self.percent)+"%"
-		owner.DrawString(xtxt)
+		owner.DrawString(xtxt,None)
 		ww=self.font.StringWidth(xtxt)
 		owner.SetHighColor(self.color)
 		self.font = be_plain_font
 		owner.SetFont(self.font)
 		owner.MovePenTo(l+ww+10,b-2)#40
-		owner.DrawString(self.text)
-		
+		owner.DrawString(self.text,None)
+
 	def Text(self):
 		return self.text
 
@@ -2125,7 +2128,7 @@ class ErrorItem(BListItem):
 		#tempcolor = (20,20,20,0)
 		owner.SetHighColor(20,20,20,0)
 		owner.SetFont(self.font)
-		owner.DrawString(self.text)
+		owner.DrawString(self.text,None)
 
 class GeneralSettings(BWindow):
 	kWindowFrame = BRect(250, 150, 755, 297)
@@ -2436,6 +2439,7 @@ class HeaderWindow(BWindow):
 
 class MainWindow(BWindow):
 	alerts=[]
+	sugjs=[]
 	Menus = (
 		('File', ((295485, 'Open'), (2, 'Save'), (1, 'Close'), (5, 'Save as...'),(None, None),(B_QUIT_REQUESTED, 'Quit'))),
 		('Translation', ((3, 'Copy from source (ctrl+shift+s)'), (32,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy (ctrl+b)'), (72, 'Previous w/o saving'),(73,'Next w/o saving'),(None, None), (6, 'Find source'), (7, 'Find/Replace translation'))),
@@ -2458,6 +2462,7 @@ class MainWindow(BWindow):
 		self.drop = threading.Semaphore()
 		self.sem = threading.Semaphore()
 		self.event= threading.Event()
+		self.keeperoftheloop = False
 		self.modifier=False
 		self.shortcut=False
 		self.poview=[True,True,True,False]
@@ -2530,14 +2535,14 @@ class MainWindow(BWindow):
 						Config.write(cfgfile)
 						cfgfile.close()
 					try:
-						builtin_srv=Config.getboolean('TMSettings','builtinSrv')
+						builtin_srv=Config.getboolean('TMSettings','builtinsrv')
 					except:
 						cfgfile = open(confile,'w')
 						try:
 							Config.add_section("TMSettings")
 						except:
 							pass
-						Config.set("TMSettings",'builtinSrv', "False")
+						Config.set("TMSettings",'builtinsrv', "False")
 						builtin_srv = False
 						Config.write(cfgfile)
 						cfgfile.close()
@@ -2550,7 +2555,7 @@ class MainWindow(BWindow):
 						except:
 							pass
 						Config.set("TMSettings",'header', "4096")
-						tmxprt = 4096
+						header = 4096
 						Config.write(cfgfile)
 						cfgfile.close()
 					try:
@@ -2567,7 +2572,8 @@ class MainWindow(BWindow):
 						cfgfile.close()
 					if builtin_srv:
 						#server(self,addr,PORT=2022,HEADER=4096,log=False)
-						Thread(target=self.server,args=(addr,tmxprt,header,log_srv,)).start()
+						self.serv=Thread(target=self.server,args=(tmxsrv,tmxprt,header,log_srv,))
+						self.serv.start()
 			except:
 				cfgfile = open(confile,'w')
 				Config.set('General','tm', 'False')
@@ -2837,6 +2843,7 @@ class MainWindow(BWindow):
 	def NichilizeTM(self):
 		if tm:
 			self.tmscrollsugj.Clear()
+			self.sugjs=[]
 			
 	def FrameResized(self,x,y):	
 		resiz=False
@@ -3369,34 +3376,40 @@ class MainWindow(BWindow):
 		#print "mando messaggio per cancellare scrollsugj"
 #		showmsg=BMessage(83419)                                                    # valutare se reintrodurre
 #		BApplication.be_app.WindowAt(0).PostMessage(showmsg)                       # valutare se reintrodurre
-		#try:
-		if True:
+		try:
+		#if True:
 			if type(src)==str:
 				##if it's a string we can request it at the TMserver
-					if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #check if it's still the same
-						tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-						tmsocket.connect((tmxsrv,tmxprt))
-						pck=[]
-						pck.append(src)#.decode(self.encoding))#'utf-8'
-						send_pck=pickle.dumps(pck)
-						tmsocket.send(send_pck)
-						pck_answer=tmsocket.recv(4096)#1024
-						if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #check again if I changed the selection
-							answer=pickle.loads(pck_answer)
-							sugjmsg=BMessage(5391359)
-							ts=len(answer)
-							sugjmsg.AddInt16('totsugj',ts)
-							x=0
-							while x <ts:
-								sugjmsg.AddString('sugj_'+str(x),answer[x][0])#.encode('utf-8'))
-								sugjmsg.AddInt8('lev_'+str(x),answer[x][1])
-								x+=1
-							be_app.WindowAt(0).PostMessage(sugjmsg)
-						else:
-							pass
-						tmsocket.close()					
+				if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #check if it's still the same
+					tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+					tmsocket.connect((tmxsrv,tmxprt))
+					pck=[]
+					pck.append(src)#.decode(self.encoding))#'utf-8'
+					send_pck=pickle.dumps(pck)
+					tmsocket.send(send_pck)
+					pck_answer=tmsocket.recv(4096)#1024
+					if self.listemsgid[self.srctabview.Selection()].src.Text() == src: #check again if I changed the selection
+						answer=pickle.loads(pck_answer)
+						sugjmsg=BMessage(5391359)
+						ts=len(answer)
+						sugjmsg.AddInt16('totsugj',ts)
+						x=0
+						while x <ts:
+							sugjmsg.AddString('sugj_'+str(x),answer[x][0])#.encode('utf-8'))
+							sugjmsg.AddInt8('lev_'+str(x),answer[x][1])
+							x+=1
+						be_app.WindowAt(0).PostMessage(sugjmsg)
 					else:
 						pass
+					tmsocket.close()					
+				else:
+					pass
+			elif src==None:
+				#close the server
+				tmsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+				tmsocket.connect((tmxsrv,tmxprt))
+				tmsocket.send(b'')
+				tmsocket.close()
 			else:
 				#we are requesting either to add or remove a translation
 				txt0=src[0]
@@ -3426,9 +3439,9 @@ class MainWindow(BWindow):
 				send_pck=pickle.dumps(pck)
 				tmsocket.send(send_pck)
 				tmsocket.close()
-		#except:
-		#	hidemsg=BMessage(104501)
-		#	BApplication.be_app.WindowAt(0).PostMessage(hidemsg)
+		except:
+			hidemsg=BMessage(104501)
+			be_app.WindowAt(0).PostMessage(hidemsg)
 		self.netlock.release()
 	
 	def MessageReceived(self, msg):
@@ -4455,7 +4468,9 @@ class MainWindow(BWindow):
 			r=msg.FindInt16('totsugj')
 			act=0
 			while act<r:
-				self.tmscrollsugj.lv.AddItem(SugjItem(msg.FindString('sugj_'+str(act)),msg.FindInt8('lev_'+str(act))))
+				self.sugjs.append(SugjItem(msg.FindString('sugj_'+str(act)),msg.FindInt8('lev_'+str(act))))
+				self.tmscrollsugj.lv.AddItem(self.sugjs[-1])
+				print(msg.FindString('sugj_'+str(act)),msg.FindInt8('lev_'+str(act)))
 				act+=1
 			#se tra gli elementi non c'è 100% ma il BListItem è segnato come tradotto, è il caso di inviarlo al file tmx
 			if self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection()).state == 1:	
@@ -4503,6 +4518,13 @@ class MainWindow(BWindow):
 			schede =  msg.FindInt8("schede")
 			self.listemsgstr[schede].trnsl.MakeFocus(True)
 			self.listemsgstr[schede].trnsl.Highlight(inizi,fin)
+			return
+		elif msg.what == 104501:
+			self.tmscrollsugj.lv.AddItem(ErrorItem("┌─────────────────────┐"))
+			self.tmscrollsugj.lv.AddItem(ErrorItem("| Error connecting to |"))
+			self.tmscrollsugj.lv.AddItem(ErrorItem("| Translation Memory  |"))
+			self.tmscrollsugj.lv.AddItem(ErrorItem("|       server        |"))
+			self.tmscrollsugj.lv.AddItem(ErrorItem("└─────────────────────┘"))
 			return
 		#445380 huge check on older version look at that code
 		BWindow.MessageReceived(self, msg)
@@ -4575,6 +4597,9 @@ class MainWindow(BWindow):
 	#	Config.read(confile)
 	#	self.sourcestrings.reload(self.poview,self.pofile,self.encoding)
 	def server(self,addr,PORT=2022,HEADER=4096,log=False):#addr if local addr = 127.0.0.1 elif remote: passed by variable
+		if log:
+			with open(flog, 'a') as des:
+				des.write("launching server...\n")
 		perc=BPath()
 		find_directory(directory_which.B_USER_NONPACKAGED_DATA_DIRECTORY,perc,False,None)
 		datapath=BDirectory(perc.Path()+"/HaiPO2")
@@ -4595,10 +4620,13 @@ class MainWindow(BWindow):
 			server_socket.listen()
 			try:
 				while self.keeperoftheloop:
+					if log:
+						with open(flog, 'a') as des:
+							des.write("I\'m in the loop...\n")
 					client_socket, client_address = server_socket.accept()
 					with client_socket:
 						if log:
-							print(f"Connected by {client_address}")
+							#print(f"Connected by {client_address}")
 							with open(flog, 'a') as des:
 								des.write(f"Connected by {client_address}\n")
 						while True:
@@ -4714,6 +4742,14 @@ class MainWindow(BWindow):
 			except KeyboardInterrupt:
 				server_socket.close()
 				print("interrotto dall'utente")
+		#server_socket.close()
+		print("Server closed")
+		
+	def QuitRequested(self):
+		self.keeperoftheloop = False
+		Thread(target=self.tmcommunicate,args=(None,)).start()
+		be_app.PostMessage(B_QUIT_REQUESTED)
+		return BWindow.QuitRequested(self)
 
 def save_db(old_ftmx,tmp_ftmx,ftmx):
 	e=BEntry(old_ftmx)
