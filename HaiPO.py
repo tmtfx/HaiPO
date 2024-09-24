@@ -366,10 +366,11 @@ class KListView(BListView):
 
 class ScrollSugj:
 	HiWhat = 141# Doubleclick --> paste to trnsl TextView
+	SectionSelection = 140
 	def __init__(self, rect, name):
 		self.lv = KListView(rect, name, list_view_type.B_SINGLE_SELECTION_LIST)
-		msg = BMessage(self.HiWhat)
-		self.lv.SetInvocationMessage(msg)
+		self.lv.SetInvocationMessage(BMessage(self.HiWhat))
+		self.lv.SetSelectionMessage(BMessage(self.SectionSelection))
 		self.sv = BScrollView('ScrollSugj', self.lv, B_FOLLOW_RIGHT|B_FOLLOW_TOP|B_FOLLOW_RIGHT, B_FULL_UPDATE_ON_RESIZE|B_WILL_DRAW|B_NAVIGABLE|B_FRAME_EVENTS, True,True, border_style.B_FANCY_BORDER)#B_FOLLOW_ALL_SIDES
 		
 	def SelectedText(self):
@@ -2338,12 +2339,11 @@ class SpellcheckSettings(BWindow):
 		self.esclus = BTextControl(BRect(5,4*h+51,r-5,5*h+61),'inclusion','Chars-categories escluded in words:',bret,BMessage(8088))
 		self.esclus.SetText("Pc,Pd,Pe,Pi,Po,Ps,Cc,Pf")
 		self.ResizeTo(r,5*h+71)
-		#self.underframe.AddChild(self.splchker,None)
 		self.underframe.AddChild(self.enablecheck,None)
 		self.underframe.AddChild(self.diz,None)
 		self.underframe.AddChild(self.inclus,None)
 		self.underframe.AddChild(self.esclus,None)
-		
+		#TODO integrare un rilevatore di categorie TextView a singolo carattere+StringView per indicare unicodedata.category
 	def MessageReceived(self, msg):
 		if msg.what == 222:
 			ent,confile=Ent_config()
@@ -2734,7 +2734,7 @@ class MainWindow(BWindow):
 		#self.sourcestrings.sv.FindView("_HSB_")
 		self.upperbox.AddChild(self.sourcestrings.sv,None)
 		
-		self.tmscrollsugj=ScrollSugj(BRect(self.upperbox.Bounds().right*2/3+4,4,self.upperbox.Bounds().right-4,self.upperbox.Bounds().bottom-59), 'ScrollSugj')
+		self.tmscrollsugj=ScrollSugj(BRect(self.upperbox.Bounds().right*2/3+4,4,self.upperbox.Bounds().right-4,self.upperbox.Bounds().bottom/2), 'ScrollSugj')
 		
 		if showspell:
 			rectcksp=BRect(self.upperbox.Bounds().right-55,self.upperbox.Bounds().bottom-55,self.upperbox.Bounds().right-4,self.upperbox.Bounds().bottom-4)
@@ -2750,7 +2750,7 @@ class MainWindow(BWindow):
 			self.checkres.MakeEditable(False)
 			l=self.font.StringWidth("  ˺")
 			rectspellab=BRect(self.upperbox.Bounds().right*2/3+4,self.upperbox.Bounds().bottom-80,self.upperbox.Bounds().right*2/3+l+10,self.upperbox.Bounds().bottom-4)
-			self.spellabel= BStringView(rectspellab,"spellabel","",B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM)
+			self.spellabel= BStringView(rectspellab,"spellabel","Spellcheck status:",B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM)
 			self.spellabel.SetFont(self.font)
 			self.upperbox.AddChild(self.spellabel,None)
 			self.upperbox.AddChild(self.checkres,None)
@@ -2772,6 +2772,14 @@ class MainWindow(BWindow):
 		self.tmscrollsugj.lv.ResizeBy(0-dx,0-dy)
 		self.tmscrollsugj.sv.ResizeBy(0-dx,0-dy)
 		self.upperbox.AddChild(self.tmscrollsugj.sv,None)
+		
+		######## expander for sugj #########
+		rectcksp=BRect(self.upperbox.Bounds().right*2/3+4,self.upperbox.Bounds().bottom/2+10,self.upperbox.Bounds().right-4,self.upperbox.Bounds().bottom-70)
+		insetcksp=BRect(0,0,rectcksp.Width(),rectcksp.Height())
+		insetcksp.InsetBy(5,5)
+		self.expander = srcTextView(rectcksp,"checkres",insetcksp,B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM,B_WILL_DRAW|B_FRAME_EVENTS)#BTextView(rectcksp,"checkres",insetcksp,B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM,B_WILL_DRAW|B_FRAME_EVENTS)
+		self.expander.MakeEditable(0)
+		self.upperbox.AddChild(self.expander,None)
 		
 		# check user accepted languages
 		#
@@ -2844,6 +2852,8 @@ class MainWindow(BWindow):
 		if tm:
 			self.tmscrollsugj.Clear()
 			self.sugjs=[]
+			self.expander.SelectAll()
+			self.expander.Clear()
 			
 	def FrameResized(self,x,y):	
 		resiz=False
@@ -2884,6 +2894,11 @@ class MainWindow(BWindow):
 		self.valueln.MoveTo(self.infobox.Bounds().right-x-5,self.infobox.Bounds().bottom-fon.Size()-10)
 		self.infoln.MoveTo(5,self.infobox.Bounds().bottom-fon.Size()-10)
 		self.msgstabview.ResizeTo(self.infobox.Bounds().right-10,self.infobox.Bounds().bottom-fon.Size()-self.msgstabview.TabHeight()-40)
+		self.tmscrollsugj.sv.ResizeTo(self.tmscrollsugj.sv.Bounds().right,self.upperbox.Bounds().Height()/2)
+		sbh=self.tmscrollsugj.sv.ScrollBar(orientation.B_HORIZONTAL).Frame().Height()
+		self.tmscrollsugj.lv.ResizeTo(self.tmscrollsugj.lv.Bounds().right,self.upperbox.Bounds().Height()/2-sbh)
+		self.expander.MoveTo(self.upperbox.Bounds().right-4-self.expander.Bounds().Width(),4+self.tmscrollsugj.sv.Bounds().Height()+10)
+		self.expander.ResizeTo(self.expander.Bounds().right,self.upperbox.Bounds().Height()/2-80)
 		
 	def Nichilize(self):
 		if (len(self.listemsgid)-1) == 1:    #IF THERE'S A PLURAL MSGID, REMOVE IT
@@ -3450,17 +3465,14 @@ class MainWindow(BWindow):
 			self.sem.acquire()
 			if value==self.modifiervalue or value==self.modifiervalue+8 or value ==self.modifiervalue+32 or value ==self.modifiervalue+40:
 				#"modificatore"
-				print("modificatore")
 				self.modifier=True
 				self.shortcut = False
 			elif value == self.modifiervalue+4357 or value==self.modifiervalue+265 or value==self.modifiervalue+289 or value == self.modifiervalue+297:
 				#"scorciatoia"
-				print("scorciatoia")
 				self.shortcut = True
 				self.modifier = False
 			else:
 				#"altro"
-				print("altro")
 				self.modifier=False
 				self.shortcut=False
 			self.sem.release()
@@ -3728,7 +3740,6 @@ class MainWindow(BWindow):
 				if taft > self.t1:
 					if len(self.listemsgstr)>0:
 						traduzion=self.listemsgstr[self.transtabview.Selection()].trnsl.Text()
-						print("traduzione da controllare:",traduzion)
 						if traduzion != "":
 							be_app.WindowAt(0).PostMessage(12343)# TODO EVALUATE: usare 333111 sempre in modo da richiamare questo?
 				self.t1 = time.time()
@@ -3809,7 +3820,6 @@ class MainWindow(BWindow):
 			now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
 			# save to backup and update the blistitem
 			bckppath = msg.FindString('bckppath')
-			print("path di backup",bckppath)
 			savetype = msg.FindInt8('savetype')
 			if savetype == 0: #simple save, used for fuzzy state and metadata change
 				self.writter.acquire()
@@ -4451,17 +4461,20 @@ class MainWindow(BWindow):
 				self.NichilizeTM()
 			Thread(target=self.tmcommunicate,args=(msg.FindString('s'),)).start()
 			return
+		elif msg.what == 140:
+			if self.tmscrollsugj.lv.CurrentSelection()>-1:
+				self.expander.SetText(self.tmscrollsugj.lv.ItemAt(self.tmscrollsugj.lv.CurrentSelection()).Text(),None)
 		elif msg.what == 141:
 			#paste sugg to trnsl EventTextView
 			try:
-				self.listemsgstr[self.transtabview.Selection()].trnsl.SetText(self.tmscrollsugj.lv.ItemAt(self.tmscrollsugj.lv.CurrentSelection()).Text())
+				self.listemsgstr[self.transtabview.Selection()].trnsl.SetText(self.tmscrollsugj.lv.ItemAt(self.tmscrollsugj.lv.CurrentSelection()).Text(),None)
 				self.listemsgstr[self.transtabview.Selection()].trnsl.MakeFocus()
 				lngth=self.listemsgstr[self.transtabview.Selection()].trnsl.TextLength()
 				self.listemsgstr[self.transtabview.Selection()].trnsl.Select(lngth,lngth)
 				self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
 				self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
 			except:
-				#"Not a SugjItem, but an ErrorItem as not having .Text() function"
+			#	#"Not a SugjItem, but an ErrorItem as not having .Text() function"
 				pass
 			return
 		elif msg.what == 5391359:
@@ -4470,7 +4483,6 @@ class MainWindow(BWindow):
 			while act<r:
 				self.sugjs.append(SugjItem(msg.FindString('sugj_'+str(act)),msg.FindInt8('lev_'+str(act))))
 				self.tmscrollsugj.lv.AddItem(self.sugjs[-1])
-				print(msg.FindString('sugj_'+str(act)),msg.FindInt8('lev_'+str(act)))
 				act+=1
 			#se tra gli elementi non c'è 100% ma il BListItem è segnato come tradotto, è il caso di inviarlo al file tmx
 			if self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection()).state == 1:	
