@@ -2803,7 +2803,7 @@ class MainWindow(BWindow):
 		self.infobox.GetFont(fon)
 		s="100000"
 		x=fon.StringWidth(s)
-		self.valueln=BStringView(BRect(self.infobox.Bounds().right-x-5,self.infobox.Bounds().bottom-fon.Size()-10,self.infobox.Bounds().right-5,self.infobox.Bounds().bottom-5),"line_number",None)
+		self.valueln=BStringView(BRect(self.infobox.Bounds().right-x-5,self.infobox.Bounds().bottom-fon.Size()-10,self.infobox.Bounds().right-5,self.infobox.Bounds().bottom-5),"value_ln_num",None)
 		w=fon.StringWidth("Line number:")
 		self.infoln=BStringView(BRect(5,self.infobox.Bounds().bottom-fon.Size()-10,5+w,self.infobox.Bounds().bottom-5),"line_number","Line number:")
 		self.valueln.SetAlignment(B_ALIGN_RIGHT)
@@ -2823,7 +2823,7 @@ class MainWindow(BWindow):
 		self.listemsgs.append(commenttabbox(self.msgsRect,self))
 		self.listemsgs.append(tcommenttabbox(self.msgsRect,self))
 		for i in self.listemsgs:
-			self.msgstablabels.append(infoTab(None))#BTab(None))
+			self.msgstablabels.append(infoTab(None))
 		i=0
 		while i < len(self.listemsgs):
 			self.msgstabview.AddTab(self.listemsgs[i], self.msgstablabels[i])
@@ -2847,7 +2847,7 @@ class MainWindow(BWindow):
 			i.src.SelectAll()
 			i.src.Clear()
 
-	#def NichilizeMsgs(self):
+	def NichilizeMsgs(self):
 	#	ww=len(self.listemsgs)-1
 	#	while ww>-1:
 	#		tabboz = self.msgstabview.RemoveTab(ww)
@@ -2856,6 +2856,26 @@ class MainWindow(BWindow):
 	#		del tabboz
 	#		ww-=1
 	#	print(self.listemsgs,self.msgstablabels)
+		for i in self.msgstablabels:
+			i.notify = False
+		self.msgstabview.DrawTabs()
+		for i in self.listemsgs:
+			c=i.CountChildren()
+			v=0
+			while v<c:
+				myview=i.ChildAt(v)
+				if type(myview)==BTextView:
+					myview.SelectAll()
+					myview.Clear()
+				v+=1
+		if showspell:
+			self.font=be_bold_font
+			self.font.SetSize(28.0)
+			nocolor=rgb_color()
+			self.checkres.SetFontAndColor(self.font,set_font_mask.B_FONT_ALL,nocolor)
+			self.checkres.SetText("☐",None)
+		self.valueln.SetText("")
+
 	def NichilizeTM(self):
 		if tm:
 			self.tmscrollsugj.Clear()
@@ -3059,7 +3079,8 @@ class MainWindow(BWindow):
 
 	def handlePO(self,pof,percors,workonbackup):
 		p=BPath(BEntry(percors)).Leaf()
-		title=self.Title()+": "+p
+		title=f"{appname} {ver}: {p}\n"
+		#appname+": "+p
 		self.SetTitle(title)
 		self.pofile = pof
 		if workonbackup:
@@ -3078,6 +3099,22 @@ class MainWindow(BWindow):
 		pathorig,nameorig=os.path.split(percors)
 		self.fp.SetPanelDirectory(pathorig)
 		self.fp.SetSaveText(nameorig)
+		#create items and load sourcestrings
+		self.load_sourcestrings(encoding)
+		#clear comments in infobox
+		self.NichilizeMsgs()
+		#look for previous self.progressinfo and remove them
+		old_progress=self.FindView('progress')
+		if old_progress!=None:
+			self.RemoveChild(old_progress)
+		self.progressinfo=BStatusBar(BRect(5,5,self.infobox.Bounds().right-5,35),'progress',"Progress:", None)
+		self.potot=len(self.pofile.translated_entries())+len(self.pofile.untranslated_entries())+len(self.pofile.fuzzy_entries())
+		self.progressinfo.SetMaxValue(self.potot)
+		self.progressinfo.Update(len(self.pofile.translated_entries()),None,str(self.pofile.percent_translated())+"%")
+		self.infobox.AddChild(self.progressinfo,None)
+	
+	def load_sourcestrings(self,encoding):
+		self.sourcestrings.Clear()
 		self.litms=[]
 		if self.poview[0]:
 			for entry in self.pofile.fuzzy_entries():
@@ -3300,12 +3337,6 @@ class MainWindow(BWindow):
 					item.SetLineNum(entry.linenum)
 				self.litms.append(item)
 				self.sourcestrings.lv.AddItem(self.litms[-1])
-				
-		self.progressinfo=BStatusBar(BRect(5,5,self.infobox.Bounds().right-5,35),'progress',"Progress:", None)
-		self.potot=len(self.pofile.translated_entries())+len(self.pofile.untranslated_entries())+len(self.pofile.fuzzy_entries())
-		self.progressinfo.SetMaxValue(self.potot)
-		self.progressinfo.Update(len(self.pofile.translated_entries()),None,str(self.pofile.percent_translated())+"%")
-		self.infobox.AddChild(self.progressinfo,None)
 	
 	def Save(self, path):
 		self.pofile.save(path)
