@@ -774,7 +774,7 @@ class EventTextView(BTextView):
 			thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
 			thisBlistitem.tosave=True
 			self.tosave=True
-		if msg.what == self.mousemsg:
+		elif msg.what == self.mousemsg:
 			try:
 				mexico=msg.FindMessage('be:drag_message')
 				self.superself.drop.acquire()
@@ -1140,15 +1140,39 @@ class CategoryTextView(BTextView):
 		self.MakeSelectable(0)
 		self.SetAlignment(alignment.B_ALIGN_CENTER)
 		self.SetStylable(1)
-		self.font = be_plain_font
+		big_font = be_plain_font
 		oldsize=be_plain_font.Size()
-		self.font.SetSize(32)
-		txt_run=text_run()
-		txt_run.font=self.font
-		self.myruns=[txt_run]
+		big_font.SetSize(32)
+		self.first_run=text_run()
+		self.first_run.font=big_font
+		self.small_font=big_font
+		self.small_font.SetSize(11)
+		self.bc_color=rgb_color()
+		self.bc_color.green=150
+		self.mousemsg=struct.unpack('!l', b'_MMV')[0]
+		self.dragmsg=struct.unpack('!l', b'MIME')[0]
+		
 	def KeyDown(self,char,bytes):
-		myTXT=char+" ⇨ "+unicodedata.category(char)#→
-		self.SetText(myTXT,self.myruns)
+		myTXT=char+" ⇨ "+unicodedata.category(char)+"\nchar bytes: "+str(byte_count(char)[0])#→
+		txt_run2=text_run()
+		txt_run2.offset=find_byte("char",myTXT)
+		txt_run2.font=self.small_font
+		txt_run2.color=self.bc_color
+		myruns=[self.first_run,txt_run2]
+		self.SetText(myTXT,myruns)
+
+	def MessageReceived(self, msg):
+		if msg.what in [B_CUT,B_PASTE]:
+			#self.SelectAll()
+			#self.Clear()
+			return
+		elif msg.what == self.dragmsg:
+			#mexico=msg.FindMessage('be:drag_message')
+			#self.SelectAll()
+			#self.Clear()
+			return
+
+		return BTextView.MessageReceived(self,msg)
 
 class srcTextView(BTextView):
 	def __init__(self,frame,name,textRect,resizingMode,flags):
