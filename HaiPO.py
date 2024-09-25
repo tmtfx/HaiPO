@@ -2949,6 +2949,7 @@ class MainWindow(BWindow):
 		self.sourcestrings.Clear()
 		self.NichilizeTM()
 		self.NichilizeTabs()
+		self.NichilizeMsgs()
 		#TODO pulire infobox
 		
 		#2)controllo mimetype
@@ -3101,8 +3102,6 @@ class MainWindow(BWindow):
 		self.fp.SetSaveText(nameorig)
 		#create items and load sourcestrings
 		self.load_sourcestrings(encoding)
-		#clear comments in infobox
-		self.NichilizeMsgs()
 		#look for previous self.progressinfo and remove them
 		old_progress=self.FindView('progress')
 		if old_progress!=None:
