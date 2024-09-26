@@ -2801,6 +2801,11 @@ class MainWindow(BWindow):
 			self.checkres.SetFontAndColor(self.font,set_font_mask.B_FONT_ALL,nocolor)
 			self.checkres.SetText("☐",None)
 		self.valueln.SetText("")
+		old_progress=self.FindView('progress')
+		if old_progress!=None:
+			self.RemoveChild(old_progress)
+		self.progressinfo=BStatusBar(BRect(5,5,self.infobox.Bounds().right-5,35),'progress',"Progress:", None)
+		self.infobox.AddChild(self.progressinfo,None)
 
 	def NichilizeTM(self):
 		if tm:
@@ -3063,14 +3068,10 @@ class MainWindow(BWindow):
 		#create items and load sourcestrings
 		self.load_sourcestrings(encoding)
 		#look for previous self.progressinfo and remove them
-		old_progress=self.FindView('progress')
-		if old_progress!=None:
-			self.RemoveChild(old_progress)
-		self.progressinfo=BStatusBar(BRect(5,5,self.infobox.Bounds().right-5,35),'progress',"Progress:", None)
+		
 		self.potot=len(self.pofile.translated_entries())+len(self.pofile.untranslated_entries())+len(self.pofile.fuzzy_entries())
 		self.progressinfo.SetMaxValue(self.potot)
 		self.progressinfo.Update(len(self.pofile.translated_entries()),None,str(self.pofile.percent_translated())+"%")
-		self.infobox.AddChild(self.progressinfo,None)
 	
 	def load_sourcestrings(self,encoding):
 		self.sourcestrings.Clear()
@@ -3500,7 +3501,8 @@ class MainWindow(BWindow):
 				self.sourcestrings.Clear()
 				self.Nichilize()
 				self.NichilizeTM()
-				#self.NichilizeMsgs()
+				self.NichilizeMsgs()
+				#self.NichilizeTabs()
 				altece2 = self.transtabview.TabHeight()
 				tabrc2 = (3.0, 3.0, self.transtabview.Bounds().Width() - 3, self.transtabview.Bounds().Height()-altece2)
 				self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',self))
@@ -4474,6 +4476,7 @@ class MainWindow(BWindow):
 				self.listemsgstr[self.transtabview.Selection()].trnsl.Select(lngth,lngth)
 				self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
 				self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
+				self.listemsgstr[self.transtabview.Selection()].trnsl.CheckSpell()
 			except:
 			#	#"Not a SugjItem, but an ErrorItem as not having .Text() function"
 				pass
