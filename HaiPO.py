@@ -2959,6 +2959,30 @@ class MainWindow(BWindow):
 		#2)controllo mimetype
 		filename, file_extension = os.path.splitext(f)
 		
+		#3)controllo errori
+		infos,warnings,fatals=self.CheckPO(f)
+		if len(infos)>0:
+			for info in infos:
+				say = BAlert(info[0], info[1], 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_INFO_ALERT)
+				self.alerts.append(say)
+				say.Go()
+			return
+		if len(warnings)>0:
+			for warn in warnings:
+				say = BAlert(warn[1], warn[0], 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+				self.alerts.append(say)
+				say.Go()
+			return
+		if len(fatals)>0:
+			for fatal in fatals:
+				if fatal[1]!=None:
+					txt=f"At position {fatal[1]}: {fatal[0]}"
+				else:
+					txt=fatal[0]
+				say = BAlert(fatal[2], txt, 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_STOP_ALERT)
+				self.alerts.append(say)
+				say.Go()
+			return
 		ent,confile=Ent_config()
 		Config.read(confile)
 		try:
@@ -3360,38 +3384,41 @@ class MainWindow(BWindow):
 					item.SetLineNum(entry.linenum)
 				self.litms.append(item)
 				self.sourcestrings.lv.AddItem(self.litms[-1])
-	
+
+	def CheckPO(self,path):
+		pth=BPath()
+		BEntry(path).GetPath(pth)
+		leaf=pth.Leaf()
+		infos=[]
+		warnings=[]
+		fatals=[]
+		asc=junitmsgfmt.MsgfmtTester(path)._run_msgfmt(path) # returns (file,time,[failures])
+		if len(asc[2])>0:
+			#failures è [(text,message)]
+			for item in asc[2]:
+				try:
+					tottxt=item[0] #tutto il testo
+					ltxt=tottxt.split("msgfmt: ")#divido dal msgfmt finale che mi indica gli eventuali errori fatali totali
+					for txt in ltxt:
+						if txt.find(leaf+":")>-1:
+							sptxt=txt.split(leaf+":")#ogni volta che trovo il "nomefile:" c'è un errore
+							for s in sptxt:
+								if s.find("warning:")>-1:
+									warnings.append((s,item[1]))
+								else:
+									t=s[s.find(":")+2:]
+									try:
+										pos=int(s[:s.find(":")])#se è un intero si può provare a raggiungerlo
+									except:
+										pos=None
+									fatals.append((t,pos,item[1]))
+				except Exception as e:
+					infos.append("impossibile elaborare l'errore",e)
+		return (infos,warnings,fatals)
 	def Save(self, path):
 		self.pofile.save(path)
 		if path[-7:] != "temp.po":
-			pth=BPath()
-			BEntry(path).GetPath(pth)
-			leaf=pth.Leaf()
-			infos=[]
-			warnings=[]
-			fatals=[]
-			asc=junitmsgfmt.MsgfmtTester(path)._run_msgfmt(path) # returns (file,time,[failures])
-			if len(asc[2])>0:
-				#failures è [(text,message)]
-				for item in asc[2]:
-					try:
-						tottxt=item[0] #tutto il testo
-						ltxt=tottxt.split("msgfmt: ")#divido dal msgfmt finale che mi indica gli eventuali errori fatali totali
-						for txt in ltxt:
-							if txt.find(leaf+":")>-1:
-								sptxt=txt.split(leaf+":")#ogni volta che trovo il "nomefile:" c'è un errore
-								for s in sptxt:
-									if s.find("warning:")>-1:
-										warnings.append((s,item[1]))
-									else:
-										t=s[s.find(":")+2:]
-										try:
-											pos=int(s[:s.find(":")])#se è un intero si può provare a raggiungerlo
-										except:
-											pos=None
-										fatals.append((t,pos,item[1]))
-					except Exception as e:
-						print("impossibile elaborare l'errore",e)
+			infos, warnings, fatals = self.CheckPO(path)
 			if len(warnings)>0:
 				for warn,title in warnings:
 					say = BAlert(warn, title, ':-(',None, None, button_width.B_WIDTH_AS_USUAL , alert_type.B_STOP_ALERT)
