@@ -484,55 +484,68 @@ class trnsltabbox(BBox):
 		self.trnsl.MakeEditable(True)
 		self.AddChild(self.trnsl,None)
 		bi,bu,bo,ba = playground2
-		self.scrollbtrans=BScrollBar(BRect(bo -20,1,bo-5,ba-5),name+'_ScrollBar',self.trnsl,0.0,0.0,orientation.B_VERTICAL)#TODO: get scrollbarwidth not -20 or whatever
+		self.scrollbtrans=BScrollBar(BRect(bo -20,1,bo-5,ba-5),name+'_ScrollBar',self.trnsl,0.0,0.0,orientation.B_VERTICAL)
 		self.AddChild(self.scrollbtrans,None)
 
 class contexttabbox(BBox):
 	def __init__(self,frame,superself):
 		name="context"
 		self.name = name
-		BBox.__init__(self,BRect(0,0,frame[2]-frame[0],frame[3]-frame[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
-		self.context = BTextView(BRect(frame[0],frame[1],frame[2]-frame[0]-18,frame[3]-frame[1]),name+'_context_BTextView',BRect(5.0,5.0,frame[2]-30,frame[3]-5),B_FOLLOW_ALL_SIDES,B_WILL_DRAW|B_FRAME_EVENTS)
+		extrect=BRect(frame[0],frame[1],frame[2]-frame[0]-20,frame[3]-frame[1]-37)
+		inrect=extrect
+		inrect.InsetBy(2,2)
+		BBox.__init__(self,BRect(0,0,frame[2]-frame[0],frame[3]-frame[1]),name,B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
+		self.context = BTextView(extrect,name+'_context_BTextView',inrect,B_FOLLOW_ALL_SIDES,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.context.MakeEditable(False)
 		self.AddChild(self.context,None)
-		bi,bu,bo,ba = frame
-		self.scrollbcont=BScrollBar(BRect(bo -20,1,bo-5,ba-5),name+'_ScrollBar',self.context,0.0,0.0,orientation.B_VERTICAL)#TODO: get scrollbarwidth not -20 or whatever
+		scrrect=BRect(extrect.right,4,extrect.right+20,extrect.bottom)
+		self.scrollbcont=BScrollBar(scrrect,name+'_ScrollBar',self.context,0.0,0.0,orientation.B_VERTICAL)
 		self.AddChild(self.scrollbcont,None)
 		
 class commenttabbox(BBox):
 	def __init__(self,frame,superself):
 		name="comment"
 		self.name = name
-		BBox.__init__(self,BRect(0,0,frame[2]-frame[0],frame[3]-frame[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
-		self.comment = BTextView(BRect(frame[0],frame[1],frame[2]-frame[0]-18,frame[3]-frame[1]),name+'_comment_BTextView',BRect(5.0,5.0,frame[2]-30,frame[3]-5),B_FOLLOW_ALL_SIDES,B_WILL_DRAW|B_FRAME_EVENTS)
+		extrect=BRect(frame[0],frame[1],frame[2]-frame[0]-20,frame[3]-frame[1]-37)
+		inrect=extrect
+		inrect.InsetBy(2,2)
+		BBox.__init__(self,BRect(0,0,frame[2]-frame[0],frame[3]-frame[1]),name,B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
+		self.comment = BTextView(extrect,name+'_comment_BTextView',inrect,B_FOLLOW_ALL_SIDES,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.comment.MakeEditable(False)
 		self.AddChild(self.comment,None)
-		bi,bu,bo,ba = frame
-		self.scrollbcom=BScrollBar(BRect(bo -20,1,bo-5,ba-5),name+'_ScrollBar',self.comment,0.0,0.0,orientation.B_VERTICAL)#TODO: get scrollbarwidth not -20 or whatever
+		scrrect=BRect(extrect.right,4,extrect.right+20,extrect.bottom)
+		self.scrollbcom=BScrollBar(scrrect,name+'_ScrollBar',self.comment,0.0,0.0,orientation.B_VERTICAL)
 		self.AddChild(self.scrollbcom,None)
 
 class tcommenttabbox(BBox):
 	def __init__(self,frame,superself):
 		name="tcomment"
 		self.name = name
-		BBox.__init__(self,BRect(0,0,frame[2]-frame[0],frame[3]-frame[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
-		self.tcomment = BTextView(BRect(frame[0],frame[1],frame[2]-frame[0]-18,frame[3]-frame[1]),name+'_comment_BTextView',BRect(5.0,5.0,frame[2]-30,frame[3]-5),B_FOLLOW_ALL_SIDES,B_WILL_DRAW|B_FRAME_EVENTS)
+		extrect=BRect(frame[0],frame[1],frame[2]-frame[0]-20,frame[3]-frame[1]-37)
+		inrect=extrect
+		inrect.InsetBy(2,2)
+		BBox.__init__(self,BRect(0,0,frame[2]-frame[0],frame[3]-frame[1]),name,B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
+		self.tcomment = BTextView(extrect,name+'_comment_BTextView',inrect,B_FOLLOW_ALL_SIDES,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.tcomment.MakeEditable(False)
 		self.AddChild(self.tcomment,None)
-		bi,bu,bo,ba = frame
-		self.scrollbtcom=BScrollBar(BRect(bo -20,1,bo-5,ba-5),name+'_ScrollBar',self.tcomment,0.0,0.0,orientation.B_VERTICAL)#TODO: get scrollbarwidth not -20 or whatever
+		scrrect=BRect(extrect.right,4,extrect.right+20,extrect.bottom)
+		self.scrollbtcom=BScrollBar(scrrect,name+'_ScrollBar',self.tcomment,0.0,0.0,orientation.B_VERTICAL)
 		self.AddChild(self.scrollbtcom,None)
 
 class previoustabbox(BBox):
 	def __init__(self,frame,superself):
 		name="prev_msgid"
 		self.name = name
-		BBox.__init__(self,BRect(0,0,frame[2]-frame[0],frame[3]-frame[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
-		self.prev = BTextView(BRect(frame[0],frame[1],frame[2]-frame[0]-18,frame[3]-frame[1]),name+'_comment_BTextView',BRect(5.0,5.0,frame[2]-30,frame[3]-5),B_FOLLOW_ALL_SIDES,B_WILL_DRAW|B_FRAME_EVENTS)
+		extrect=BRect(frame[0],frame[1],frame[2]-frame[0]-20,frame[3]-frame[1]-37)
+		inrect=extrect
+		inrect.InsetBy(2,2)
+		BBox.__init__(self,BRect(0,0,frame[2]-frame[0],frame[3]-frame[1]),name,B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
+		self.prev = BTextView(extrect,name+'_comment_BTextView',inrect,B_FOLLOW_ALL_SIDES,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.prev.MakeEditable(False)
 		self.AddChild(self.prev,None)
-		bi,bu,bo,ba = frame
-		self.scrollbprev=BScrollBar(BRect(bo -20,1,bo-5,ba-5),name+'_ScrollBar',self.prev,0.0,0.0,orientation.B_VERTICAL)#TODO: get scrollbarwidth not -20 or whatever
+		#bi,bu,bo,ba = frame
+		scrrect=BRect(extrect.right,4,extrect.right+20,extrect.bottom)
+		self.scrollbprev=BScrollBar(scrrect,name+'_ScrollBar',self.prev,0.0,0.0,orientation.B_VERTICAL)
 		self.AddChild(self.scrollbprev,None)
 
 class MsgStrItem(BListItem):
