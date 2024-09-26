@@ -58,21 +58,6 @@ def ConfigSectionMap(section):
             dict1[option] = None
     return dict1
 
-def startinserting(stile,errors):
-	fontz=BFont()
-	fontz.SetFace(B_BOLD_FACE) #strikeout and underscore don't work
-	fontx=BFont()
-	fontx.SetFace(B_ITALIC_FACE)
-	for er in errors:
-		if len(er.sugg)>0:
-			stile.append((er.pos, fontz, (255,0,0,0)))
-			stile.append(((er.pos+len(er.word)), be_plain_font, (0,0,0,0)))
-		else:
-			#type 1 no suggestions
-			stile.append((er.pos, fontx, (255,0,0,0)))
-			stile.append(((er.pos+len(er.word)), be_plain_font, (0,0,0,0)))
-	return stile
-
 def cstep(n,r,h):
 	s=5*(n+1)+(6+h)*n
 	sh=5*n+(6+h)*(n+1)		
@@ -390,8 +375,7 @@ class ScrollSugj:
 class TranslatorComment(BWindow):
 	kWindowFrame = BRect(150, 150, 450, 300)
 	kWindowName = "Translator comment"
-	
-	#def __init__(self,listindex,indextab,item,encoding):
+
 	def __init__(self,listindex,item,backupfile):#,oldsize):
 		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
 		bounds=self.Bounds()
@@ -410,7 +394,6 @@ class TranslatorComment(BWindow):
 		self.savebtn = BButton(kButtonFrame, kButtonName, kButtonName, BMessage(5252))
 		self.underframe.AddChild(self.savebtn,None)
 		self.item=item
-		# self.indextab=indextab
 		self.listindex=listindex
 		if self.item.tcomment!="":
 			self.tcommentview.SetText(self.item.tcomment,None)
@@ -441,7 +424,7 @@ class TranslatorComment(BWindow):
 			return BWindow.MessageReceived(self, msg)
 
 class translationtabview(BTabView):
-	def __init__(self,frame,name,superself):#width,risizingMode,flags,
+	def __init__(self,frame,name,superself):
 		self.superself=superself
 		BTabView.__init__(self,frame,name,button_width.B_WIDTH_AS_USUAL,B_FOLLOW_LEFT_RIGHT)
 	def Draw(self,updateRect):
@@ -1652,8 +1635,6 @@ class FindRepTrans(BWindow):
 				repmsg.AddInt16("ef",self.ef)
 				repmsg.AddString("subs",self.reptv.Text())
 				be_app.WindowAt(0).PostMessage(repmsg)
-				#wt=listar[BApplication.be_app.WindowAt(0).transtabview.Selection()].trnsl#.Text()
-				#wt.Delete(self.ei,self.ef)
 		elif msg.what == 1010:
 			self.looktv.SetText(msg.FindString('txt'))
 			return
@@ -1716,7 +1697,6 @@ class Findsource(BWindow):
 							savin = True
 					if savin:
 						be_app.WindowAt(0).listemsgstr[0].trnsl.Save()
-				#tl = len(self.looktv.Text())
 				tl = byte_count(self.looktv.Text())[0]
 				max = total
 				now = indaco
@@ -1730,7 +1710,6 @@ class Findsource(BWindow):
 						if self.casesens.Value():
 							item = lista.ItemAt(now)
 							if item.hasplural:
-								#ret = item.msgids[0].find(self.looktv.Text())
 								ret=find_byte(self.looktv.Text(),item.msgids[0])
 								if ret >-1:
 									#evidenziare-correggere
@@ -1744,7 +1723,6 @@ class Findsource(BWindow):
 									#messace.AddInt8('index',0)
 									be_app.WindowAt(0).PostMessage(messace)
 									break
-								#ret = item.msgids[1].find(self.looktv.Text())
 								ret=find_byte(self.looktv.Text(),item.msgids[1])
 								if ret >-1:
 									scrollmsg.AddInt32("where",now)
@@ -1758,7 +1736,6 @@ class Findsource(BWindow):
 									be_app.WindowAt(0).PostMessage(messace)
 									break
 							else:
-								#ret = item.msgids.find(self.looktv.Text())
 								ret=find_byte(self.looktv.Text(),item.msgids)
 								if ret >-1:
 									scrollmsg.AddInt32("where",now)
@@ -1775,8 +1752,6 @@ class Findsource(BWindow):
 						else:
 							item = lista.ItemAt(now)
 							if item.hasplural:
-								#ret = item.msgids[0].encode(self.encoding).lower().find(self.looktv.Text().lower())
-								#ret = item.msgids[0].lower().find(self.looktv.Text().lower())
 								ret=find_byte(self.looktv.Text().lower(),item.msgids[0].lower())
 								if ret >-1:
 									scrollmsg.AddInt32("where",now)
@@ -1788,8 +1763,6 @@ class Findsource(BWindow):
 									messace.AddInt8('srctrnsl',0)
 									be_app.WindowAt(0).PostMessage(messace)
 									break
-								#ret = item.msgids[1].encode(self.encoding).lower().find(self.looktv.Text().lower())
-								#ret = item.msgids[1].lower().find(self.looktv.Text().lower())
 								ret=find_byte(self.looktv.Text().lower(),item.msgids[1].lower())
 								if ret >-1:
 									scrollmsg.AddInt32("where",now)
@@ -1802,8 +1775,6 @@ class Findsource(BWindow):
 									be_app.WindowAt(0).PostMessage(messace)
 									break
 							else:
-								#ret = item.msgids.encode(self.encoding).lower().find(self.looktv.Text().lower())
-								#ret = item.msgids.lower().find(self.looktv.Text().lower())
 								ret=find_byte(self.looktv.Text().lower(),item.msgids.lower())
 								if ret >-1:
 									scrollmsg.AddInt32("where",now)
@@ -1871,36 +1842,11 @@ class POmetadata(BWindow):
 		for element in self.listBTextControl:
 			self.underframe.AddChild(element,None)
 	def MessageReceived(self, msg):
-		#if msg.what == 99111: # elaborate pofile
-		#	conta=self.underframe.CountChildren()
-		#	while conta > 0:
-		#		self.underframe.ChildAt(conta).RemoveSelf()
-		#		conta=conta-1
-#
-#			self.metadata = self.pofile.ordered_metadata()
-#			
-#			rect = [10,10,425,30]
-#			step = 34
-#			
-#			indexstring=0
-#			for item in self.metadata:
-#				modmsg=BMessage(51973)
-#				modmsg.AddString('itemstring',item[0])
-#				modmsg.AddInt8('itemindex',indexstring)
-#				self.listBTextControl.append(BTextControl(BRect(rect[0],rect[1]+step*indexstring,rect[2],rect[3]+step*indexstring),'txtctrl'+str(indexstring),item[0],item[1],modmsg))
-#				indexstring+=1
-
-#			if self.kWindowFrame.Height()< rect[3]+step*(indexstring):
-#				self.ResizeTo(self.Bounds().right,float(rect[3]+step*(indexstring)-20))
-				
-#			for element in self.listBTextControl:
-#				self.underframe.AddChild(element,None)
-
 		if msg.what == 51973:
 			# save metadata to self.pofile
 			ind=msg.FindString('itemstring')
 			indi=msg.FindInt8('itemindex')
-			self.pofile.metadata[ind]=self.listBTextControl[indi].Text()#.decode(BApplication.be_app.WindowAt(0).encoding)   ################### possible error? check encoding
+			self.pofile.metadata[ind]=self.listBTextControl[indi].Text()
 			# save self.pofile to backup file
 			smesg=BMessage(16893)
 			smesg.AddInt8('savetype',2)
@@ -1908,24 +1854,6 @@ class POmetadata(BWindow):
 			pth=be_app.WindowAt(0).backupfile
 			smesg.AddString('bckppath',be_app.WindowAt(0).backupfile)
 			be_app.WindowAt(0).PostMessage(smesg)
-
-
-			#entry = self.pofile.metadata_as_entry()
-#		self.po.metadata = {
- #           'Project-Id-Version': "%s %s" % (release.description, release.version),
-  #          'Report-Msgid-Bugs-To': '',
-   #         'POT-Creation-Date': now,
-    #        'PO-Revision-Date': now,
-     #       'Last-Translator': '',
-      #      'Language-Team': '',
-       #     'MIME-Version': '1.0',
-        #    'Content-Type': 'text/plain; charset=UTF-8',
-         #   'Content-Transfer-Encoding': '',
-          #  'Plural-Forms': '',
-        #} 
-        
-
-#			poobj.metadata["Content-Type"] = "text/plain; charset=UTF-8"
 
 class MyListItem(BListItem):
 	nocolor = (0, 0, 0, 0)
@@ -1939,8 +1867,7 @@ class MyListItem(BListItem):
 		self.frame = frame
 		l=frame.left
 		b=frame.bottom
-		#complete = True
-		if self.IsSelected() or complete: # 
+		if self.IsSelected() or complete: 
 			#color = (200,200,200,255)
 			owner.SetHighColor(200,200,200,255)
 			owner.SetLowColor(200,200,200,255)
@@ -1968,24 +1895,21 @@ class SugjItem(BListItem):
 		l=frame.left
 		font_height_value=font_height()
 		be_plain_font.GetHeight(font_height_value)
-		#t=frame.top
-		#r=frame.right
 		b=frame.bottom
 		if self.IsSelected() or complete:
 			owner.SetHighColor(200,200,200,255)
 			owner.SetLowColor(200,200,200,255)
 			owner.FillRect(frame)
 		self.color = rgb_color()
-		owner.MovePenTo(l+5,b-font_height_value.descent)#2)
+		owner.MovePenTo(l+5,b-font_height_value.descent)
 		tempcolor = rgb_color()
 		if self.percent == 100:
 			self.font = be_bold_font
-			self.font.SetSize(be_plain_font.Size())#16)
+			self.font.SetSize(be_plain_font.Size())
 			tempcolor.green=200
 			#(0,200,0,0)
 		else:
 			self.font = be_plain_font
-			#self.font.SetSize(16)
 			tempcolor.red = 170
 			tempcolor.green = 20
 			tempcolor.blue = 170
@@ -1997,7 +1921,7 @@ class SugjItem(BListItem):
 		owner.SetHighColor(self.color)
 		self.font = be_plain_font
 		owner.SetFont(self.font)
-		owner.MovePenTo(l+ww+10,b-2)#40
+		owner.MovePenTo(l+ww+10,b-2)
 		owner.DrawString(self.text,None)
 
 	def Text(self):
@@ -2113,7 +2037,6 @@ class TMSettings(BWindow):
 		r=bounds.right
 		b=bounds.bottom
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
-		#h=round(self.underframe.GetFontHeight()[0])
 		be_plain_font.SetSize(16)
 		h=be_plain_font.Size()
 		self.AddChild(self.underframe,None)
@@ -2300,10 +2223,8 @@ class SpellcheckSettings(BWindow):
 		be_plain_font.SetSize(oldsize)
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
 		h=oldsize
-		#h=round(self.underframe.GetFontHeight()[0])
 		self.AddChild(self.underframe,None)
 		ent,confile=Ent_config()
-		#BRect(5,5,r-5,h+4)
 		self.enablecheck = BCheckBox(cstep(0,r,h),'enabcheck', 'Enable/Disable spellcheck', BMessage(222))
 		
 		if ent.Exists():
@@ -2316,19 +2237,16 @@ class SpellcheckSettings(BWindow):
 				bret = ConfigSectionMap("Translator")['spell_dictionary'] #it's ascii
 			except:
 				bret = "/boot/system/data/hunspell/en_US"
-			#BRect(5,2*h+27,r-5,3*h+37)
 			self.diz = BTextControl(cstep(1,r,h),'dictionary','Dictionary path:',bret,BMessage(8086))
 			try:
 				bret = ConfigSectionMap("Translator")['spell_inclusion']
 			except:
 				bret = ""
-			#BRect(5,3*h+39,r-5,4*h+49)
 			self.inclus = BTextControl(cstep(2,r,h),'inclusion','Chars included in words:',bret,BMessage(8087))
 			try:
 				bret = ConfigSectionMap("Translator")['spell_esclusion']
 			except:
 				bret = ""
-		#BRect(5,4*h+51,r-5,5*h+61)
 		self.esclus = BTextControl(cstep(3,r,h),'inclusion','Chars-categories escluded in words:',bret,BMessage(8088))
 		self.esclus.SetText("Pc,Pd,Pe,Pi,Po,Ps,Cc,Pf")
 		topr=cstep(4,r,h)
@@ -2454,8 +2372,7 @@ class MainWindow(BWindow):
 		)
 		
 	def __init__(self,arg):
-		#global confile
-		BWindow.__init__(self, BRect(6,64,1024,768), "HaiPO 2.0", window_type.B_TITLED_WINDOW, B_QUIT_ON_WINDOW_CLOSE)#B_NOT_RESIZABLE |
+		BWindow.__init__(self, BRect(6,64,1024,768), "HaiPO 2.0", window_type.B_TITLED_WINDOW, B_QUIT_ON_WINDOW_CLOSE)
 		self.speloc = threading.Semaphore()
 		self.intime=time.time()
 		self.t1=time.time()
@@ -2576,7 +2493,6 @@ class MainWindow(BWindow):
 						Config.write(cfgfile)
 						cfgfile.close()
 					if builtin_srv:
-						#server(self,addr,PORT=2022,HEADER=4096,log=False)
 						self.serv=Thread(target=self.server,args=(tmxsrv,tmxprt,header,log_srv,))
 						self.serv.start()
 			except:
@@ -2706,8 +2622,8 @@ class MainWindow(BWindow):
 			else:
 				self.bar.AddItem(menu)
 		
-		self.upperbox = BBox(BRect(0,barheight+2,bckgnd_bounds.Width(),bckgnd_bounds.Height()/2-1),"Under_upperbox",B_FOLLOW_TOP,border_style.B_FANCY_BORDER)#0x0202|0x0404
-		self.lowerbox = BBox(BRect(0,bckgnd_bounds.Height()/2+1,bckgnd_bounds.Width()*2/3,bckgnd_bounds.Height()),"Under_lowerbox",B_FOLLOW_BOTTOM,border_style.B_FANCY_BORDER)#0x0202|0x0404
+		self.upperbox = BBox(BRect(0,barheight+2,bckgnd_bounds.Width(),bckgnd_bounds.Height()/2-1),"Under_upperbox",B_FOLLOW_TOP,border_style.B_FANCY_BORDER)
+		self.lowerbox = BBox(BRect(0,bckgnd_bounds.Height()/2+1,bckgnd_bounds.Width()*2/3,bckgnd_bounds.Height()),"Under_lowerbox",B_FOLLOW_BOTTOM,border_style.B_FANCY_BORDER)
 		self.spaceright=bckgnd_bounds.Width()/3
 		self.bckgnd.AddChild(self.upperbox,None)
 		self.bckgnd.AddChild(self.lowerbox,None)
@@ -2790,7 +2706,7 @@ class MainWindow(BWindow):
 		rectcksp=BRect(self.upperbox.Bounds().right*2/3+4,self.upperbox.Bounds().bottom/2+10,self.upperbox.Bounds().right-4,self.upperbox.Bounds().bottom-70)
 		insetcksp=BRect(0,0,rectcksp.Width(),rectcksp.Height())
 		insetcksp.InsetBy(5,5)
-		self.expander = srcTextView(rectcksp,"checkres",insetcksp,B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM,B_WILL_DRAW|B_FRAME_EVENTS)#BTextView(rectcksp,"checkres",insetcksp,B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM,B_WILL_DRAW|B_FRAME_EVENTS)
+		self.expander = srcTextView(rectcksp,"checkres",insetcksp,B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.expander.MakeEditable(0)
 		self.upperbox.AddChild(self.expander,None)
 		
@@ -2853,14 +2769,6 @@ class MainWindow(BWindow):
 			i.src.Clear()
 
 	def NichilizeMsgs(self):
-	#	ww=len(self.listemsgs)-1
-	#	while ww>-1:
-	#		tabboz = self.msgstabview.RemoveTab(ww)
-	#		self.listemsgs.pop(ww)
-	#		self.msgstablabels.pop(ww)
-	#		del tabboz
-	#		ww-=1
-	#	print(self.listemsgs,self.msgstablabels)
 		for i in self.msgstablabels:
 			i.notify = False
 		self.msgstabview.DrawTabs()
@@ -2935,9 +2843,9 @@ class MainWindow(BWindow):
 		
 	def Nichilize(self):
 		if (len(self.listemsgid)-1) == 1:    #IF THERE'S A PLURAL MSGID, REMOVE IT
-				self.srctabview.RemoveTab(1)
-				self.listemsgid.pop(1)
-				self.srctablabels.pop(1)
+			self.srctabview.RemoveTab(1)
+			self.listemsgid.pop(1)
+			self.srctablabels.pop(1)
 		ww=len(self.listemsgstr)-1
 		while ww>0:					#removes plural translation tabs
 			self.transtabview.RemoveTab(ww)
@@ -2960,19 +2868,20 @@ class MainWindow(BWindow):
 		filename, file_extension = os.path.splitext(f)
 		
 		#3)controllo errori
+		exit=False
 		infos,warnings,fatals=self.CheckPO(f)
 		if len(infos)>0:
 			for info in infos:
-				say = BAlert(info[0], info[1], 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_INFO_ALERT)
+				say = BAlert(info[1], info[0], 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_INFO_ALERT)
 				self.alerts.append(say)
 				say.Go()
-			return
+			exit=True
 		if len(warnings)>0:
 			for warn in warnings:
 				say = BAlert(warn[1], warn[0], 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
 				self.alerts.append(say)
 				say.Go()
-			return
+			exit=True
 		if len(fatals)>0:
 			for fatal in fatals:
 				if fatal[1]!=None:
@@ -2982,6 +2891,8 @@ class MainWindow(BWindow):
 				say = BAlert(fatal[2], txt, 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_STOP_ALERT)
 				self.alerts.append(say)
 				say.Go()
+			exit=True
+		if exit:
 			return
 		ent,confile=Ent_config()
 		Config.read(confile)
@@ -3007,7 +2918,7 @@ class MainWindow(BWindow):
 					self.alerts.append(say)
 					ret=say.Go()
 					if ret==0:
-						# mimetype not detected, check file extnsion
+						# mimetype not detected, check file extension
 						boolgo=False
 						if not(file_extension in [".po", ".pot", ".mo"]):
 							return
@@ -3020,7 +2931,7 @@ class MainWindow(BWindow):
 				self.alerts.append(say)
 				ret=say.Go()
 				if ret==0:
-					# mimetype not detected, check file extnsion
+					# mimetype not detected, check file extension
 					boolgo=False
 					supertype = "text"
 					subtype = "x-gettext-translation"
@@ -3063,7 +2974,7 @@ class MainWindow(BWindow):
 						return
 				elif b==1:
 					#ci sono altre lingue nel file rispetto a quelle dell'utente
-					say = BAlert('Warn', 'This po file is not for your language!', 'OK',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+					say = BAlert('Warn', 'This gettext portable object file is not for your language!', 'OK',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
 					self.alerts.append(say)
 					ret=say.Go()
 				else:
@@ -3092,7 +3003,9 @@ class MainWindow(BWindow):
 						temppofile = polib.pofile(backupfile,encoding=polib.detect_encoding(backupfile))
 						self.handlePO(temppofile,backupfile,self.wob)
 					except:
-						#BAlert "attenzione il file di backup potrebbe essere rovinato, o non è possibile leggerlo correttamente, verrà usato il file originale"
+						say = BAlert('Warn', 'It is possible that the backup file is corrupted or damaged and it cannot be loaded! The original file will be loaded instead.', 'OK',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+						self.alerts.append(say)
+						ret=say.Go()
 						#use pof
 						self.handlePO(pof,pth,self.wob)
 					#carica il po
@@ -3109,7 +3022,6 @@ class MainWindow(BWindow):
 	def handlePO(self,pof,percors,workonbackup):
 		p=BPath(BEntry(percors)).Leaf()
 		title=f"{appname} {ver}: {p}\n"
-		#appname+": "+p
 		self.SetTitle(title)
 		self.pofile = pof
 		if workonbackup:
@@ -3129,21 +3041,8 @@ class MainWindow(BWindow):
 		match = re.search(r'nplurals\s*=\s*(\d+)', plural_forms_header)
 		if match:
 			self.nplurals = int(match.group(1))
-			#print(f"Number of plural forms: {nplurals}")
 		else:
 			print("Plural-Forms not found or malformed.")
-		#for data in self.orderedmetadata:
-		#	if data[0]=="Plural-Forms":
-		#		d=data[1].split(";")
-		#		np=d[0]
-		#		np=np[np.find("=")+1:]
-		#		try:
-		#			self.nplurals=int(np)
-		#		except:
-		#			self.nplurals=None
-		#		#d=d[data.find("nplurals=")+9:]
-		#		#data=data[:data.find(";")]
-		#		print("numero di plurali",np)
 		self.fp=BFilePanel(B_SAVE_PANEL,None,None,0,False, None, None, True, True)
 		pathorig,nameorig=os.path.split(percors)
 		self.fp.SetPanelDirectory(pathorig)
@@ -3399,7 +3298,9 @@ class MainWindow(BWindow):
 				try:
 					tottxt=item[0] #tutto il testo
 					ltxt=tottxt.split("msgfmt: ")#divido dal msgfmt finale che mi indica gli eventuali errori fatali totali
-					for txt in ltxt:
+					mytxts=ltxt[0].split("\n")
+					infos.append((ltxt[1],item[1]))
+					for txt in mytxts:
 						if txt.find(leaf+":")>-1:
 							sptxt=txt.split(leaf+":")#ogni volta che trovo il "nomefile:" c'è un errore
 							for s in sptxt:
@@ -3411,19 +3312,22 @@ class MainWindow(BWindow):
 										pos=int(s[:s.find(":")])#se è un intero si può provare a raggiungerlo
 									except:
 										pos=None
-									fatals.append((t,pos,item[1]))
+									if t!="":
+										fatals.append((t,pos,item[1]))
 				except Exception as e:
-					infos.append("impossibile elaborare l'errore",e)
+					infos.append(("impossibile elaborare l'errore",e))
 		return (infos,warnings,fatals)
 	def Save(self, path):
 		self.pofile.save(path)
 		if path[-7:] != "temp.po":
 			infos, warnings, fatals = self.CheckPO(path)
+			#exit=False
 			if len(warnings)>0:
 				for warn,title in warnings:
 					say = BAlert(warn, title, ':-(',None, None, button_width.B_WIDTH_AS_USUAL , alert_type.B_STOP_ALERT)
 					self.alerts.append(say)
 					say.Go()
+				#exit=True
 			if len(fatals)>0:
 				polines = []
 				guut=[]
@@ -3452,89 +3356,7 @@ class MainWindow(BWindow):
 								guut[-1].PostMessage(mxg)
 #					x+=1
 					print(f"Position: {fatal[1]}, error: {fatal[0]}\nstrtosrc={strtosrc}")
-					#procedere con ricerca errori
-############### popen check msgfmt #############
-#		self.pofile.save(path)
-#		svdlns=[]  #moved to fix reference before assignment
-#		if path[-7:] != "temp.po":
-#			#TODO2 trovare libreria invece di popen
-#			if get_architecture() == "x86_64":
-#				execpath = find_executable("msgfmt")
-#			else:
-#				execpath = find_executable("msgfmt-x86")
-#			comtwo = execpath+" -c "+path
-#			checker = Popen( comtwo.split(' '), stdout=PIPE,stderr=PIPE)
-#			jessude,err= checker.communicate()
-#			for ries in err.decode('utf-8').split('\n'):
-#				svdlns.append(ries)
-#				
-#		msgdigj=str(os.getcwd())+'/messages.mo'
-#		if os.path.exists(msgdigj):
-#			os.remove(msgdigj)
-#
-#		guut = []
-#		if len(svdlns)>1:
-#			try:
-#			#if True:
-#				#last row (len(x)-1) is always blank
-#				txttoshow=""
-#				x=0
-#				while x<len(svdlns)-2:
-#					if True:#x==0:
-#						posuno= svdlns[x].find(':')
-#						print(posuno)
-#						if posuno>-1:
-#							posuno+=1
-#							str1=svdlns[x][posuno:]
-#							posdue=str1.find(':')
-#							if posdue>-1:
-#								str2=str1[:posdue]
-#								print(posdue,str1,str2)
-#								rnwt=int(str2)
-#								polines = []
-#								with open (path, 'rt') as pf:
-#									for rie in pf:
-#										polines.append(rie)
-#								strtosrc = polines[rnwt-1]
-#					txttoshow=svdlns[x]
-#					say = BAlert(svdlns[len(svdlns)-2], txttoshow+"\n\nGo to this error?", 'Yes',"Skip", None, button_width.B_WIDTH_AS_USUAL , alert_type.B_STOP_ALERT)
-#					self.alerts.append(say)
-#					out=say.Go()
-#					if out==0:
-#						#inserire la ricerca per la parola interessata
-#						guut.append(FindRepTrans())
-#						guut[len(guut)-1].SetTitle("Find/Replace "+str(len(guut)-1))
-#						guut[len(guut)-1].Show()
-#						i = 1
-#						w = be_app.CountWindows()
-#						while w > i:
-#							title=be_app.WindowAt(i).Title()
-#							if title=="Find/Replace "+str(len(guut)-1):
-#								mxg=BMessage(1010)
-#								diciri=strtosrc[8:]
-#								o=len(diciri)-2
-#								lockloop=True
-#								while lockloop:
-#									if diciri[o]=="\"":
-#										diciri=diciri[:o]
-#										lockloop=False
-#									else:
-#										if o>0:
-#											o-=1
-#										else:
-#											break
-#								mxg.AddString('txt',diciri)
-#								be_app.WindowAt(i).PostMessage(mxg)
-#							i+=1
-#					x+=1
-#			except:
-#				erout = ""
-#				for it in svdlns:
-#					erout=erout +"\n"+ it.replace(path,"")
-#				say = BAlert("Generic error",erout, 'OK',None, None, button_width.B_WIDTH_AS_USUAL , alert_type.B_STOP_ALERT)
-#				self.alerts.append(say)
-#				out=say.Go()
-
+				#exit=True
 		#################################################
 		########## This should be done by OS ############
 		st=BMimeType("text/x-gettext-translation")
@@ -3543,6 +3365,8 @@ class MainWindow(BWindow):
 		ni.SetType("text/x-gettext-translation")
 		#################################################
 		self.writter.release()
+		#if exit:
+		#	be_app.WindowAt(0).PostMessage(B_QUIT_REQUESTED)
 	
 	def tmcommunicate(self,src):
 		self.netlock.acquire()
@@ -4136,7 +3960,6 @@ class MainWindow(BWindow):
 							self.transtabview.AddTab(self.listemsgstr[ww],self.transtablabels[ww])
 						ww=ww+1
 					#TODO: inserire check len(self.transtablabels) != nplurs specificato da metadatapo nell'header
-					#TODO: fare check del file po, prima di caricarlo
 				else:
 					self.Nichilize()
 					self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',self))
