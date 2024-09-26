@@ -29,6 +29,8 @@ import configparser,struct,threading,os,polib,re,datetime,time#,babel
 import enchant
 import pickle,socket,os,sys,html
 from translate.storage.tmx import tmxfile
+#### this below is a replacement for popen di msgfmt ####
+from translate.tools import junitmsgfmt
 from Levenshtein import distance as lev
 from distutils.spawn import find_executable
 from subprocess import Popen,STDOUT,PIPE
@@ -624,23 +626,26 @@ class MsgStrItem(BListItem):
 			owner.MovePenTo(frame.left+5,frame.bottom-5)
 			self.font = be_bold_font
 			tempcolor = rgb_color()#(200,0,0,0)
-			tempcolor.red=200
+			tempcolor.red=210
+			tempcolor.green=200
+			tempcolor.blue=255
 			owner.SetHighColor(tempcolor)
-			owner.SetFont(self.font)
-			xtxt='Pl >>'
-			owner.DrawString(xtxt,None)
-			ww=self.font.StringWidth(xtxt)
+			#owner.SetFont(self.font)
+			#xtxt='Pl >>'
+			#owner.DrawString(xtxt,None)
+			#ww=self.font.StringWidth(xtxt)
+			owner.FillTriangle(BPoint(frame.left+5.0,frame.top+5.0),BPoint(frame.left+5.0,frame.top+14.0),BPoint(frame.left+12.8,frame.top+9.5))
 			owner.SetHighColor(self.color)
 			self.font = be_plain_font
 			owner.SetFont(self.font)
-			owner.MovePenTo(frame.left+ww+10,frame.bottom-5)
+			#owner.MovePenTo(frame.left+ww+10,frame.bottom-5)
+			owner.MovePenTo(frame.left+15,frame.bottom-5)
 			owner.DrawString(self.text,None)
 		else:
 			owner.SetHighColor(self.color)
 			owner.MovePenTo(frame.left+5,frame.bottom-5)
 			owner.DrawString(self.text,None)
 			owner.SetLowColor(self.mycolors["clear"])
-		#owner.StrokeTriangle((float(frame[2]-10),float(frame[3]+3)),(frame[2]-2,frame[3]+3),(frame[2]-6,frame[3]+7.5));#,B_SOLID_HIGH
 		#should I? return BListItem.DrawItem(self, owner, frame,complete)
 	
 	def SetLineNum(self,value):
@@ -2950,7 +2955,6 @@ class MainWindow(BWindow):
 		self.NichilizeTM()
 		self.NichilizeTabs()
 		self.NichilizeMsgs()
-		#TODO pulire infobox
 		
 		#2)controllo mimetype
 		filename, file_extension = os.path.splitext(f)
@@ -3096,6 +3100,26 @@ class MainWindow(BWindow):
 			encoding = polib.detect_encoding(percors)
 			self.encoding=encoding
 		self.orderedmetadata=self.pofile.ordered_metadata()
+		#get nplurals
+		plural_forms_header = self.pofile.metadata.get('Plural-Forms', '')
+		match = re.search(r'nplurals\s*=\s*(\d+)', plural_forms_header)
+		if match:
+			self.nplurals = int(match.group(1))
+			#print(f"Number of plural forms: {nplurals}")
+		else:
+			print("Plural-Forms not found or malformed.")
+		#for data in self.orderedmetadata:
+		#	if data[0]=="Plural-Forms":
+		#		d=data[1].split(";")
+		#		np=d[0]
+		#		np=np[np.find("=")+1:]
+		#		try:
+		#			self.nplurals=int(np)
+		#		except:
+		#			self.nplurals=None
+		#		#d=d[data.find("nplurals=")+9:]
+		#		#data=data[:data.find(";")]
+		#		print("numero di plurali",np)
 		self.fp=BFilePanel(B_SAVE_PANEL,None,None,0,False, None, None, True, True)
 		pathorig,nameorig=os.path.split(percors)
 		self.fp.SetPanelDirectory(pathorig)
@@ -3339,80 +3363,150 @@ class MainWindow(BWindow):
 	
 	def Save(self, path):
 		self.pofile.save(path)
-		svdlns=[]  #moved to fix reference before assignment
 		if path[-7:] != "temp.po":
-			#TODO2 trovare libreria invece di popen
-			if get_architecture() == "x86_64":
-				execpath = find_executable("msgfmt")
-			else:
-				execpath = find_executable("msgfmt-x86")
-			comtwo = execpath+" -c "+path
-			checker = Popen( comtwo.split(' '), stdout=PIPE,stderr=PIPE)
-			jessude,err= checker.communicate()
-			for ries in err.decode('utf-8').split('\n'):
-				svdlns.append(ries)
-				
-		msgdigj=str(os.getcwd())+'/messages.mo'
-		if os.path.exists(msgdigj):
-			os.remove(msgdigj)
-
-		guut = []
-		if len(svdlns)>1:
-			try:
-				#last row (len(x)-1) is always blank
-				txttoshow=""
-				x=0
-				while x<len(svdlns)-2:
-					if True:#x==0:
-						posuno= svdlns[x].find(':')
-						if posuno>-1:
-							posuno+=1
-							str1=svdlns[x][posuno:]
-							posdue=str1.find(':')
-							if posdue>-1:
-								str2=str1[:posdue]
-								rnwt=int(str2)
-								polines = []
-								with open (path, 'rt') as pf:
-									for rie in pf:
-										polines.append(rie)
-								strtosrc = polines[rnwt-1]
-					txttoshow=svdlns[x]
-					say = BAlert(svdlns[len(svdlns)-2], txttoshow+"\n\nGo to this error?", 'Yes',"Skip", None, None , 4)
-					out=say.Go()
-					if out==0:
-						#inserire la ricerca per la parola interessata
-						guut.append(FindRepTrans())
-						guut[len(guut)-1].SetTitle("Find/Replace "+str(len(guut)-1))
-						guut[len(guut)-1].Show()
-						i = 1
-						w = be_app.CountWindows()
-						while w > i:
-							title=be_app.WindowAt(i).Title()
-							if title=="Find/Replace "+str(len(guut)-1):
-								mxg=BMessage(1010)
-								diciri=strtosrc[8:]
-								o=len(diciri)-2
-								lockloop=True
-								while lockloop:
-									if diciri[o]=="\"":
-										diciri=diciri[:o]
-										lockloop=False
+			pth=BPath()
+			BEntry(path).GetPath(pth)
+			leaf=pth.Leaf()
+			infos=[]
+			warnings=[]
+			fatals=[]
+			asc=junitmsgfmt.MsgfmtTester(path)._run_msgfmt(path) # returns (file,time,[failures])
+			if len(asc[2])>0:
+				#failures è [(text,message)]
+				for item in asc[2]:
+					try:
+						tottxt=item[0] #tutto il testo
+						ltxt=tottxt.split("msgfmt: ")#divido dal msgfmt finale che mi indica gli eventuali errori fatali totali
+						for txt in ltxt:
+							if txt.find(leaf+":")>-1:
+								sptxt=txt.split(leaf+":")#ogni volta che trovo il "nomefile:" c'è un errore
+								for s in sptxt:
+									if s.find("warning:")>-1:
+										warnings.append((s,item[1]))
 									else:
-										if o>0:
-											o-=1
-										else:
-											break
-								mxg.AddString('txt',diciri)
-								be_app.WindowAt(i).PostMessage(mxg)
-							i+=1
-					x+=1
-			except:
-				erout = ""
-				for it in svdlns:
-					erout=erout + it
-				say = BAlert("Generic error",erout, 'OK',None, None, None , 4)
-				out=say.Go()
+										t=s[s.find(":")+2:]
+										try:
+											pos=int(s[:s.find(":")])#se è un intero si può provare a raggiungerlo
+										except:
+											pos=None
+										fatals.append((t,pos,item[1]))
+					except Exception as e:
+						print("impossibile elaborare l'errore",e)
+			if len(warnings)>0:
+				for warn,title in warnings:
+					say = BAlert(warn, title, ':-(',None, None, button_width.B_WIDTH_AS_USUAL , alert_type.B_STOP_ALERT)
+					self.alerts.append(say)
+					say.Go()
+			if len(fatals)>0:
+				polines = []
+				guut=[]
+				with open (path, 'rt') as pf:
+					for rie in pf:
+						polines.append(rie)
+				for fatal in fatals:
+					try:
+						strtosrc = polines[fatal[1]-1]
+					except:
+						strtosrc=None
+					if strtosrc!=None:
+						s=strtosrc[strtosrc.find("\"")+1:]
+						s=s[:s.find("\"")]
+						if s!="":
+							say = BAlert(fatal[0], fatal[2]+"\n\nGo to this error?", 'Yes',"Skip", None, button_width.B_WIDTH_AS_USUAL , alert_type.B_STOP_ALERT)
+							self.alerts.append(say)
+							out=say.Go()
+							if out==0:
+								#inserire la ricerca per la parola interessata
+								guut.append(FindRepTrans())
+								guut[-1].SetTitle("Find/Replace "+str(len(guut)-1))
+								guut[-1].Show()
+								mxg=BMessage(1010)
+								mxg.AddString('txt',s)
+								guut[-1].PostMessage(mxg)
+#					x+=1
+					print(f"Position: {fatal[1]}, error: {fatal[0]}\nstrtosrc={strtosrc}")
+					#procedere con ricerca errori
+############### popen check msgfmt #############
+#		self.pofile.save(path)
+#		svdlns=[]  #moved to fix reference before assignment
+#		if path[-7:] != "temp.po":
+#			#TODO2 trovare libreria invece di popen
+#			if get_architecture() == "x86_64":
+#				execpath = find_executable("msgfmt")
+#			else:
+#				execpath = find_executable("msgfmt-x86")
+#			comtwo = execpath+" -c "+path
+#			checker = Popen( comtwo.split(' '), stdout=PIPE,stderr=PIPE)
+#			jessude,err= checker.communicate()
+#			for ries in err.decode('utf-8').split('\n'):
+#				svdlns.append(ries)
+#				
+#		msgdigj=str(os.getcwd())+'/messages.mo'
+#		if os.path.exists(msgdigj):
+#			os.remove(msgdigj)
+#
+#		guut = []
+#		if len(svdlns)>1:
+#			try:
+#			#if True:
+#				#last row (len(x)-1) is always blank
+#				txttoshow=""
+#				x=0
+#				while x<len(svdlns)-2:
+#					if True:#x==0:
+#						posuno= svdlns[x].find(':')
+#						print(posuno)
+#						if posuno>-1:
+#							posuno+=1
+#							str1=svdlns[x][posuno:]
+#							posdue=str1.find(':')
+#							if posdue>-1:
+#								str2=str1[:posdue]
+#								print(posdue,str1,str2)
+#								rnwt=int(str2)
+#								polines = []
+#								with open (path, 'rt') as pf:
+#									for rie in pf:
+#										polines.append(rie)
+#								strtosrc = polines[rnwt-1]
+#					txttoshow=svdlns[x]
+#					say = BAlert(svdlns[len(svdlns)-2], txttoshow+"\n\nGo to this error?", 'Yes',"Skip", None, button_width.B_WIDTH_AS_USUAL , alert_type.B_STOP_ALERT)
+#					self.alerts.append(say)
+#					out=say.Go()
+#					if out==0:
+#						#inserire la ricerca per la parola interessata
+#						guut.append(FindRepTrans())
+#						guut[len(guut)-1].SetTitle("Find/Replace "+str(len(guut)-1))
+#						guut[len(guut)-1].Show()
+#						i = 1
+#						w = be_app.CountWindows()
+#						while w > i:
+#							title=be_app.WindowAt(i).Title()
+#							if title=="Find/Replace "+str(len(guut)-1):
+#								mxg=BMessage(1010)
+#								diciri=strtosrc[8:]
+#								o=len(diciri)-2
+#								lockloop=True
+#								while lockloop:
+#									if diciri[o]=="\"":
+#										diciri=diciri[:o]
+#										lockloop=False
+#									else:
+#										if o>0:
+#											o-=1
+#										else:
+#											break
+#								mxg.AddString('txt',diciri)
+#								be_app.WindowAt(i).PostMessage(mxg)
+#							i+=1
+#					x+=1
+#			except:
+#				erout = ""
+#				for it in svdlns:
+#					erout=erout +"\n"+ it.replace(path,"")
+#				say = BAlert("Generic error",erout, 'OK',None, None, button_width.B_WIDTH_AS_USUAL , alert_type.B_STOP_ALERT)
+#				self.alerts.append(say)
+#				out=say.Go()
 
 		#################################################
 		########## This should be done by OS ############
@@ -3559,12 +3653,14 @@ class MainWindow(BWindow):
 			return
 		elif msg.what == 2:
 			#Save from menu
-			if True:     ###### FIX HERE check condition if file is loaded
+			if self.sourcestrings.lv.CountItems()>0:     ###### FIX HERE check condition if file is loaded
+				ent,confile=Ent_config()
 				if self.listemsgstr[self.transtabview.Selection()].trnsl.tosave:
 					#print("eventtextvie è cambiato, si esegue save interno")
 					#eventtextview changed
 					self.listemsgstr[self.transtabview.Selection()].trnsl.Save()
 				try:
+					
 					Config.read(confile)
 					namo=ConfigSectionMap("Translator")['name']
 					defname=namo+' <'+ConfigSectionMap("Translator")['mail']+'>'
@@ -3976,11 +4072,21 @@ class MainWindow(BWindow):
 				item=self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection())
 				if item.hasplural:
 					beta=len(item.msgstrs)
+					if beta!=self.nplurals:
+						say=BAlert('Different number of plurals', 'This entry presents plural source entry, but the number of translation entries do not respect the language number of plurals. Saving this entry will introduce some differences from original file or errors. Do you want to manually fix this error or let this app attempt a fix?', 'Manual','Auto Fix', None, button_width.B_WIDTH_AS_USUAL , alert_type.B_WARNING_ALERT)
+						self.alerts.append(say)
+						ret = say.Go()
+						if ret == 0:
+							be_app.WindowAt(0).PostMessage(B_QUIT_REQUESTED)
+							return
+						else:
+							self.FixItemMsgstrs(item)
+							return
 					self.Nichilize()
 					self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr[0]',self))
 					self.transtablabels.append(BTab(None))
 					self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
-					self.listemsgid.append(srctabbox((3,3,self.listemsgid[0].Bounds()[2]+3,self.listemsgid[0].Bounds()[3]+3),'msgid_plural',altece2))
+					self.listemsgid.append(srctabbox((3,3,self.listemsgid[0].Bounds().right+3,self.listemsgid[0].Bounds().bottom+3),'msgid_plural',altece2))
 					self.srctablabels.append(BTab(None))
 					self.srctabview.AddTab(self.listemsgid[1], self.srctablabels[1])
 					x=len(self.listemsgid)-1
@@ -4002,6 +4108,8 @@ class MainWindow(BWindow):
 							self.listemsgstr[ww].trnsl.SetPOReadText(item.msgstrs[ww])
 							self.transtabview.AddTab(self.listemsgstr[ww],self.transtablabels[ww])
 						ww=ww+1
+					#TODO: inserire check len(self.transtablabels) != nplurs specificato da metadatapo nell'header
+					#TODO: fare check del file po, prima di caricarlo
 				else:
 					self.Nichilize()
 					self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr',self))
@@ -4570,7 +4678,110 @@ class MainWindow(BWindow):
 			return
 		#445380 huge check on older version look at that code
 		BWindow.MessageReceived(self, msg)
-		
+	
+	def FixItemMsgstrs(self,item):
+		beta=len(item.msgstrs)
+		polines = []
+		path=self.backupfile
+		delta=0
+		path=path.replace(".temp.po",".po")
+		with open (path, 'rt') as pf:
+			for rie in pf:
+				polines.append(rie)
+		if beta<self.nplurals:
+			#aggiungi righe
+			while True:
+				#salta le righe con commenti vari
+				if polines[item.linenum][:5]!="msgid":
+					delta+=1
+				else:
+					break
+			row_sing=polines[item.linenum+delta]
+			row_plur=polines[item.linenum+delta+1]
+			rs=row_sing[row_sing.find("\"")+1:]
+			rs=rs[:rs.find("\"")]
+			rp=row_plur[row_plur.find("\"")+1:]
+			rp=rp[:rp.find("\"")]
+			if rs == item.msgids[0] and rp == item.msgids[1]:
+				i=1
+				inti=i
+				rowst=[]
+				while i<self.nplurals+1:
+					row_trans=polines[item.linenum+delta+1+inti]
+					if row_trans=="\n":
+						newstr=f"msgstr[{str(i-1)}] \"\""
+						polines.insert(item.linenum+delta+1+inti,newstr)
+						polines.insert(item.linenum+delta+1+inti+1,"\n")
+					elif row_trans[:6] == "msgstr":
+						pass
+					else:
+						i-=1#potrebbe essere continuazione riga precedente
+					i+=1
+					inti+=1
+				newpath=path[:-3]+".reconstructed.po"
+				with open(newpath,'w') as f:
+					f.writelines(polines)
+				say = BAlert('Succeeded', f"A reconstructed file ({newpath}) has been created, Please check for compliance.", 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_INFO_ALERT)
+				self.alerts.append(say)
+				say.Go()		
+		elif beta>self.nplurals:
+			#rimuovi righe
+			while True:
+				#salta le righe con commenti vari
+				if polines[item.linenum][:5]!="msgid":
+					delta+=1
+				else:
+					break
+			row_sing=polines[item.linenum+delta]
+			row_plur=polines[item.linenum+delta+1]
+			rs=row_sing[row_sing.find("\"")+1:]
+			rs=rs[:rs.find("\"")]
+			rp=row_plur[row_plur.find("\"")+1:]
+			rp=rp[:rp.find("\"")]
+			if rs == item.msgids[0] and rp == item.msgids[1]:
+				i=1
+				inti=i
+				rowst=[]
+				while True:
+					row_trans=polines[item.linenum+delta+1+inti]
+					if row_trans=="\n":
+						if i>self.nplurals:
+							#salva
+							break
+						else:
+							#c'è una riga vuota in mezzo
+							kabuki=item.linenum+delta+1+inti
+							print(f"is {kabuki} an empty line in the middle?")
+					elif row_trans[:6] == "msgstr":
+						if i>self.nplurals:
+							acti=item.linenum+delta+1+inti
+							torem=[]
+							while True:
+								if polines[acti][:2]=="#:":#non dovrebbe succedere, ma se siamo sulla traduzione successiva...
+									break
+								if polines[acti+1]=="\n":
+									torem.append(acti)
+									break
+								torem.append(acti)
+								acti+=1
+							uwu=len(torem)
+							if uwu>0:
+								while uwu>-1:
+									polines.pop(uwu)
+									uwu-=1
+							else:
+								print("I had to eliminate excess elements, but I did not detect them")
+					else:
+						i-=1#potrebbe essere continuazione riga precedente
+					i+=1
+					inti+=1
+				newpath=path[:-3]+".reconstructed.po"
+				with open(newpath,'w') as f:
+					f.writelines(polines)
+				say = BAlert('Succeeded', f"A reconstructed file ({newpath}) has been created, Please check for compliance.", 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_INFO_ALERT)
+				self.alerts.append(say)
+				say.Go()
+		be_app.WindowAt(0).PostMessage(B_QUIT_REQUESTED)
 	def highlightlater(self,inizi,fin,schede,srctrnsl):
 		self.event.wait(0.1)
 		if srctrnsl==0:
