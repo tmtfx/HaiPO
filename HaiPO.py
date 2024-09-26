@@ -300,7 +300,7 @@ class ScrollView:
 			
 	def SelectedText(self):
 			return self.lv.ItemAt(self.lv.CurrentSelection()).Text()
-
+# TODO Fix position and size of comment textviews on resize + fix the scrollbar height
 def Ent_config():
 	perc=BPath()
 	find_directory(directory_which.B_USER_NONPACKAGED_DATA_DIRECTORY,perc,False,None)
