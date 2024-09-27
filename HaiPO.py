@@ -498,7 +498,7 @@ class contexttabbox(BBox):
 		self.context = BTextView(extrect,name+'_context_BTextView',inrect,B_FOLLOW_ALL_SIDES,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.context.MakeEditable(False)
 		self.AddChild(self.context,None)
-		scrrect=BRect(extrect.right,4,extrect.right+20,extrect.bottom)
+		scrrect=BRect(extrect.right,4,extrect.right+20,extrect.bottom+1)
 		self.scrollbcont=BScrollBar(scrrect,name+'_ScrollBar',self.context,0.0,0.0,orientation.B_VERTICAL)
 		self.AddChild(self.scrollbcont,None)
 		
@@ -513,7 +513,7 @@ class commenttabbox(BBox):
 		self.comment = BTextView(extrect,name+'_comment_BTextView',inrect,B_FOLLOW_ALL_SIDES,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.comment.MakeEditable(False)
 		self.AddChild(self.comment,None)
-		scrrect=BRect(extrect.right,4,extrect.right+20,extrect.bottom)
+		scrrect=BRect(extrect.right,4,extrect.right+20,extrect.bottom+1)
 		self.scrollbcom=BScrollBar(scrrect,name+'_ScrollBar',self.comment,0.0,0.0,orientation.B_VERTICAL)
 		self.AddChild(self.scrollbcom,None)
 
@@ -528,7 +528,7 @@ class tcommenttabbox(BBox):
 		self.tcomment = BTextView(extrect,name+'_comment_BTextView',inrect,B_FOLLOW_ALL_SIDES,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.tcomment.MakeEditable(False)
 		self.AddChild(self.tcomment,None)
-		scrrect=BRect(extrect.right,4,extrect.right+20,extrect.bottom)
+		scrrect=BRect(extrect.right,4,extrect.right+20,extrect.bottom+1)
 		self.scrollbtcom=BScrollBar(scrrect,name+'_ScrollBar',self.tcomment,0.0,0.0,orientation.B_VERTICAL)
 		self.AddChild(self.scrollbtcom,None)
 
@@ -544,7 +544,7 @@ class previoustabbox(BBox):
 		self.prev.MakeEditable(False)
 		self.AddChild(self.prev,None)
 		#bi,bu,bo,ba = frame
-		scrrect=BRect(extrect.right,4,extrect.right+20,extrect.bottom)
+		scrrect=BRect(extrect.right,4,extrect.right+20,extrect.bottom+1)
 		self.scrollbprev=BScrollBar(scrrect,name+'_ScrollBar',self.prev,0.0,0.0,orientation.B_VERTICAL)
 		self.AddChild(self.scrollbprev,None)
 
@@ -2378,7 +2378,7 @@ class MainWindow(BWindow):
 	sugjs=[]
 	Menus = (
 		('File', ((295485, 'Open'), (2, 'Save'), (1, 'Close'), (5, 'Save as...'),(None, None),(B_QUIT_REQUESTED, 'Quit'))),
-		('Translation', ((3, 'Copy from source (ctrl+shift+s)'), (32,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy (ctrl+b)'), (72, 'Previous w/o saving'),(73,'Next w/o saving'),(None, None), (6, 'Find source'), (7, 'Find/Replace translation'))),
+		('Translation', ((3, 'Copy from source (ctrl+shift+s)'), (53,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy (ctrl+b)'), (72, 'Previous w/o saving'),(73,'Next w/o saving'),(None, None), (6, 'Find source'), (7, 'Find/Replace translation'))),
 		('View', ((74,'Fuzzy'), (75, 'Untranslated'),(76,'Translated'),(77, 'Obsolete'))),
 		('Settings', ((40, 'General'),(41, 'User settings'), (42, 'Po properties'), (43, 'Po header'), (44, 'Spellcheck'), (45,'Translation Memory'))),
 		('About', ((8, 'Help'),(None, None),(9, 'About')))
@@ -2858,7 +2858,17 @@ class MainWindow(BWindow):
 		self.tmscrollsugj.lv.ResizeTo(self.tmscrollsugj.lv.Bounds().right,self.upperbox.Bounds().Height()/2-sbh)
 		self.expander.MoveTo(self.upperbox.Bounds().right-4-self.expander.Bounds().Width(),4+self.tmscrollsugj.sv.Bounds().Height()+10)
 		self.expander.ResizeTo(self.expander.Bounds().right,self.upperbox.Bounds().Height()/2-80)
-		
+		for view in self.listemsgs:
+			view.ResizeTo(view.Frame().right,self.msgstabview.Bounds().Height())
+			i=0
+			while i < view.CountChildren():
+				tx=view.ChildAt(i)
+				if type(tx) == BTextView:
+					tx.ResizeTo(view.Frame().right-28,self.msgstabview.Bounds().Height()-48)
+				if type(tx) == BScrollBar:
+					tx.ResizeTo(20,self.msgstabview.Bounds().Height()-46)
+				i+=1
+			
 	def Nichilize(self):
 		if (len(self.listemsgid)-1) == 1:    #IF THERE'S A PLURAL MSGID, REMOVE IT
 			self.srctabview.RemoveTab(1)
@@ -3696,7 +3706,7 @@ class MainWindow(BWindow):
 			self.overbox.Show()
 			self.overbox.BtnCancel.Hide()
 			return
-		elif msg.what == 53:#32:
+		elif msg.what == 53:
 			#Double clic = translator comment
 			if self.sourcestrings.lv.CountItems()>0:
 				listsel=self.sourcestrings.lv.CurrentSelection()
@@ -3829,8 +3839,7 @@ class MainWindow(BWindow):
 				#self.pofile.save(bckppath)
 				return
 			elif savetype == 2:
-				#save of metadata #TODO: verificare se usato, visto che non abbiamo più multipli file po aperti
-				indexroot=msg.FindInt8('indexroot')
+				#save of metadata
 				self.writter.acquire()
 				self.pofile.metadata['Last-Translator']=defname # metadata saved from po settings
 				self.pofile.metadata['PO-Revision-Date']=now
