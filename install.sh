@@ -1,67 +1,42 @@
 #!/bin/bash
-echo "This will download and install pip_python to your system, continue? (type y or n)"
-read text
-if [ $text == "y" ]
-then
+echo "This will download and install several packages and components"
 echo
-pkgman install pip_python
+pkgman install pip_python310, 
+ret1=$?
+echo
+pkgman install haiku_pyapi_python310
+ret2=$?
+echo
+pkgman install polib_python310
 ret3=$?
 echo
-else
-	echo "Proceeding..."
-	ret3=1
-fi
-echo "Now we will install Bethon if present..."
-if [ -e Bethon.tar.gz ]
+pkgman install pyenchant_python310
+ret4=$?
+echo
+pkgman install hunspell
+ret5=$?
+echo "Please write your language code here (example1: en - example2: it)"
+read text
+if ! [$text == ""]
 then
-	tar -xf Bethon.tar.gz
-	cd Bethon
-	make && make install
-	ret2=$?
-	cd ..
+	pkgman install myspell_$text
+	ret6=$?
 else
-	echo "Bethon not present in this folder... "
-	echo "Do you wish to git clone Bethon to your system? (type y or n)"
-	read text
-	if [ $text == "y" ]
-	then
-	git clone https://github.com/tmtfx/Bethon
-	cd Bethon
-	make && make install
-	ret2=$?
-	cd ..
-	else
-	echo "Proceeding..."
-	ret2=1
-	fi
-fi
-if [ -e /bin/pip ]
-then
-	echo "Install polib module for python2? (type y or n)"
-	read text
-	if [ $text == "y" ]
-	then
-	pip install polib
-	ret4=$?
-	else
-	ret4=1
-	fi
-else
-	ret4=1
+	ret6=1
 fi
 echo
 if [ -e HaiPO.py ]
 then
 	echo Copying files to system folder...
-	[ ! -d /boot/home/config/non-packaged/data/HaiPO ] && mkdir /boot/home/config/non-packaged/data/HaiPO
-	cp HaiPO.py /boot/home/config/non-packaged/data/HaiPO/
+	[ ! -d /boot/home/config/non-packaged/data/HaiPO2 ] && mkdir /boot/home/config/non-packaged/data/HaiPO2
+	cp HaiPO.py /boot/home/config/non-packaged/data/HaiPO2/
 	ret7=$?
 	if [ -e LauncherApp ]
 	then
 		echo Adding attributes and Installing LaunchApp
 		addattr -t \'MSGG\' BEOS:FILE_TYPES text/x-gettext-translation LauncherApp
 		addattr -t mime BEOS:APP_SIG application/x-vnd.dw-LauncherApp LauncherApp
-		cp LauncherApp /boot/home/config/non-packaged/data/HaiPO/
+		cp LauncherApp /boot/home/config/non-packaged/data/HaiPO2/
 		if [ -f home-config-settings-mime_db-text.zip ]
 		then
 			echo Installing mime types...
@@ -73,7 +48,7 @@ then
 			cd -
 		fi
 	fi
-	[ ! -f /boot/home/config/non-packaged/bin/HaiPO ] && ln -s /boot/home/config/non-packaged/data/HaiPO/HaiPO.py /boot/home/config/non-packaged/bin/HaiPO
+	[ ! -f /boot/home/config/non-packaged/bin/HaiPO ] && ln -s /boot/home/config/non-packaged/data/HaiPO2/HaiPO.py /boot/home/config/non-packaged/bin/HaiPO
 	[ ! -d /boot/home/config/settings/deskbar/menu/Applications/ ] && mkdir /boot/home/config/settings/deskbar/menu/Applications/
 	[ ! -f /boot/home/config/settings/deskbar/menu/Applications/HaiPO ] && ln -s /boot/home/config/non-packaged/bin/HaiPO /boot/home/config/settings/deskbar/menu/Applications/HaiPO
 	ret8=$?
@@ -86,7 +61,7 @@ echo
 DIRECTORY=`pwd`/data
 if [ -d $DIRECTORY  ]
 then
-	cp -R data /boot/home/config/non-packaged/data/HaiPO
+	cp -R data /boot/home/config/non-packaged/data/HaiPO2
 	ret9=$?
 else
 	echo Missing data directory and images
