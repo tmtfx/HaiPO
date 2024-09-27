@@ -300,7 +300,7 @@ class ScrollView:
 			
 	def SelectedText(self):
 			return self.lv.ItemAt(self.lv.CurrentSelection()).Text()
-# TODO Fix position and size of comment textviews on resize + fix the scrollbar height
+
 def Ent_config():
 	perc=BPath()
 	find_directory(directory_which.B_USER_NONPACKAGED_DATA_DIRECTORY,perc,False,None)
@@ -354,7 +354,7 @@ class KListView(BListView):
 			delmsg.AddString("sugj",self.ItemAt(self.CurrentSelection()).Text())
 			be_app.WindowAt(0).PostMessage(delmsg)
 			self.RemoveItem(self.ItemAt(self.CurrentSelection()))
-		return BListView.KeyDown(self,char,bytes) # TODO: check why this was commented out
+		return BListView.KeyDown(self,char,bytes)
 
 class ScrollSugj:
 	HiWhat = 141# Doubleclick --> paste to trnsl TextView
@@ -543,7 +543,6 @@ class previoustabbox(BBox):
 		self.prev = BTextView(extrect,name+'_comment_BTextView',inrect,B_FOLLOW_ALL_SIDES,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.prev.MakeEditable(False)
 		self.AddChild(self.prev,None)
-		#bi,bu,bo,ba = frame
 		scrrect=BRect(extrect.right,4,extrect.right+20,extrect.bottom+1)
 		self.scrollbprev=BScrollBar(scrrect,name+'_ScrollBar',self.prev,0.0,0.0,orientation.B_VERTICAL)
 		self.AddChild(self.scrollbprev,None)
@@ -1344,6 +1343,11 @@ class CreateUserBox(BBox):
 		locale=Locale.default()
 		#for i in locale.territories:
 		#	territori.append(locale.territories[i])
+		#
+		#per ottenere gli stati in lingua locale
+		#locale = Locale.default()
+		#for i in locale.territories:
+		#	print(locale.territories[i]
 		for i in locale.languages:
 			suggested=False
 			try:
@@ -1393,14 +1397,7 @@ class CreateUserBox(BBox):
 			self.ltmail.SetText(ConfigSectionMap("Translator")['ltmail'])
 		except:
 			pass#missing language team e-mail
-		#pometadata
-		#self.listBTextControl=[]
-		#rect = [10,10,425,30]
-		#step = 34
-		#indexstring=0
-		#for item in self.metadata:
-		#	self.listBTextControl.append(BTextControl((rect[0],rect[1]+step*indexstring,rect[2],rect[3]+step*indexstring),'txtctrl'+str(indexstring),item[0],item[1],modmsg))
-		#	indexstring+=1
+
 class LangListItem(BListItem):
 	def __init__(self, dn, iso, s):
 		self.dn=dn
@@ -1439,7 +1436,6 @@ class infoTab(BTab):
 			fon = be_bold_font
 		else:
 			fon = be_plain_font
-		#owner.GetFont(fon)
 		oldsize=fon.Size()
 		fon.SetSize(10)
 		owner.SetFont(fon)
@@ -1447,7 +1443,6 @@ class infoTab(BTab):
 		#owner.SetLowColor(255,255,255,255)
 		BTab.DrawLabel(self,owner,frame)
 		fon.SetSize(oldsize)
-		#owner.SetFont(fon)
 		
 
 class FindRepTrans(BWindow):
