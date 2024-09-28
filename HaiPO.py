@@ -2837,6 +2837,16 @@ class MainWindow(BWindow):
 		self.expander = srcTextView(rectcksp,"checkres",insetcksp,B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.expander.MakeEditable(0)
 		self.upperbox.AddChild(self.expander,None)
+		myFont=BFont()
+		myFont.SetSize(self.oldsize)
+		if self.builtin_srv[0]:
+			txt="TM server status: alive"
+		else:
+			txt="TM server status: not running"
+		l=myFont.StringWidth(txt)
+		self.TM_srv_status=BStringView(BRect(self.upperbox.Bounds().right*2/3+4,self.upperbox.Bounds().bottom-58,self.upperbox.Bounds().right*2/3+l+4,self.upperbox.Bounds().bottom-56+myFont.Size()),"tm_srv_status",txt,B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM)
+		self.TM_srv_status.SetFont(myFont)
+		self.upperbox.AddChild(self.TM_srv_status,None)
 		
 		# check user accepted languages
 		#
@@ -3123,7 +3133,6 @@ class MainWindow(BWindow):
 					self.alerts.append(say)
 					ret=say.Go()
 				else:
-					print(self.builtin_srv)
 					if self.builtin_srv[0]:
 						try:
 							if self.serv.is_alive():
@@ -3924,6 +3933,7 @@ class MainWindow(BWindow):
 			self.indsteps+=1
 			if self.indsteps == len(self.steps):
 				self.indsteps=0
+				self.check_tm_status()
 			return
 		elif msg.what == 70:
 			# Done and next
@@ -4731,7 +4741,17 @@ class MainWindow(BWindow):
 			return
 		#445380 huge check on older version look at that code
 		BWindow.MessageReceived(self, msg)
-	
+	def check_tm_status(self):
+		if self.builtin_srv[0]:
+			try:
+				if self.serv.is_alive():
+					self.TM_srv_status.SetText("TM server status: alive")
+				else:
+					self.TM_srv_status.SetText("TM server status: dead")
+			except:
+				self.TM_srv_status.SetText("TM server status: died badly")
+		else:
+			self.TM_srv_status.SetText("TM server status: not running")
 	def FixItemMsgstrs(self,item):
 		beta=len(item.msgstrs)
 		polines = []
