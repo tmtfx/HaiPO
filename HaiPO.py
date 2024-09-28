@@ -58,6 +58,10 @@ def ConfigSectionMap(section):
             dict1[option] = None
     return dict1
 
+def openlink(link):
+	osd=BUrl(link)
+	retu=osd.OpenWithPreferredApplication()
+
 def cstep(n,r,h):
 	s=5*(n+1)+(6+h)*n
 	sh=5*n+(6+h)*(n+1)		
@@ -300,6 +304,24 @@ class ScrollView:
 			
 	def SelectedText(self):
 			return self.lv.ItemAt(self.lv.CurrentSelection()).Text()
+
+class PView(BView):
+	def __init__(self,frame,name,immagine):
+		self.immagine=immagine
+		self.frame=frame
+		BView.__init__(self,self.frame,name,B_FOLLOW_ALL_SIDES,B_WILL_DRAW)
+		
+	def UpdateImg(self,immagine):
+		self.immagine=immagine
+		a,b,c,d=self.frame
+		rect=BRect(0,0,self.immagine.Width(),self.immagine.Height())
+		self.DrawBitmap(self.immagine,rect)
+
+	def Draw(self,rect):
+		BView.Draw(self,rect)
+		#a,b,c,d=self.frame
+		rect=BRect(0,0,self.frame.Width(),self.frame.Height())
+		self.DrawBitmap(self.immagine,rect)
 
 def Ent_config():
 	perc=BPath()
@@ -761,7 +783,7 @@ class EventTextView(BTextView):
 						msz.AddString('sorig',perau)
 						msz.AddInt32('indi',ubi1)
 						msz.AddInt32('indf',ubi2)
-						self.pop.AddItem(BMenuItem(aelem[1], msz," ",0))
+						self.pop.AddItem(BMenuItem(aelem[1], msz,'\x00',0))
 					pointo=self.PointAt(ubi2)
 					self.ConvertToScreen(pointo[0])#overwrites pointo[0] with screen BPoint values
 					x = self.pop.Go(pointo[0], True,False,False)
@@ -1545,37 +1567,22 @@ class FindRepTrans(BWindow):
 				while loopa:
 					now+=1
 					if now < total:
-							delta=float(now-lastvalue)
-							deltamsg=BMessage(7047)
-							deltamsg.AddFloat('delta',delta)
-							#be_app.WindowAt(self.thiswindow).PostMessage(deltamsg)
-							self.PostMessage(deltamsg)
-							lastvalue=now
-							blister=lista.ItemAt(now)
-							if self.casesens.Value():
-								if blister.hasplural:
-									for ident,items in enumerate(blister.msgstrs):
-										ret=find_byte(self.looktv.Text(),items)
-										if ret >-1:
-											scrollmsg.AddInt32("where",now)
-											be_app.WindowAt(0).PostMessage(scrollmsg)
-											#lista.Select(now)
-											epistola.AddInt8('plural',ident)
-											epistola.AddInt32('inizi',ret)
-											epistola.AddInt32('fin',ret+tl)
-											epistola.AddInt8('srctrnsl',1)
-											be_app.WindowAt(0).PostMessage(epistola)
-											loopa = False
-											self.ei=ret
-											self.ef=ret+tl
-											break
-								else:
-									ret=find_byte(self.looktv.Text(),blister.msgstrs)
+						delta=float(now-lastvalue)
+						deltamsg=BMessage(7047)
+						deltamsg.AddFloat('delta',delta)
+						#be_app.WindowAt(self.thiswindow).PostMessage(deltamsg)
+						self.PostMessage(deltamsg)
+						lastvalue=now
+						blister=lista.ItemAt(now)
+						if self.casesens.Value():
+							if blister.hasplural:
+								for ident,items in enumerate(blister.msgstrs):
+									ret=find_byte(self.looktv.Text(),items)
 									if ret >-1:
-										#lista.Select(now)
 										scrollmsg.AddInt32("where",now)
 										be_app.WindowAt(0).PostMessage(scrollmsg)
-										epistola.AddInt8('plural',0)
+										#lista.Select(now)
+										epistola.AddInt8('plural',ident)
 										epistola.AddInt32('inizi',ret)
 										epistola.AddInt32('fin',ret+tl)
 										epistola.AddInt8('srctrnsl',1)
@@ -1585,31 +1592,30 @@ class FindRepTrans(BWindow):
 										self.ef=ret+tl
 										break
 							else:
-								if blister.hasplural:
-									for ident,items in enumerate(blister.msgstrs):
-										#ret = items.lower().find(self.looktv.Text().lower())
-										ret=find_byte(self.looktv.Text().lower(),items.lower())
-										if ret >-1:
-											#lista.Select(now)
-											scrollmsg.AddInt32("where",now)
-											be_app.WindowAt(0).PostMessage(scrollmsg)
-											epistola.AddInt8('plural',ident)
-											epistola.AddInt32('inizi',ret)
-											epistola.AddInt32('fin',ret+tl)
-											epistola.AddInt8('srctrnsl',1)
-											be_app.WindowAt(0).PostMessage(epistola)
-											loopa = False
-											self.ei=ret
-											self.ef=ret+tl
-											break
-								else:
-									#ret = blister.msgstrs.lower().find(self.looktv.Text().lower())
-									ret=find_byte(self.looktv.Text().lower(),blister.msgstrs.lower())
+								ret=find_byte(self.looktv.Text(),blister.msgstrs)
+								if ret >-1:
+									#lista.Select(now)
+									scrollmsg.AddInt32("where",now)
+									be_app.WindowAt(0).PostMessage(scrollmsg)
+									epistola.AddInt8('plural',0)
+									epistola.AddInt32('inizi',ret)
+									epistola.AddInt32('fin',ret+tl)
+									epistola.AddInt8('srctrnsl',1)
+									be_app.WindowAt(0).PostMessage(epistola)
+									loopa = False
+									self.ei=ret
+									self.ef=ret+tl
+									break
+						else:
+							if blister.hasplural:
+								for ident,items in enumerate(blister.msgstrs):
+									#ret = items.lower().find(self.looktv.Text().lower())
+									ret=find_byte(self.looktv.Text().lower(),items.lower())
 									if ret >-1:
 										#lista.Select(now)
 										scrollmsg.AddInt32("where",now)
 										be_app.WindowAt(0).PostMessage(scrollmsg)
-										epistola.AddInt8('plural',0)
+										epistola.AddInt8('plural',ident)
 										epistola.AddInt32('inizi',ret)
 										epistola.AddInt32('fin',ret+tl)
 										epistola.AddInt8('srctrnsl',1)
@@ -1618,6 +1624,22 @@ class FindRepTrans(BWindow):
 										self.ei=ret
 										self.ef=ret+tl
 										break
+							else:
+								#ret = blister.msgstrs.lower().find(self.looktv.Text().lower())
+								ret=find_byte(self.looktv.Text().lower(),blister.msgstrs.lower())
+								if ret >-1:
+									#lista.Select(now)
+									scrollmsg.AddInt32("where",now)
+									be_app.WindowAt(0).PostMessage(scrollmsg)
+									epistola.AddInt8('plural',0)
+									epistola.AddInt32('inizi',ret)
+									epistola.AddInt32('fin',ret+tl)
+									epistola.AddInt8('srctrnsl',1)
+									be_app.WindowAt(0).PostMessage(epistola)
+									loopa = False
+									self.ei=ret
+									self.ef=ret+tl
+									break
 					if now == total:
 							now = -1
 							total = indaco+1
@@ -1962,8 +1984,10 @@ class ErrorItem(BListItem):
 class GeneralSettings(BWindow):
 	kWindowFrame = BRect(250, 150, 755, 297)
 	kWindowName = "General Settings"
-	def __init__(self):
+	def __init__(self,superself):
 		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
+		self.superself=superself
+		be_plain_font.SetSize(self.superself.oldsize)
 		bounds=self.Bounds()
 		l=bounds.left
 		t=bounds.top
@@ -1979,8 +2003,8 @@ class GeneralSettings(BWindow):
 		Config.read(confile)
 		try:
 			#langcheck
-			checklang = Config.getboolean('General','checklang')
-			if checklang:
+			checklanguage = Config.getboolean('General','checklang')
+			if checklanguage:
 				self.langcheck.SetValue(1)
 			else:
 				self.langcheck.SetValue(0)
@@ -2367,6 +2391,94 @@ class HeaderWindow(BWindow):
 			self.Quit()
 		else:
 			return BWindow.MessageReceived(self, msg)
+			
+class AboutWindow(BWindow):
+	kWindowFrame = BRect(50, 50, 600, 730)
+	kButtonFrame = BRect(kWindowFrame.right-205,kWindowFrame.bottom-89,kWindowFrame.right-54,kWindowFrame.bottom-54)#(395, 641, 546, 676)
+	kWindowName = "About"
+	kButtonName = "Close"
+	BUTTON_MSG = struct.unpack('!l', b'PRES')[0]
+
+	def __init__(self):							
+		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_MODAL_WINDOW, B_NOT_RESIZABLE)
+		brec=self.Bounds()
+		bpf=be_plain_font
+		bpf.SetSize(16)
+		bbf=be_bold_font
+		bbf.SetSize(16)
+		bbox=BBox(brec, 'underbox', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		self.AddChild(bbox,None)
+		self.CloseButton = BButton(self.kButtonFrame, self.kButtonName, self.kButtonName, BMessage(self.BUTTON_MSG))
+		cise=BRect(4,4,brec.right-4,brec.bottom-44)
+		cjamput=BRect(4,0,brec.right-14,brec.bottom-48)
+		self.messagjio= BTextView(cise, 'TxTView', cjamput, B_FOLLOW_ALL_SIDES, B_WILL_DRAW)
+		self.messagjio.SetStylable(1)
+		self.messagjio.MakeSelectable(0)
+		self.messagjio.MakeEditable(0)		
+		stuff = '\n\t\t\t\t\t\t\t\t\t'+appname+'\n\n\t\t\t\t\t\t\t\t\t\t\t\tPo editor for Haiku\n\t\t\t\t\t\t\t\t\t\t\t\tversion '+ver+' '+state+'\n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\tby Fabio Tomat\n\t\t\t\t\t\t\t\t\t\t\t\te-mail:\n\t\t\t\t\t\t\t\t\t\t\t\tf.t.public@gmail.com\n\n\n\n\n\n\nMIT LICENSE\nCopyright © 2024 Fabio Tomat\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.'
+		n = stuff.find(appname)
+		m = stuff.find('MIT LICENSE')
+		#list_text_run_title=[]
+		i=0
+		itr=text_run()
+		itr.font=bpf
+		command=[itr]
+		for char in appname:
+			btr=text_run()
+			btr.offset=n+i
+			btr.font=bbf
+			tcol=rgb_color()
+			tcol.red=230-i*40
+			tcol.green=50+i*50
+			tcol.blue=20+i*40
+			#tcol.red=10+i*20
+			#tcol.green=10+i*30
+			#tcol.blue=10+i*40
+			btr.color=tcol
+			command.append(btr)
+			i+=1
+		ndtr=text_run()
+		ndtr.offset=find_byte("Po editor for Haiku",stuff)#stuff.find("Po editor for Haiku")#n+i
+		ndtr.font=bbf
+		gcol=rgb_color()
+		gcol.red=170
+		gcol.green=130
+		gcol.blue=170
+		ndtr.color=gcol
+		print(ndtr.offset,(gcol.red,gcol.green,gcol.blue))
+		command.append(ndtr)
+		nbtr=text_run()
+		nbtr.font=bbf
+		nbtr.offset=m
+		ngcol=rgb_color()
+		ngcol.red=100
+		ngcol.green=100
+		ngcol.blue=100
+		nbtr.color=ngcol
+		command.append(nbtr)
+		ntr2=text_run()
+		ntr2.font=bpf
+		ntr2.offset=m+11
+		ntr2.color=ngcol
+		command.append(ntr2)
+		self.messagjio.SetText(stuff, command)
+		bbox.AddChild(self.messagjio,None)
+		bbox.AddChild(self.CloseButton,None)
+		self.CloseButton.MakeFocus(1)
+		link=sys.path[0]+"/data/HaiPO.png"
+		perc=BPath()
+		ent=BEntry(link)
+		ent.GetPath(perc)
+		self.img=BTranslationUtils.GetBitmap(perc.Path(),None)
+		#self.img=BTranslationUtils.GetBitmap(link)
+		self.photoframe=PView(BRect(40,50,255,255),"photoframe",self.img)
+		bbox.AddChild(self.photoframe,None)
+
+	def MessageReceived(self, msg):
+		if msg.what == self.BUTTON_MSG:
+			self.Quit()
+		else:
+			BWindow.MessageReceived(self, msg)
 
 class MainWindow(BWindow):
 	alerts=[]
@@ -2500,9 +2612,17 @@ class MainWindow(BWindow):
 						log_srv = True
 						Config.write(cfgfile)
 						cfgfile.close()
+					try:
+						langs=ConfigSectionMap("Translator")['langs']
+						self.tmxlang=langs.split(',')[0]
+					except:
+						builtin_srv=False
 					if builtin_srv:
-						self.serv=Thread(target=self.server,args=(tmxsrv,tmxprt,header,log_srv,))
-						self.serv.start()
+						self.builtin_srv=[True,tmxsrv,tmxprt,header,log_srv]
+						#self.serv=Thread(target=self.server,args=(tmxsrv,tmxprt,header,log_srv,))
+						#self.serv.start()
+					else:
+						self.builtin_srv=[False,tmxsrv,tmxprt,header,log_srv]
 			except:
 				cfgfile = open(confile,'w')
 				Config.set('General','tm', 'False')
@@ -2612,7 +2732,7 @@ class MainWindow(BWindow):
 				if k is None:
 						menu.AddItem(BSeparatorItem())
 				else:
-						menuitem=BMenuItem(name, BMessage(k), name[1],0)
+						menuitem=BMenuItem(name, BMessage(k), '\x00',0)#name[1]
 						#in base a Settings
 						if name == "Fuzzy":
 							menuitem.SetMarked(self.poview[0])
@@ -2841,10 +2961,9 @@ class MainWindow(BWindow):
 			i.MoveTo(0,0)
 			i.ResizeTo(srcrect.Width()-3,srcrect.Height()-self.transtabview.TabHeight()-3)
 		fon=BFont()
+		self.infobox.GetFont(fon)
 		s="100000"
 		x=fon.StringWidth(s)
-		
-		self.infobox.GetFont(fon)
 		self.valueln.MoveTo(self.infobox.Bounds().right-x-5,self.infobox.Bounds().bottom-fon.Size()-10)
 		self.infoln.MoveTo(5,self.infobox.Bounds().bottom-fon.Size()-10)
 		self.msgstabview.ResizeTo(self.infobox.Bounds().right-10,self.infobox.Bounds().bottom-fon.Size()-self.msgstabview.TabHeight()-40)
@@ -2975,6 +3094,9 @@ class MainWindow(BWindow):
 			fileenc = polib.detect_encoding(f)
 			self.pof = polib.pofile(f,encoding=fileenc)
 			ordmdata=self.pof.ordered_metadata()
+			for i in ordmdata:
+				if i[0]=="Language":
+					self.tmxlang=i[1]
 			a,b = checklang(ordmdata)
 			#overwrite "a", controllo config.ini per info Traduttore
 			Config.read(confile)
@@ -3001,6 +3123,16 @@ class MainWindow(BWindow):
 					self.alerts.append(say)
 					ret=say.Go()
 				else:
+					print(self.builtin_srv)
+					if self.builtin_srv[0]:
+						try:
+							if self.serv.is_alive():
+								be_app.WindowAt(0).PostMessage(376)#cambia file/lingua
+							else:
+								self.serv.start()
+						except:
+							self.serv=Thread(target=self.server,args=(self.builtin_srv[1],self.builtin_srv[2],self.builtin_srv[3],self.builtin_srv[4],))
+							self.serv.start()
 					self.loadPO(f,self.pof)
 			else:
 				#mostra BBox per la creazione dell'utente
@@ -3502,6 +3634,8 @@ class MainWindow(BWindow):
 		elif msg.what == 1:
 			# Close opened file
 			if self.sourcestrings.lv.CountItems()>0:
+				if self.builtin_srv[0]:
+					Thread(target=self.tmcommunicate,args=(None,)).start()
 				self.sourcestrings.lv.DeselectAll()
 				self.sourcestrings.Clear()
 				self.Nichilize()
@@ -3551,7 +3685,7 @@ class MainWindow(BWindow):
 			return
 		elif msg.what == 3:
 			#copy from source from menu
-			if self.sourcestrings.lv.CountItems()>-1:
+			if self.sourcestrings.lv.CurrentSelection()>-1:
 				thisBlistitem=self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection())
 				thisBlistitem.tosave=True
 				tabs=len(self.listemsgstr)-1
@@ -3686,13 +3820,53 @@ class MainWindow(BWindow):
 				self.FindReptrnsl = FindRepTrans()
 				self.FindReptrnsl.Show()
 			return
+		elif msg.what == 8:
+			# launch help url
+			perc=BPath()
+			find_directory(directory_which.B_SYSTEM_DOCUMENTATION_DIRECTORY,perc,False,None)
+			link=perc.Path()+"/packages/haipo/HaiPO2/index.html"
+			print(link)
+			ent=BEntry(link)
+			if ent.Exists():
+				# open system documentation help
+				t = Thread(target=openlink,args=(link,))
+				t.run()
+			else:
+				find_directory(directory_which.B_USER_NONPACKAGED_DATA_DIRECTORY,perc,False,None)
+				link=perc.Path()+"/HaiPO2/Data/help/index.html"
+				ent=BEntry(link)
+				if ent.Exists():
+					t = Thread(target=openlink,args=(link,))
+					t.run()
+				else:
+					nopages=True
+					cwd = os.getcwd()
+					link=cwd+"/Data/help/index.html"
+					ent=BEntry(link)
+					if ent.Exists():
+						#open git downloaded help
+						t = Thread(target=openlink,args=(link,))
+						t.run()
+						nopages=False
+					else:
+						alt="".join(sys.argv)
+						mydir=os.path.dirname(alt)
+						link=mydir+"/Data/help/index.html"
+						ent=BEntry(link)
+						if ent.Exists():
+							t = Thread(target=openlink,args=(link,))
+							t.run()
+							nopages=False
+					if nopages:
+						wa=BAlert('noo', 'No help pages installed', 'Poor me', None,None,InterfaceDefs.B_WIDTH_AS_USUAL,alert_type.B_WARNING_ALERT)
+						wa.Go()
 		elif msg.what == 9:
 			#ABOUT
 			self.About = AboutWindow()
 			self.About.Show()
 			return
 		elif msg.what == 40:
-			self.gensettings=GeneralSettings()
+			self.gensettings=GeneralSettings(self)
 			self.gensettings.Show()
 			return
 		elif msg.what == 41:
@@ -4321,6 +4495,15 @@ class MainWindow(BWindow):
 			self.filen, self.file_ext = os.path.splitext(completepath)
 			self.backupfile= self.filen+".temp"+self.file_ext
 			return
+		elif msg.what == 376:
+			if self.builtin_srv[0]:
+				cmd=("c","h","g")
+				mx=[cmd,"",""]
+				Thread(target=self.tmcommunicate,args=(mx,)).start()
+		elif msg.what == 386:
+			f=self.filen+self.file_ext
+			self.OpenPOFile(f)
+			#self.sourcestrings.reload(self.poview,self.pofile,self.encoding)
 		elif msg.what == 112118:
 			#launch a delayed check
 			oldtext=msg.FindString('oldtext')
@@ -4697,32 +4880,12 @@ class MainWindow(BWindow):
 			men=self.savemenu.FindItem(index+74)
 			men.SetMarked(1)
 			Config.set('Listing',dict[index],"True")
-			self.poview[0]=True
+			self.poview[index]=True
 		Config.write(cfgfile)
 		cfgfile.close()
+		be_app.WindowAt(0).PostMessage(386)
 		#self.sourcestrings.reload(self.poview,self.pofile,self.encoding)
-	#	x=0
-	#	while x!=len(self.viewarr):
-	#		if x==index:
-	#			self.viewarr[x].SetMarked(1)
-	#		else:
-	#			self.viewarr[x].SetMarked(0)
-	#		x+=1
-	#	self.sort=index
-	#	ent,confile=Ent_config()
-	#	Config.read(confile)
-	#	cfgfile = open(confile,'w')
-	#	if not ("General" in Config.sections()):
-	#		Config.add_section("General")
-	#	Config.set('General','sort', str(self.sort))
-	#	Config.write(cfgfile)
-	#	cfgfile.close()
-	#	Config.read(confile)
-	#	self.sourcestrings.reload(self.poview,self.pofile,self.encoding)
 	def server(self,addr,PORT=2022,HEADER=4096,log=False):
-		if log:
-			with open(flog, 'a') as des:
-				des.write("launching server...\n")
 		perc=BPath()
 		find_directory(directory_which.B_USER_NONPACKAGED_DATA_DIRECTORY,perc,False,None)
 		datapath=BDirectory(perc.Path()+"/HaiPO2")
@@ -4730,53 +4893,55 @@ class MainWindow(BWindow):
 		if not ent.Exists():
 			datapath.CreateDirectory(perc.Path()+"/HaiPO2", datapath)
 		ent.GetPath(perc)
-		ftmx=perc.Path()+'/outtmx.db'
+		ftmx=perc.Path()+'/outtmx'+self.tmxlang+'.db'
 		flog=perc.Path()+'/log.txt'
-		tmp_ftmx=perc.Path()+'/tmp_outtmx.db'
-		old_ftmx=perc.Path()+'/old_outtmx.db'
+		tmp_ftmx=perc.Path()+'/tmp_outtmx'+self.tmxlang+'.db'
+		old_ftmx=perc.Path()+'/old_outtmx'+self.tmxlang+'.db'
+		if log:
+			with open(flog, 'a') as des:
+				des.write("launching server...\n")
 		IP = socket.gethostbyname(addr)
 		self.keeperoftheloop=True
-		with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-			server_socket.bind((IP,PORT))
-			server_socket.listen()
-			try:
-				while self.keeperoftheloop:
-					if log:
-						with open(flog, 'a') as des:
-							des.write("I\'m in the loop...\n")
-					client_socket, client_address = server_socket.accept()
-					with client_socket:
+		try:
+			with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
+				server_socket.bind((IP,PORT))
+				server_socket.listen()
+				try:
+					while self.keeperoftheloop:
 						if log:
-							#print(f"Connected by {client_address}")
 							with open(flog, 'a') as des:
-								des.write(f"Connected by {client_address}\n")
-						while True:
-							try:
-								instr = client_socket.recv(HEADER)
-								if not instr:
-									break
-								if log:
-									with open(flog, 'a') as des:
-										des.write(f"Richiesto: {instr}\n")
-								message = pickle.loads(instr)
-								if log:
-									with open(flog, 'a') as des:
-										des.write(f"Message: {message}\n")
-										des.write(f"Message type: {type(message)}\n")
-								suggerimenti=[]
-								if message==[None]:
-									suggerimenti.append(None)
-									packsug=pickle.dumps(suggerimenti,protocol=2)
-									client_socket.sendall(packsug)
-									self.keeperoftheloop=False
-									break
-								elif message[0][0]==None:
+								des.write("I\'m in the loop...\n")
+						client_socket, client_address = server_socket.accept()
+						with client_socket:
+							if log:
+								with open(flog, 'a') as des:
+									des.write(f"Connected by {client_address}\n")
+							while True:
+								try:
+									instr = client_socket.recv(HEADER)
+									if not instr:
+										break
 									if log:
 										with open(flog, 'a') as des:
-											des.write(f"trying to add source:  {message[0][1]}\nand translation: {message[0][2]}\n")
-									if message[0][1]!="" and message[0][2]!="":
-										with open(ftmx, 'rb') as fin:
-											with open(tmp_ftmx, 'a') as des:
+											des.write(f"Richiesto: {instr}\n")
+									message = pickle.loads(instr)
+									if log:
+										with open(flog, 'a') as des:
+											des.write(f"Message: {message}\n")
+											des.write(f"Message type: {type(message)}\n")
+									suggerimenti=[]
+									if message==[None]:
+										suggerimenti.append(None)
+										packsug=pickle.dumps(suggerimenti,protocol=2)
+										client_socket.sendall(packsug)
+										self.keeperoftheloop=False
+										break
+									elif message[0][0]==None:
+										if log:
+											with open(flog, 'a') as des:
+												des.write(f"trying to add source:  {message[0][1]}\nand translation: {message[0][2]}\n")
+										if message[0][1]!="" and message[0][2]!="":
+											with open(ftmx, 'rb') as fin, open(tmp_ftmx, 'a') as des:
 												whole=fin.read()
 												liniis=whole.decode("utf-8").split('\n')
 												for linie in liniis:
@@ -4787,82 +4952,86 @@ class MainWindow(BWindow):
 														msgid=html.escape(message[0][1])
 														msgstr=html.escape(message[0][2])
 														des.write("    <tu>\n      <tuv xml:lang=\"en\">\n        <seg>"+msgid+"</seg>\n      </tuv>\n")
-														des.write("      <tuv xml:lang=\"fur\">\n        <seg>"+msgstr+"</seg>\n      </tuv>\n    </tu>\n")
+														des.write("      <tuv xml:lang=\""+self.tmxlang+"\">\n        <seg>"+msgstr+"</seg>\n      </tuv>\n    </tu>\n")
 														des.write("  </body>\n</tmx>\n")
-														des.close()
 														save_db(old_ftmx,tmp_ftmx,ftmx)
-														#if os.path.exists(old_ftmx):
-														#	os.remove(old_ftmx)
-														#os.rename(ftmx,old_ftmx)
-														#os.rename(tmp_ftmx,ftmx)
 														break
-										break
-								elif message[0][0]==('d','e','l'):
+											break
+									elif message[0][0]==('c','h','g'):
+										ftmx=perc.Path()+'/outtmx'+self.tmxlang+'.db'
+										flog=perc.Path()+'/log.txt'
+										tmp_ftmx=perc.Path()+'/tmp_outtmx'+self.tmxlang+'.db'
+										old_ftmx=perc.Path()+'/old_outtmx'+self.tmxlang+'.db'
+									elif message[0][0]==('d','e','l'):
 										with open(ftmx, 'r', encoding='utf-8') as fin, open(tmp_ftmx, 'a', encoding='utf-8') as des:
-												whole=fin.read()
-												liniis=whole.split('\n')
-												nl=len(liniis)
-												i=0
-												while i<nl:
-													if '<tu>' not in str(liniis[i]):
-														des.write(str(liniis[i])+"\n")
-													else:
-														k=1
-														nextclose=False
-														txt=str(liniis[i])+"\n"
-														if 'tuv xml:lang="en"' in  str(liniis[i + k]):
-														#if str(liniis[i+k]).find("tuv xml:lang=\"en\"")>-1:
+											whole=fin.read()
+											liniis=whole.split('\n')
+											nl=len(liniis)
+											i=0
+											while i<nl:
+												if '<tu>' not in str(liniis[i]):
+													des.write(str(liniis[i])+"\n")
+												else:
+													k=1
+													nextclose=False
+													txt=str(liniis[i])+"\n"
+													if 'tuv xml:lang="en"' in  str(liniis[i + k]):
+													#if str(liniis[i+k]).find("tuv xml:lang=\"en\"")>-1:
+														txt+=str(liniis[i+k])+"\n"
+														while True:
+															k+=1
 															txt+=str(liniis[i+k])+"\n"
-															while True:
-																k+=1
-																txt+=str(liniis[i+k])+"\n"
-																if '<tuv xml:lang="fur">' in str(liniis[i+k]):
-																#if str(liniis[i+k]).find("<tuv xml:lang=\"fur\">")>-1:
-																	nextclose=True
-																if nextclose:
-																	if '</seg>' in str(liniis[i+k]):
-																	#if str(liniis[i+k]).find("</seg>")>-1:
-																		k+=1
-																		txt+=str(liniis[i+k])+"\n" #this adds /tuv
-																		txt+=str(liniis[i+k+1])+"\n" #this adds /tu
-																		break
-															#if (txt.find("<seg>"+message[0][1]+"</seg>")>-1) and (txt.find("<seg>"+message[0][2]+"</seg>")>-1):
-															msgid=html.escape(message[0][1])
-															msgstr=html.escape(message[0][2])
-															if "<seg>"+msgid+"</seg>" in txt and "<seg>"+msgstr+"</seg>" in txt:
-																i+=k+1
-															else:
-																des.write(txt)
-																#for rie in txt:
-																#    des.write(rie)
-																i+=k+1
-													i+=1
-											#des.close()
+															if '<tuv xml:lang="'+self.tmxlang+'">' in str(liniis[i+k]):
+															#if str(liniis[i+k]).find("<tuv xml:lang=\"fur\">")>-1:
+																nextclose=True
+															if nextclose:
+																if '</seg>' in str(liniis[i+k]):
+																#if str(liniis[i+k]).find("</seg>")>-1:
+																	k+=1
+																	txt+=str(liniis[i+k])+"\n" #this adds /tuv
+																	txt+=str(liniis[i+k+1])+"\n" #this adds /tu
+																	break
+														#if (txt.find("<seg>"+message[0][1]+"</seg>")>-1) and (txt.find("<seg>"+message[0][2]+"</seg>")>-1):
+														msgid=html.escape(message[0][1])
+														msgstr=html.escape(message[0][2])
+														if "<seg>"+msgid+"</seg>" in txt and "<seg>"+msgstr+"</seg>" in txt:
+															i+=k+1
+														else:
+															des.write(txt)
+															#for rie in txt:
+															#    des.write(rie)
+															i+=k+1
+												i+=1
 										save_db(old_ftmx,tmp_ftmx,ftmx)
-										#if os.path.exists(old_ftmx):
-										#	 os.remove(old_ftmx)
-										#os.rename(ftmx,old_ftmx)
-										#os.rename(tmp_ftmx,ftmx)
 										break
-								else:
-									lung1=len(message[0])
-									lung2=round(lung1*0.75,0)
-									delta=lung1-lung2+1
-									with open(ftmx, 'rb') as fin:
-										tmx_file = tmxfile(fin, "en", "fur")
-										for node in tmx_file.unit_iter():
-											dist=lev(message[0],node.source)
-											if dist<delta:#2
-												suggerimenti.append((node.target,dist))
-									suggerimenti.sort(key=lambda element:element[1])
-									client_socket.send(pickle.dumps(suggerimenti,protocol=2))
-							except FileNotFoundError as e:
-								with open(ftmx, 'a') as des:
-									des.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE tmx SYSTEM \"tmx14.dtd\">\n<tmx version=\"1.4\">\n  <header creationtool=\"Translate Toolkit\" creationtoolversion=\"3.8.0\" segtype=\"sentence\" o-tmf=\"UTF-8\" adminlang=\"en\" srclang=\"en\" datatype=\"PlainText\"/>\n  <body>\n")
-									des.write("  </body>\n</tmx>\n")
-			except KeyboardInterrupt:
-				server_socket.close()
-				print("interrotto dall'utente")
+									else:
+										lung1=len(message[0])
+										lung2=round(lung1*0.75,0)
+										delta=lung1-lung2+1
+										with open(ftmx, 'rb') as fin:
+											tmx_file = tmxfile(fin, "en", self.tmxlang)
+											for node in tmx_file.unit_iter():
+												dist=lev(message[0],node.source)
+												if dist<delta:#2
+													suggerimenti.append((node.target,dist))
+										suggerimenti.sort(key=lambda element:element[1])
+										client_socket.send(pickle.dumps(suggerimenti,protocol=2))
+								except FileNotFoundError as e:
+									with open(ftmx, 'a') as des:
+										des.write(
+										"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE tmx SYSTEM \"tmx14.dtd\">\n"
+										"<tmx version=\"1.4\">\n  <header creationtool=\"Translate Toolkit\" "
+										"creationtoolversion=\"3.8.0\" segtype=\"sentence\" o-tmf=\"UTF-8\" adminlang=\"en\" "
+										"srclang=\"en\" datatype=\"PlainText\"/>\n  <body>\n")
+										des.write("  </body>\n</tmx>\n")
+										#des.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE tmx SYSTEM \"tmx14.dtd\">\n<tmx version=\"1.4\">\n  <header creationtool=\"Translate Toolkit\" creationtoolversion=\"3.8.0\" segtype=\"sentence\" o-tmf=\"UTF-8\" adminlang=\"en\" srclang=\"en\" datatype=\"PlainText\"/>\n  <body>\n")
+										#des.write("  </body>\n</tmx>\n")
+				except KeyboardInterrupt:
+					server_socket.close()
+					print("interrotto dall'utente")
+		except OSError as e:
+			if e.errno == -2147454954:
+				print("Server instance not started\nprobably another one already running...")
 		#server_socket.close()
 		print("Server closed")
 		
@@ -4908,12 +5077,16 @@ class App(BApplication):
 		self.SetPulseRate(1000000)
 	def ReadyToRun(self):
 		if len(self.realargs) == 0:
-			self.Wins.append(MainWindow(""))
-			self.Wins[-1].Show()
+			#self.Wins.append(MainWindow(""))
+			#self.Wins[-1].Show()
+			self.poeditor=MainWindow("")
+			self.poeditor.Show()
 		else:
-			for i in self.realargs:
-				self.Wins.append(MainWindow(i))
-				self.Wins[-1].Show()
+			#for i in self.realargs:
+			#	self.Wins.append(MainWindow(i))
+			#	self.Wins[-1].Show()
+			self.poeditor=MainWindow(self.realargs[0])
+			self.poeditor.Show()
 	def ArgvReceived(self,num,args):
 		realargs=args
 		if args[1][-8:]=="HaiPO.py":
