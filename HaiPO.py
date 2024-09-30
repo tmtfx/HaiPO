@@ -1,5 +1,5 @@
 #!/boot/system/bin/python3
-from Be import BApplication, BWindow, BView, BMenu,BMenuBar, BMenuItem, BSeparatorItem, BMessage, window_type, B_NOT_RESIZABLE, B_CLOSE_ON_ESCAPE, B_QUIT_ON_WINDOW_CLOSE, BButton, BTextView, BTextControl, BAlert, BListItem,BMenuField, BListView, BScrollView,BRect, BBox, BFont, InterfaceDefs, BPath, BDirectory, BEntry, BStringItem, BFile, BStringView,BCheckBox,BTranslationUtils, BBitmap, AppDefs, BTab, BTabView, BNodeInfo, BMimeType, BScrollBar,BPopUpMenu,BScreen,BStatusBar,BPoint,BNode
+from Be import BApplication, BWindow, BView, BMenu,BMenuBar, BMenuItem, BSeparatorItem, BMessage, window_type, B_NOT_RESIZABLE, B_CLOSE_ON_ESCAPE, B_QUIT_ON_WINDOW_CLOSE, BButton, BTextView, BTextControl, BAlert, BListItem,BMenuField, BListView, BScrollView,BRect, BBox, BFont, InterfaceDefs, BPath, BDirectory, BEntry, BStringItem, BFile, BStringView,BCheckBox,BTranslationUtils, BBitmap, AppDefs, BTab, BTabView, BNodeInfo, BMimeType, BScrollBar,BPopUpMenu,BScreen,BStatusBar,BPoint,BNode,BUrl
 
 # from Be.View import *
 from Be.View import B_FOLLOW_NONE,set_font_mask,B_WILL_DRAW,B_NAVIGABLE,B_FULL_UPDATE_ON_RESIZE,B_FRAME_EVENTS,B_PULSE_NEEDED,B_FOLLOW_ALL_SIDES,B_FOLLOW_TOP,B_FOLLOW_LEFT_RIGHT,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_FOLLOW_TOP_BOTTOM
@@ -33,12 +33,12 @@ from translate.storage.tmx import tmxfile
 from translate.tools import junitmsgfmt
 from Levenshtein import distance as lev
 from distutils.spawn import find_executable
-from subprocess import Popen,STDOUT,PIPE
+#from subprocess import Popen,STDOUT,PIPE
 import socket,pickle,unicodedata
 from threading import Thread
 from babel import Locale
-global evstyle
-evstyle=threading.Semaphore()
+# global evstyle
+# evstyle=threading.Semaphore()
 
 version='HaiPO 2.0 beta'
 (appname,ver,state)=version.split(' ')
@@ -60,7 +60,13 @@ def ConfigSectionMap(section):
 
 def openlink(link):
 	osd=BUrl(link)
-	retu=osd.OpenWithPreferredApplication()
+	if osd.HasPreferredApplication():
+		retu=osd.OpenWithPreferredApplication()
+	else:
+		#not an URL maybe a local file
+		cmd = "open "+link
+		t = Thread(target=os.system,args=(cmd,))
+		t.run()
 
 def cstep(n,r,h):
 	s=5*(n+1)+(6+h)*n
@@ -360,11 +366,12 @@ class MyListView(BListView):
 						itemtext.Save()
 			if showspell:
 				be_app.WindowAt(0).PostMessage(333111)
-			if tm:
-				cirmsg=BMessage(738033)
-				cirmsg.AddString('s',self.ItemAt(self.CurrentSelection()).Text())
-				be_app.WindowAt(0).PostMessage(cirmsg)
-#				thread.start_new_thread( self.tmcommunicate, (self.listemsgid[self.srctabview.Selection()].src.Text(),) )
+			# double call no needed
+			#if tm:
+			#	print("eseguo tmcommunicate")
+			#	cirmsg=BMessage(738033)
+			#	cirmsg.AddString('s',self.ItemAt(self.CurrentSelection()).Text())
+			#	be_app.WindowAt(0).PostMessage(cirmsg)
 		return BListView.MouseDown(self,point)
 
 class KListView(BListView):
@@ -577,7 +584,6 @@ class MsgStrItem(BListItem):
 	fuzzy = 2
 	obsolete = 3
 	hasplural = False
-	frame=[0,0,0,0]
 	tosave=False
 	txttosave=""	# nel lungo termine eliminare
 	txttosavepl=[]  # nel lungo termine eliminare
@@ -1886,9 +1892,6 @@ class POmetadata(BWindow):
 			be_app.WindowAt(0).PostMessage(smesg)
 
 class MyListItem(BListItem):
-	nocolor = (0, 0, 0, 0)
-	frame=[0,0,0,0]
-
 	def __init__(self, txt):
 		self.text = txt
 		BListItem.__init__(self)
@@ -1912,8 +1915,6 @@ class MyListItem(BListItem):
 		return self.text
 
 class SugjItem(BListItem):
-	nocolor = (0, 0, 0, 0)
-	frame=[0,0,0,0]
 	def __init__(self,sugj,lev):
 		self.text=sugj
 		tl=len(sugj)
@@ -1958,8 +1959,6 @@ class SugjItem(BListItem):
 		return self.text
 
 class ErrorItem(BListItem):
-	nocolor = (0, 0, 0, 0)
-	frame=[0,0,0,0]
 	def __init__(self,sugj):
 		self.text=sugj
 		BListItem.__init__(self)
@@ -2483,6 +2482,7 @@ class AboutWindow(BWindow):
 class MainWindow(BWindow):
 	alerts=[]
 	sugjs=[]
+	badItems=[]
 	Menus = (
 		('File', ((295485, 'Open'), (2, 'Save'), (1, 'Close'), (5, 'Save as...'),(None, None),(B_QUIT_REQUESTED, 'Quit'))),
 		('Translation', ((3, 'Copy from source (ctrl+shift+s)'), (53,'Edit comment'), (70,'Done and next'), (71,'Mark/Unmark fuzzy (ctrl+b)'), (72, 'Previous w/o saving'),(73,'Next w/o saving'),(None, None), (6, 'Find source'), (7, 'Find/Replace translation'))),
@@ -2623,6 +2623,8 @@ class MainWindow(BWindow):
 						#self.serv.start()
 					else:
 						self.builtin_srv=[False,tmxsrv,tmxprt,header,log_srv]
+				else:
+					self.builtin_srv=[False,tmxsrv,tmxprt,4096,False]
 			except:
 				cfgfile = open(confile,'w')
 				Config.set('General','tm', 'False')
@@ -2631,6 +2633,7 @@ class MainWindow(BWindow):
 				tm=False
 				tmxsrv = '127.0.0.1'
 				tmxprt = 2022
+				self.builtin_srv=[False,tmxsrv,tmxprt,4096,False]
 			try:
 				Config.read(confile)
 				self.modifiervalue=int(Config.get('General','modifierkey'))
@@ -2893,6 +2896,10 @@ class MainWindow(BWindow):
 		self.msgstabview.Select(2)
 		self.writter = threading.Semaphore()
 		self.netlock=threading.Semaphore()
+		self.badItems.append(ErrorItem("┌──────────────┐"))
+		self.badItems.append(ErrorItem(" Error connecting to Translation"))
+		self.badItems.append(ErrorItem("          Memory server  "))
+		self.badItems.append(ErrorItem("└──────────────┘"))
 		if arg!="":
 			f=os.path.abspath(arg)
 			if BEntry(f).Exists():
@@ -3514,19 +3521,15 @@ class MainWindow(BWindow):
 								mxg=BMessage(1010)
 								mxg.AddString('txt',s)
 								guut[-1].PostMessage(mxg)
-#					x+=1
-					print(f"Position: {fatal[1]}, error: {fatal[0]}\nstrtosrc={strtosrc}")
-				#exit=True
+					#print(f"Position: {fatal[1]}, error: {fatal[0]}\nstrtosrc={strtosrc}")
 		#################################################
-		########## This should be done by OS ############
+		########## This should be done by the OS ############
 		st=BMimeType("text/x-gettext-translation")
 		nd=BNode(path)
 		ni = BNodeInfo(nd)
 		ni.SetType("text/x-gettext-translation")
 		#################################################
 		self.writter.release()
-		#if exit:
-		#	be_app.WindowAt(0).PostMessage(B_QUIT_REQUESTED)
 	
 	def tmcommunicate(self,src):
 		self.netlock.acquire()
@@ -3670,7 +3673,6 @@ class MainWindow(BWindow):
 			if self.sourcestrings.lv.CountItems()>0:     ###### FIX HERE check condition if file is loaded
 				ent,confile=Ent_config()
 				if self.listemsgstr[self.transtabview.Selection()].trnsl.tosave:
-					#print("eventtextvie è cambiato, si esegue save interno")
 					#eventtextview changed
 					self.listemsgstr[self.transtabview.Selection()].trnsl.Save()
 				try:
@@ -3806,16 +3808,15 @@ class MainWindow(BWindow):
 			return
 		elif msg.what == 12343:
 			if self.sourcestrings.lv.CurrentSelection()>-1:
-				self.Looper().Lock()
-				if True:
-				#try:
+				#self.Looper().Lock()
+				try:
 					if self.listemsgstr[self.transtabview.Selection()].trnsl.CheckSpell():
 						be_app.WindowAt(0).PostMessage(735157)
 					else:
 						be_app.WindowAt(0).PostMessage(982757)
-				#except:
-				#	pass
-				self.Looper().Unlock()
+				except:
+					pass
+				#self.Looper().Unlock()
 			return
 		elif msg.what == 6:
 			# Find source
@@ -3834,7 +3835,6 @@ class MainWindow(BWindow):
 			perc=BPath()
 			find_directory(directory_which.B_SYSTEM_DOCUMENTATION_DIRECTORY,perc,False,None)
 			link=perc.Path()+"/packages/haipo/HaiPO2/index.html"
-			print(link)
 			ent=BEntry(link)
 			if ent.Exists():
 				# open system documentation help
@@ -3845,29 +3845,33 @@ class MainWindow(BWindow):
 				link=perc.Path()+"/HaiPO2/Data/help/index.html"
 				ent=BEntry(link)
 				if ent.Exists():
+					# open user data dir help
 					t = Thread(target=openlink,args=(link,))
 					t.run()
 				else:
+					# look for local help
 					nopages=True
 					cwd = os.getcwd()
-					link=cwd+"/Data/help/index.html"
+					link=cwd+"/data/help/index.html"
 					ent=BEntry(link)
 					if ent.Exists():
-						#open git downloaded help
+						# open local help
 						t = Thread(target=openlink,args=(link,))
 						t.run()
 						nopages=False
-					else:
-						alt="".join(sys.argv)
-						mydir=os.path.dirname(alt)
-						link=mydir+"/Data/help/index.html"
-						ent=BEntry(link)
-						if ent.Exists():
-							t = Thread(target=openlink,args=(link,))
-							t.run()
-							nopages=False
+					#else:
+					#	alt="".join(sys.argv)
+					#	mydir=os.path.dirname(alt)
+					#	print(mydir)
+					#	link=mydir+"/Data/help/index.html"
+					#	ent=BEntry(link)
+					#	if ent.Exists():
+					#		t = Thread(target=openlink,args=(link,))
+					#		t.run()
+					#		nopages=False
 					if nopages:
 						wa=BAlert('noo', 'No help pages installed', 'Poor me', None,None,InterfaceDefs.B_WIDTH_AS_USUAL,alert_type.B_WARNING_ALERT)
+						self.alerts.append(wa)
 						wa.Go()
 		elif msg.what == 9:
 			#ABOUT
@@ -4122,6 +4126,7 @@ class MainWindow(BWindow):
 			altece2 = self.transtabview.TabHeight()
 			tabrc2=(3.0, 3.0, self.transtabview.Bounds().Width() - 3, self.transtabview.Bounds().Height()-altece2)
 			#self.NichilizeMsgs()
+			self.NichilizeTM()
 			if self.sourcestrings.lv.CurrentSelection()>-1:
 				item=self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection())
 				if item.hasplural:
@@ -4247,7 +4252,10 @@ class MainWindow(BWindow):
 				if tm:
 					self.tmscrollsugj.Clear()
 					riga=self.listemsgid[self.srctabview.Selection()].src.Text()
-					Thread(target=self.tmcommunicate,args=(riga,)).start()
+					cirmsg=BMessage(738033)
+					cirmsg.AddString('s',riga)
+					be_app.WindowAt(0).PostMessage(cirmsg)
+					#Thread(target=self.tmcommunicate,args=(riga,)).start()
 			else:
 				if tm:
 					self.NichilizeTM()
@@ -4263,7 +4271,8 @@ class MainWindow(BWindow):
 				#############################################
 				self.listemsgid[0].src.SelectAll()
 				self.listemsgid[0].src.Clear()
-			be_app.WindowAt(0).PostMessage(12343)
+			if showspell:
+				be_app.WindowAt(0).PostMessage(12343)
 			return
 		elif msg.what == 7484:
 			self.spellabel.SetText(msg.FindString('graph'))
@@ -4659,11 +4668,14 @@ class MainWindow(BWindow):
 			#look for translations
 			if tm:
 				self.NichilizeTM()
-			Thread(target=self.tmcommunicate,args=(msg.FindString('s'),)).start()
+				Thread(target=self.tmcommunicate,args=(msg.FindString('s'),)).start()
 			return
 		elif msg.what == 140:
 			if self.tmscrollsugj.lv.CurrentSelection()>-1:
-				self.expander.SetText(self.tmscrollsugj.lv.ItemAt(self.tmscrollsugj.lv.CurrentSelection()).Text(),None)
+				try:
+					self.expander.SetText(self.tmscrollsugj.lv.ItemAt(self.tmscrollsugj.lv.CurrentSelection()).Text(),None)
+				except:
+					pass #non è un suggerimento forse un ErrorItem
 		elif msg.what == 141:
 			#paste sugg to trnsl EventTextView
 			try:
@@ -4733,11 +4745,9 @@ class MainWindow(BWindow):
 			self.listemsgstr[schede].trnsl.Highlight(inizi,fin)
 			return
 		elif msg.what == 104501:
-			self.tmscrollsugj.lv.AddItem(ErrorItem("┌─────────────────────┐"))
-			self.tmscrollsugj.lv.AddItem(ErrorItem("| Error connecting to |"))
-			self.tmscrollsugj.lv.AddItem(ErrorItem("| Translation Memory  |"))
-			self.tmscrollsugj.lv.AddItem(ErrorItem("|       server        |"))
-			self.tmscrollsugj.lv.AddItem(ErrorItem("└─────────────────────┘"))
+
+			for item in self.badItems:
+				self.tmscrollsugj.lv.AddItem(item)
 			return
 		#445380 huge check on older version look at that code
 		BWindow.MessageReceived(self, msg)
