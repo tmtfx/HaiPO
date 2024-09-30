@@ -1,12 +1,10 @@
 #!/boot/system/bin/python3
 from Be import BApplication, BWindow, BView, BMenu,BMenuBar, BMenuItem, BSeparatorItem, BMessage, window_type, B_NOT_RESIZABLE, B_CLOSE_ON_ESCAPE, B_QUIT_ON_WINDOW_CLOSE, BButton, BTextView, BTextControl, BAlert, BListItem,BMenuField, BListView, BScrollView,BRect, BBox, BFont, InterfaceDefs, BPath, BDirectory, BEntry, BStringItem, BFile, BStringView,BCheckBox,BTranslationUtils, BBitmap, AppDefs, BTab, BTabView, BNodeInfo, BMimeType, BScrollBar,BPopUpMenu,BScreen,BStatusBar,BPoint,BNode,BUrl
 
-# from Be.View import *
 from Be.View import B_FOLLOW_NONE,set_font_mask,B_WILL_DRAW,B_NAVIGABLE,B_FULL_UPDATE_ON_RESIZE,B_FRAME_EVENTS,B_PULSE_NEEDED,B_FOLLOW_ALL_SIDES,B_FOLLOW_TOP,B_FOLLOW_LEFT_RIGHT,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_FOLLOW_TOP_BOTTOM
 from Be.Menu import menu_info,get_menu_info
 from Be.FindDirectory import *
 from Be.Alert import alert_type
-#from Be.InterfaceDefs import border_style,orientation
 from Be.ListView import list_view_type
 from Be.AppDefs import *
 from Be.Font import be_plain_font, be_bold_font, font_height
@@ -25,7 +23,7 @@ from Be.TabView import tab_side
 from Be.TextView import text_run,text_run_array
 from Be.Architecture import get_architecture
 
-import configparser,struct,threading,os,polib,re,datetime,time#,babel
+import configparser,struct,threading,os,polib,re,datetime,time
 import enchant
 import pickle,socket,os,sys,html
 from translate.storage.tmx import tmxfile
@@ -33,12 +31,9 @@ from translate.storage.tmx import tmxfile
 from translate.tools import junitmsgfmt
 from Levenshtein import distance as lev
 from distutils.spawn import find_executable
-#from subprocess import Popen,STDOUT,PIPE
 import socket,pickle,unicodedata
 from threading import Thread
 from babel import Locale
-# global evstyle
-# evstyle=threading.Semaphore()
 
 version='HaiPO 2.0 beta'
 (appname,ver,state)=version.split(' ')
@@ -585,8 +580,8 @@ class MsgStrItem(BListItem):
 	obsolete = 3
 	hasplural = False
 	tosave=False
-	txttosave=""	# nel lungo termine eliminare
-	txttosavepl=[]  # nel lungo termine eliminare
+	txttosave=""
+	txttosavepl=[]
 	dragcheck=False
 	comments=""
 	context=""
@@ -1057,7 +1052,6 @@ class EventTextView(BTextView):
 			TXT_ARR[-1].font=normal_font
 			TXT_ARR[-1].color=normal_color
 			
-			
 			newarr=[]
 			txtarr=get_all_splits(txt)
 			for w in txtarr:
@@ -1098,9 +1092,7 @@ class EventTextView(BTextView):
 			self.Select(indi,indf)
 			return ret
 		except:
-			#be_app.WindowAt(0).PostMessage(12343)
 			return None
-		#return ret
 def find_byte(lookf,looka,offset=0):
 	retc=looka.find(lookf,offset)
 	if retc>-1:
@@ -1330,7 +1322,6 @@ def checklang(orderedata):
 		confexists=False
 
 	return (confexists,samelang)
-		#ottinei language da ordered meta data
 
 class CreateUserBox(BBox):
 	lli=[]
@@ -2619,8 +2610,6 @@ class MainWindow(BWindow):
 						builtin_srv=False
 					if builtin_srv:
 						self.builtin_srv=[True,tmxsrv,tmxprt,header,log_srv]
-						#self.serv=Thread(target=self.server,args=(tmxsrv,tmxprt,header,log_srv,))
-						#self.serv.start()
 					else:
 						self.builtin_srv=[False,tmxsrv,tmxprt,header,log_srv]
 				else:
@@ -2791,7 +2780,6 @@ class MainWindow(BWindow):
 		sbv.ResizeBy(0,0-dy)
 		self.sourcestrings.lv.ResizeBy(0-dx,0-dy)
 		self.sourcestrings.sv.ResizeBy(0-dx,0-dy)
-		#self.sourcestrings.sv.FindView("_HSB_")
 		self.upperbox.AddChild(self.sourcestrings.sv,None)
 		
 		self.tmscrollsugj=ScrollSugj(BRect(self.upperbox.Bounds().right*2/3+4,4,self.upperbox.Bounds().right-4,self.upperbox.Bounds().bottom/2), 'ScrollSugj')
