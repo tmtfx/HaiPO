@@ -1,0 +1,147 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title>HaiPO 2.0 Help</title>
+	<meta name="generator" content="Bluefish 2.2.14" />
+	<meta name="created" content="00:00:00"/>
+	<meta name="changed" content="2021-08-12T23:29:09.053449000"/>
+	<style type="text/css">
+		td p { color: #000000 }
+		h1 { color: #000000 }
+		p { color: #000000 }
+		a:link { color: #0000ee }
+		a:visited { color: #551a8b }
+	</style>
+</head>
+<body lang="fur-IT" text="#000000" link="#0000ee" vlink="#551a8b" bgcolor="#dddddd" dir="ltr">
+<hr/>
+
+<h1 align="center"><font color="#3366ff"><font face="Noto Sans, sans-serif"><font size="6" style="font-size: 24pt"><b>HaiPO</b></font></font></font></h1>
+<hr/>
+
+<p style="margin-bottom: 0cm"><br/>
+
+</p>
+<table cellpadding="2" cellspacing="2">
+	<tr>
+		<td valign="top" style="border: none; padding: 0cm"><p>Topics</p>
+			<ul>
+				<li><p><a href="./index.html">Introduction</a>
+								</p>
+			</ul>
+			<ul>
+				<li><p><a href="./before.html">Before
+				running</a></p>
+			</ul>
+			<ul>
+				<li><p><b>Interface</b> 
+				</p>
+			</ul>
+			<ul>
+				<li><p><a href="./intindep.html">Interface in depth</a> 
+				</p>
+			</ul>
+		</td>
+		<td style="border: none; padding: 1cm"><h1><font color="#3366ff">The
+			interface</font></h1>
+			<p>A quick look at the interface:</p>
+			<p align="center" style="margin-bottom: 0cm"><img src="empty.png" name="Image1" alt="screenshot 1" align="bottom" width="764" height="528" border="0"/>
+</p>
+			On the top side there are 5 menus:
+			
+			<ul>
+				<li><p>File</p>
+			</ul>
+			<ul>
+				<li><p>Translation</p>
+			</ul>
+			<ul>
+				<li><p>View</p>
+			</ul>
+			<ul>
+				<li><p>Settings</p>
+			</ul>
+			<ul>
+				<li><p>About</p>
+			</ul>
+		
+		With <font color="#FF0000">File</font> menu you can Open, Save, Close, Save as and Quit.
+		Open will open the file you select from the FilePanel. If the program detects a backup file of the chosen file a question will be prompted like this:
+		
+			<p align="center"><img src="backup.png" name="Image2" alt="details" align="bottom" width="452" height="115" border="0"/></p>
+		
+		This happens when the backup file is more recent than the original file. Every time you change a string or a metadata, those changes will be saved to a
+		backup file (temp.po). In this way you'll not loose your work if something bad happens, like a crash of the app or the system, or a power failure...
+		<br></br>
+		Under <font color="#FF0000">Translation</font> menu you can find some of the more common commands you'll use with this program:
+			<ul>
+				<li><p>Copy from source: (with his shortcut Ctrl+Shif+s) copies the source string to the translation field</p>
+			</ul>
+			<ul>
+				<li><p>Edit comment: (or by double-clicking the list entry) allows you to add and save a comment to the selected entry</p>
+			</ul>
+			<ul>
+				<li><p>Done and next: (shortcut: Ctrl + down/up) saves the translation to the backup file and opens the next entry </p>
+			</ul>
+			<ul>
+				<li><p>Mark/unmark fuzzy: (shortcut: Ctrl+b) Marks the list entry as Fuzzy translation or unmarks it</p>
+			</ul>
+			<ul>
+				<li><p>Previous/Next w/o saving: these allow you to go to the next/previous entry without saving the changes done. If you want to restore the
+				translation as it was when you selected the entry press ESC. </p> 
+			</ul>
+			<ul>
+				<li><p>Find source: this allows you to search for text on the entire list of entries (source strings)</p> 
+			</ul>
+			<ul>
+				<li><p>Find/replace translation: allows you to search for text on the translated entries and eventually replace them.</p> 
+			</ul>
+		
+			<p align="left">with <font color="#FF0000">View</font> you can select which kind of entries show in the list.<br></br>
+			In <font color="#FF0000">Settings</font> there are:</p>
+			<ul>
+				<li><p align="left" style="margin-bottom: 0cm">General: some startup settings: check if user can handle the opened po file, and check the file's mimetype</p>
+				<li><p align="left" style="margin-bottom: 0cm">User settings: an important configuration as this data will be written to the po file</p>
+				<li><p align="left" style="margin-bottom: 0cm">Po properties: when there's an opened po file this will show the po metadata</p>
+				<li><p align="left" style="margin-bottom: 0cm">Po header: when there's an opened po file this will show the po header, usually a description</p>
+				<li><p align="left" style="margin-bottom: 0cm">Spellcheck: here you can enable/disable the spell check, set the hunspell/myspell dictionary, include
+				or exclude some chars / char's categories to help the spellchecker work better. Under these fields there's a convenient text entry that shows you the char's
+				category of the keys you press</p>
+				<li><p align="left">Translation Memory: in this configuration window you choose if enable/disable the translation memory, enable/disable a local translation
+				memory server, the address and port to use for the translation memory service, header is the buffer size used for transmission, enable a translation memory log</p>
+			</ul>
+			
+			By taking a look at the main window you can find, from the top left going clockwise:
+			<ul>
+				<li><p align="left" style="margin-bottom: 0cm">Source string list: when a po file is loaded here shows up a list of original language (source) strings to translate</p>
+				<li><p align="left" style="margin-bottom: 0cm">Translation memory list: when selecting a source string from the list, if the translation memory is enabled and set up
+				properly, the suggestions will be listed here</p>
+				<li><p align="left" style="margin-bottom: 0cm">The suggestion preview: when you select a suggestion, it's text will be shown here along with its carriage returns, double spaces
+				or different spacing, which are hard to detect with bare eyes</p>
+				<li><p align="left" style="margin-bottom: 0cm">The local TM server status: this strings informs you about the state of the built-in TM server</p>
+				<li><p align="left" style="margin-bottom: 0cm">an animated string: which informs the program is looping fine and some checks periodical checks are in progress</p>
+				<li><p align="left" style="margin-bottom: 0cm">A square (black empty,green ticked,red crossed) that informs your if the translation has orthographic errors</p>
+				<li><p align="left" style="margin-bottom: 0cm">A progress bar: it indicates your progress in translating the whole file</p>
+				<li><p align="left" style="margin-bottom: 0cm">A tabview for comments: here will appear developers comments or context comments,as well your personal comments for
+				every single string to translate (if available)</p>
+				<li><p align="left" style="margin-bottom: 0cm">The line number: when you select a string from the source string list, here will show up the line number where you can
+				find the translation entry in the po file</p>
+				<li><p align="left" style="margin-bottom: 0cm">The translation tabs: when you select an entry from the source string list, here will show up the translation (if 
+				already translated). Any change will be saved if you select another entry. Press ESC to restore to the previous state. This tab view can have multiple tabs if the 
+				source expects the plural forms (the number of tabs depends on the language)</p>
+				<li><p align="left">The source string tabs: when you select an entry from the source string list, this field will show you the source text in its completeness, along
+				with some graphical indications like: new lines (carriage returns), double spaces, different kind of spacing, tabulations etc. This tab view can have 1 or 2 tabs, it
+				depends if the source string expects only the singular form or even the plural one
+				</p>
+			</ul>
+			<p>For an in-depth description of the interface click on: <a href="./intindep.html">Interface in depth</a></p>
+		</td>
+	</tr>
+</table>
+<p><br/>
+<br/>
+
+</p>
+</body>
+</html>

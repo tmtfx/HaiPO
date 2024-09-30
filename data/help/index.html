@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title>HaiPO 2.0 Help</title>
+	<meta name="generator" content="Bluefish 2.2.14" />
+	<meta name="created" content="00:00:00"/>
+	<meta name="changed" content="2024-09-28T18:04:04.184221000"/>
+	<meta name="created" content="00:00:00">
+	<style type="text/css">
+		@page { size: 21cm 29.7cm; margin-left: 2cm; margin-right: 1cm; margin-top: 1cm; margin-bottom: 1cm }
+		p { color: #000000; line-height: 115%; margin-bottom: 0.25cm; background: transparent }
+		h1 { color: #000000; margin-bottom: 0.21cm; background: transparent; page-break-after: avoid }
+		h1.western { font-family: "Noto Serif Thai", serif; font-size: 24pt; font-weight: bold }
+		h1.cjk { font-family: "Open Sans"; font-size: 24pt; font-weight: bold }
+		h1.ctl { font-family: "Open Sans"; font-size: 24pt; font-weight: bold }
+		pre { color: #000000; background: transparent }
+		pre.western { font-family: "Noto Sans Mono CJK JP", monospace; font-size: 10pt }
+		pre.cjk { font-family: "Noto Sans CJK JP Regular", monospace; font-size: 10pt }
+		pre.ctl { font-family: "Noto Sans Mono CJK JP", monospace; font-size: 10pt }
+		td p { color: #000000; orphans: 0; widows: 0; background: transparent }
+		a:link { color: #0000ee; text-decoration: underline }
+		a:visited { color: #551a8b; text-decoration: underline }
+		cite { font-style: italic }
+	</style>
+</head>
+<body lang="fur-IT" text="#000000" link="#0000ee" vlink="#551a8b" bgcolor="#dddddd" dir="ltr"><p style="line-height: 100%; margin-bottom: 0.5cm; border-top: none; border-bottom: 1px double #808080; border-left: none; border-right: none; padding: 0cm">
+<br/>
+<br/>
+
+</p>
+<h1 class="western" align="center"><font color="#3366ff"><font face="Noto Sans, sans-serif"><font size="6" style="font-size: 24pt"><b>HaiPO
+2.0</b></font></font></font></h1>
+<h1 class="western" align="center"><img src="HaiPO.png" name="Image1" alt="HaiPO Logo" align="middle" width="433" height="433" border="0"/>
+
+</h1>
+<p align="center" style="margin-bottom: 0cm"><font color="#ff0000"><font face="Noto Sans, sans-serif">Enjoy the gettext translations under Haiku!</font></font></p>
+<p style="margin-bottom: 0cm"><br/>
+
+</p>
+<hr/>
+
+<p style="margin-bottom: 0cm"><br/>
+
+</p>
+<table width="1158" cellpadding="2" cellspacing="20">
+	<col width="122"/>
+	<col width="1028"/>
+	<tr>
+		<td width="122" valign="top" style="border: none; padding: 0cm"><p style="margin-bottom: 0.5cm">
+			<font face="Noto Sans, sans-serif">Topics</font></p>
+			<ul>
+				<li><p style="margin-bottom: 0.5cm"><font face="Noto Sans, sans-serif"><b>Introduction</b>
+				</font>
+				</p></li>
+			</ul>
+			<ul>
+				<li><p style="margin-bottom: 0.5cm"><a href="before.html"><font face="Noto Sans, sans-serif">Before
+				running</font></a></p></li>
+			</ul>
+			<ul>
+				<li><p style="margin-bottom: 0.5cm"><a href="interface.html"><font face="Noto Sans, sans-serif">Interface</font></a></p></li>
+			</ul>
+			<ul>
+				<li><p style="margin-bottom: 0.5cm"><a href="intindep.html"><font face="Noto Sans, sans-serif">Interface in depth</font></a></p></li>
+			</ul>
+		</td>
+		<td width="1028" style="border: none; padding: 1cm"><h1 class="western">
+			<font face="Noto Sans, sans-serif"><font color="#3366ff">A quite
+			</font><font color="#3366ff"><font size="6" style="font-size: 24pt"><b>helpful</b></font></font><font color="#3366ff">
+			</font><font color="#3366ff"><font size="6" style="font-size: 24pt"><b>editor for Portable Objcect files</b></font></font></font></h1>
+			<p style="margin-bottom: 0.5cm"><font face="Noto Sans, sans-serif"><font color="#000000"><font size="2" style="font-size: 10pt">Sep</font></font>
+			30<font size="2" style="font-size: 10pt">, 2024 by Fabio Tomat aka
+			TmTFx</font></font></p>
+			<p style="margin-bottom: 0.5cm"><a name="__DdeLink__0_1645038867"></a>
+			<font face="Noto Sans, sans-serif">This program, written in python
+			3.10, is a Portable Object file editor, a gettext file format used
+			for software localizations.
+			It provides a list of the source strings available in your po file,
+			and let you modify the translations.<br/>
+
+			It has some very nice functions, starting from the simplest and most
+			obvious such as the display of the comments provided by the developers
+			and personal comments, to the most interesting such as the integrated
+			spell checker and the translation memory, which can be local or remote.
+			<br/>
+The program relies on Haiku-PyAPI for the front-end and a lot of 
+			python libraries for the back-end, such as (hunspell through) pyenchant, translate tools, babel, Levenshtein and so on...<br/>
+			</p>
+			<p style="margin-bottom: 0.5cm"><font face="Noto Sans, sans-serif">The
+			code is released under MIT license:</font></p>
+			<pre class="western"><cite>    <font face="Noto Sans, sans-serif">Copyright (c) 2024 Fabio Tomat</font></cite>
+<cite>    <font face="Noto Sans, sans-serif">Permission is hereby granted, free of charge, to any person obtaining a copy</font></cite>
+<cite>    <font face="Noto Sans, sans-serif">of this software and associated documentation files (the &quot;Software&quot;), to deal</font></cite>
+<cite>    <font face="Noto Sans, sans-serif">in the Software without restriction, including without limitation the rights</font></cite>
+<cite>    <font face="Noto Sans, sans-serif">to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</font></cite>
+<cite>    <font face="Noto Sans, sans-serif">copies of the Software, and to permit persons to whom the Software is</font></cite>
+<cite>    <font face="Noto Sans, sans-serif">furnished to do so, subject to the following conditions:</font></cite>
+<cite>    </cite>
+<cite>    <font face="Noto Sans, sans-serif">The above copyright notice and this permission notice shall be included in</font></cite>
+<cite>    <font face="Noto Sans, sans-serif">all copies or substantial portions of the Software.</font></cite>
+<cite>    </cite>
+<cite>    <font face="Noto Sans, sans-serif">THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</font></cite>
+<cite>    <font face="Noto Sans, sans-serif">IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</font></cite>
+<cite>    <font face="Noto Sans, sans-serif">FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</font></cite>
+<cite>    <font face="Noto Sans, sans-serif">AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</font></cite>
+<cite>    <font face="Noto Sans, sans-serif">LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</font></cite>
+<cite>    <font face="Noto Sans, sans-serif">OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN</font></cite>
+<cite>    <font face="Noto Sans, sans-serif">THE SOFTWARE.</font></cite></pre><p>
+			<font face="Noto Sans, sans-serif"><br/>
+HaiPO looks like this:</font></p>
+			<p align="center"><img src="empty.png" name="Image2" alt="preview of program" align="bottom" width="764" height="528" border="0"/>
+
+						</p>
+		</td>
+	</tr>
+</table>
+<p><br/>
+<br/>
+
+</p>
+</body>
+</html>
