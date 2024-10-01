@@ -2235,6 +2235,7 @@ class TMSettings(BWindow):
 class SpellcheckSettings(BWindow):
 	kWindowFrame = BRect(250, 150, 755, 297)
 	kWindowName = "Spellchecking Settings"
+	alerts=[]
 	def __init__(self,showspell,oldsize):
 		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
 		bounds=self.Bounds()
@@ -2301,7 +2302,9 @@ class SpellcheckSettings(BWindow):
 					Config.set('General','spellchecking', "False")
 					Config.write(cfgfile)
 			except:
-				print("Error enabling spellcheck, missing config section?")
+				say = BAlert("error_enable_spellcheck", "Error enabling spellcheck, check config.ini", 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_STOP_ALERT)
+				self.alerts.append(say)
+				say.Go()
 			cfgfile.close()
 		elif msg.what == 8086:
 			confent,confile=Ent_config()
@@ -2312,11 +2315,15 @@ class SpellcheckSettings(BWindow):
 				try:
 					Config.set("Translator",'spell_dictionary',self.diz.Text())
 				except:
-					print("Cannot save dictionary path")
+					say = BAlert("error_name_path", "Cannot save dictionary name path", 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_STOP_ALERT)
+					self.alerts.append(say)
+					say.Go()
 				Config.write(cfgfile)
 				cfgfile.close()
 			else:
-				print("wrong path")
+				say = BAlert("error_dic_path", "With "+self.diz.Text()+", could not find "+self.diz.Text()+".dic", 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_STOP_ALERT)
+				self.alerts.append(say)
+				say.Go()
 		elif msg.what == 8087:
 			confent,confile=Ent_config()
 			Config.read(confile)
@@ -2325,7 +2332,9 @@ class SpellcheckSettings(BWindow):
 				Config.set("Translator",'spell_inclusion',self.inclus.Text())
 				Config.write(cfgfile)
 			except:
-				print("Cannot save inclusion chars")
+				say = BAlert("error_saving_inclusion", "Cannot save inclusion chars", 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_STOP_ALERT)
+				self.alerts.append(say)
+				say.Go()
 			cfgfile.close()
 			Config.read(confile)
 			inctxt=ConfigSectionMap("Translator")['spell_inclusion']
@@ -2338,7 +2347,9 @@ class SpellcheckSettings(BWindow):
 				Config.set("Translator",'spell_esclusion',self.esclus.Text())
 				Config.write(cfgfile)
 			except:
-				print("Cannot save esclusion chars")
+				say = BAlert("error_saving_inclusion", "Cannot save esclusion char categories", 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_STOP_ALERT)
+				self.alerts.append(say)
+				say.Go()
 			cfgfile.close()
 			Config.read(confile)
 			esctxt=ConfigSectionMap("Translator")['spell_esclusion']
@@ -2435,7 +2446,6 @@ class AboutWindow(BWindow):
 		gcol.green=130
 		gcol.blue=170
 		ndtr.color=gcol
-		print(ndtr.offset,(gcol.red,gcol.green,gcol.blue))
 		command.append(ndtr)
 		nbtr=text_run()
 		nbtr.font=bbf
@@ -4822,7 +4832,7 @@ class MainWindow(BWindow):
 						else:
 							#c'è una riga vuota in mezzo
 							kabuki=item.linenum+delta+1+inti
-							print(f"is {kabuki} an empty line in the middle?")
+							#print(f"is {kabuki} an empty line in the middle?")
 					elif row_trans[:6] == "msgstr":
 						if i>self.nplurals:
 							acti=item.linenum+delta+1+inti
