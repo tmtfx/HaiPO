@@ -1,0 +1,4 @@
+38c38
+<     if this_platform in {"freebsd", "netbsd", "os400", "openbsd"}:
+---
+>     if this_platform in {"freebsd", "netbsd", "os400", "openbsd", "haiku"}:
