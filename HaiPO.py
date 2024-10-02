@@ -342,25 +342,27 @@ class MyListView(BListView):
 	
 	def MouseDown(self,point):
 		if self.CurrentSelection() >-1:
-			if self.ItemAt(self.CurrentSelection()).hasplural:
-				lmsgstr=be_app.WindowAt(0).listemsgstr
-				lung=len(lmsgstr)
-				bonobo=False
-				pick=0
-				while pick<lung:
-					thistranslEdit=lmsgstr[pick].trnsl
-					if thistranslEdit.tosave:
-						bonobo=True
-					pick+=1
-				if bonobo:
-					thistranslEdit.Save() #it's not importat which EventTextView launches the Save() procedure, it will save both anyway
-			else:
-				itemtext=be_app.WindowAt(0).listemsgstr[0].trnsl
-				if itemtext.tosave:
-					if itemtext.Text()!= itemtext.oldtext:
-						itemtext.Save()
-			if showspell:
-				be_app.WindowAt(0).PostMessage(333111)
+			item=self.ItemAt(self.CurrentSelection())
+			if type(item)!=LangListItem:
+				if item.hasplural:
+					lmsgstr=be_app.WindowAt(0).listemsgstr
+					lung=len(lmsgstr)
+					bonobo=False
+					pick=0
+					while pick<lung:
+						thistranslEdit=lmsgstr[pick].trnsl
+						if thistranslEdit.tosave:
+							bonobo=True
+						pick+=1
+					if bonobo:
+						thistranslEdit.Save() #it's not importat which EventTextView launches the Save() procedure, it will save both anyway
+				else:
+					itemtext=be_app.WindowAt(0).listemsgstr[0].trnsl
+					if itemtext.tosave:
+						if itemtext.Text()!= itemtext.oldtext:
+							itemtext.Save()
+				if showspell:
+					be_app.WindowAt(0).PostMessage(333111)
 			# double call no needed
 			#if tm:
 			#	print("eseguo tmcommunicate")
@@ -2075,6 +2077,10 @@ class TMSettings(BWindow):
 			bret = Config.getboolean('TMSettings','builtinsrv')
 		except:
 			cfgfile = open(confile,'w')
+			try:
+				Config.add_section('TMSettings')
+			except:
+				pass
 			Config.set('TMSettings','builtinsrv',"False")
 			Config.write(cfgfile)
 			cfgfile.close()
@@ -2087,15 +2093,7 @@ class TMSettings(BWindow):
 			
 		try:
 			bret = ConfigSectionMap("TMSettings")['tmxsrv']
-		except (configparser.NoSectionError):
-			cfgfile = open(confile,'w')
-			Config.add_section('TMSettings')
-			Config.set('TMSettings','tmxsrv',"127.0.0.1")
-			Config.write(cfgfile)
-			cfgfile.close()
-			Config.read(confile)
-			bret = "127.0.0.1"
-		except (configparser.NoOptionError):
+		except:
 			cfgfile = open(confile,'w')
 			Config.set('TMSettings','tmxsrv',"127.0.0.1")
 			Config.write(cfgfile)
@@ -2662,6 +2660,7 @@ class MainWindow(BWindow):
 			Config.write(cfgfile)
 			cfgfile.close()
 			Config.read(confile)
+			setspellcheck=False
 		
 		if setspellcheck:
 			showspell=True
