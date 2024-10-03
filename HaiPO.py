@@ -5118,7 +5118,8 @@ class App(BApplication):
 			self.poeditor.Show()
 	def ArgvReceived(self,num,args):
 		realargs=args
-		if args[1][-8:]=="HaiPO.py":
+		if args[1][-8:]=="HaiPO.py" or args[1][-5:]=="HaiPO":
+			#launched by terminal or by link in non-packaged/bin
 			realargs.pop(1)
 			realargs.pop(0)
 			self.realargs=realargs
