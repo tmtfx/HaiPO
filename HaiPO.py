@@ -706,6 +706,7 @@ class EventTextView(BTextView):
 		tabs=len(self.superself.listemsgstr)-1
 		bckpmsg=BMessage(16893)
 		bckpmsg.AddInt8('savetype',1)
+		bckpmsg.AddBool('tmx',True)
 		bckpmsg.AddInt32('tvindex',self.superself.sourcestrings.lv.CurrentSelection())
 		bckpmsg.AddInt8('plurals',tabs)
 		if tabs == 0:
@@ -799,6 +800,7 @@ class EventTextView(BTextView):
 			thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
 			thisBlistitem.tosave=True
 			self.tosave=True
+			be_app.WindowAt(0).PostMessage(333111)
 		elif msg.what == self.mousemsg:
 			try:
 				mexico=msg.FindMessage('be:drag_message')
@@ -815,7 +817,8 @@ class EventTextView(BTextView):
 		try:
 			arrow=False
 			ochar=ord(char)
-			if ochar in (B_DOWN_ARROW,B_UP_ARROW,10,B_PAGE_UP,B_PAGE_DOWN,10,49,50,51,52,53): #B_ENTER =10?
+			print(ochar)
+			if ochar in (B_DOWN_ARROW,B_UP_ARROW,B_PAGE_UP,B_PAGE_DOWN,10,49,50,51,52,53): #B_ENTER =10?
 				self.superself.sem.acquire()
 				value=self.superself.modifier #CTRL pressed
 				shrtctvalue=self.superself.shortcut
@@ -1024,6 +1027,8 @@ class EventTextView(BTextView):
 						self.tosave=True  # This says you should save the string before proceeding the same for blistitem.tosave doublecheck
 						if not arrow:
 							be_app.WindowAt(0).PostMessage(333111)
+					elif self.Text()=="":
+						be_app.WindowAt(0).PostMessage(826066)
 					return
 		except:
 			if self.superself.sourcestrings.lv.CurrentSelection()>-1:
@@ -3704,6 +3709,7 @@ class MainWindow(BWindow):
 				thisBlistitem.tosave=True
 				tabs=len(self.listemsgstr)-1
 				bckpmsg=BMessage(16893)
+				bckpmsg.AddBool('tmx',True)
 				bckpmsg.AddInt8('savetype',1)
 				bckpmsg.AddInt32('tvindex',self.sourcestrings.lv.CurrentSelection())
 				bckpmsg.AddInt8('plurals',tabs)
@@ -3739,6 +3745,11 @@ class MainWindow(BWindow):
 			self.font.SetSize(28)
 			self.checkres.SetFontAndColor(self.font,set_font_mask.B_FONT_ALL,color)
 			self.checkres.SetText("☑",None)
+		elif msg.what == 826066:
+			color=rgb_color()
+			self.font.SetSize(28)
+			self.checkres.SetFontAndColor(self.font,set_font_mask.B_FONT_ALL,color)
+			self.checkres.SetText("☐",None)
 		elif msg.what == 982757:
 			color=rgb_color()
 			color.red=150
@@ -3771,6 +3782,7 @@ class MainWindow(BWindow):
 				tabs=len(self.listemsgstr)-1
 				bckpmsg=BMessage(16893)
 				bckpmsg.AddInt8('savetype',1)
+				bckpmsg.AddBool('tmx',False)
 				bckpmsg.AddInt32('tvindex',self.sourcestrings.lv.CurrentSelection())
 				bckpmsg.AddInt8('plurals',tabs)
 				if tabs == 0:   #-> if not thisBlistitem.hasplural:  <-- or this?
@@ -3813,10 +3825,13 @@ class MainWindow(BWindow):
 			if self.sourcestrings.lv.CurrentSelection()>-1:
 				#self.Looper().Lock()
 				try:
-					if self.listemsgstr[self.transtabview.Selection()].trnsl.CheckSpell():
-						be_app.WindowAt(0).PostMessage(735157)
+					if self.listemsgstr[self.transtabview.Selection()].trnsl.Text()=="":
+						be_app.WindowAt(0).PostMessage(826066)
 					else:
-						be_app.WindowAt(0).PostMessage(982757)
+						if self.listemsgstr[self.transtabview.Selection()].trnsl.CheckSpell():
+							be_app.WindowAt(0).PostMessage(735157)
+						else:
+							be_app.WindowAt(0).PostMessage(982757)
 				except:
 					pass
 				#self.Looper().Unlock()
@@ -3962,6 +3977,7 @@ class MainWindow(BWindow):
 						tabs=len(self.listemsgstr)-1
 						bckpmsg=BMessage(16893)
 						bckpmsg.AddInt8('savetype',1)
+						bckpmsg.AddBool('tmx',True)
 						bckpmsg.AddInt32('tvindex',self.sourcestrings.lv.CurrentSelection())
 						bckpmsg.AddInt8('plurals',tabs)
 						if tabs == 0:#->if not thisBlistitem.hasplural:<- or this?
@@ -4036,7 +4052,7 @@ class MainWindow(BWindow):
 			elif savetype == 1:
 				#save
 				if tm:
-					needtopush=True
+					needtopush=msg.FindBool('tmx') # valutare se spostare in if (tm and needtopush):
 					iterz=self.tmscrollsugj.lv.CountItems()
 					iteri=0
 					while iteri<iterz:
