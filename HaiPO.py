@@ -1064,7 +1064,6 @@ class EventTextView(BTextView):
 			
 			newarr=[]
 			txtarr=get_all_splits(txt)
-			print(txtarr)
 			for w in txtarr:
 				if w[0]:
 					parola=w[1]
@@ -1082,17 +1081,19 @@ class EventTextView(BTextView):
 									w=(w[0],w[1],newvalue,w[3])
 								else:
 									parola=parola[:n]+" "+parola[n+1:]
-					print("Analizzo parola:",parola)
-					if not self.superself.spellchecker.check(parola):
-						ret=False
-						TXT_ARR.append(text_run())
-						TXT_ARR[-1].offset=w[3]
-						TXT_ARR[-1].font=error_font
-						TXT_ARR[-1].color=error_color
-						TXT_ARR.append(text_run())
-						TXT_ARR[-1].offset=w[3]+w[2]
-						TXT_ARR[-1].font=normal_font
-						TXT_ARR[-1].color=normal_color
+					splitti=parola.split()
+					for parola in splitti:
+						if not self.superself.spellchecker.check(parola):
+							ret=False
+							TXT_ARR.append(text_run())
+							TXT_ARR[-1].offset=w[3]
+							TXT_ARR[-1].font=error_font
+							TXT_ARR[-1].color=error_color
+							TXT_ARR.append(text_run())
+							TXT_ARR[-1].offset=w[3]+w[2]
+							TXT_ARR[-1].font=normal_font
+							TXT_ARR[-1].color=normal_color
+							break
 
 			#Method 1: Maybe this creates memory leaks as my_txt_run_arr is not freed/destroyed?
 			#my_txt_run_arr=BTextView.AllocRunArray(len(TXT_ARR))
@@ -1158,13 +1159,11 @@ def get_all_splits(text):
 		
 	bc=byte_count(words[-1])
 	newarr.append((True,words[-1],bc[0],byte_offset))
-	print(newarr)
 	byte_offset+=bc[0]
 	text=text[text.find(words[-1])+len(words[-1]):]
 	if text!="":
 		bc=byte_count(text)
 		newarr.append((False,text,bc[0],byte_offset))
-		print(newarr)
 
 	return newarr
 
