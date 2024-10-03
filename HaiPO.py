@@ -813,6 +813,7 @@ class EventTextView(BTextView):
 
 	def KeyDown(self,char,bytes):
 		try:
+			arrow=False
 			ochar=ord(char)
 			if ochar in (B_DOWN_ARROW,B_UP_ARROW,10,B_PAGE_UP,B_PAGE_DOWN,10,49,50,51,52,53): #B_ENTER =10?
 				self.superself.sem.acquire()
@@ -1003,7 +1004,8 @@ class EventTextView(BTextView):
 						if value:
 							be_app.WindowAt(0).PostMessage(33)
 							return
-
+					elif ochar in [B_LEFT_ARROW,B_RIGHT_ARROW,B_DOWN_ARROW,B_UP_ARROW]:
+						arrow=True
 					BTextView.KeyDown(self,char,bytes)
 					if self.oldtext != self.Text():
 						thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
@@ -1020,7 +1022,8 @@ class EventTextView(BTextView):
 								thisBlistitem.txttosavepl.append(self.superself.listemsgstr[cox].trnsl.Text())
 								cox+=1
 						self.tosave=True  # This says you should save the string before proceeding the same for blistitem.tosave doublecheck
-						be_app.WindowAt(0).PostMessage(333111)
+						if not arrow:
+							be_app.WindowAt(0).PostMessage(333111)
 					return
 		except:
 			if self.superself.sourcestrings.lv.CurrentSelection()>-1:
@@ -1464,7 +1467,6 @@ class infoTab(BTab):
 		#owner.SetLowColor(255,255,255,255)
 		BTab.DrawLabel(self,owner,frame)
 		fon.SetSize(oldsize)
-		
 
 class FindRepTrans(BWindow):
 	kWindowFrame = BRect(250, 150, 755, 317)
