@@ -1523,6 +1523,7 @@ class FindRepTrans(BWindow):
 			self.pb.Hide()
 			self.pb.Show()
 			if self.looktv.Text() != "":
+				be_app.WindowAt(0).Lock()
 				self.pof=be_app.WindowAt(0).pofile
 				lista=be_app.WindowAt(0).sourcestrings.lv
 				indaco=lista.CurrentSelection()
@@ -1652,6 +1653,7 @@ class FindRepTrans(BWindow):
 							say = BAlert('not_found', 'No matches found on listed entries', 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
 							self.alerts.append(say)
 							say.Go()
+				be_app.WindowAt(0).Unlock()
 			return
 
 		elif msg.what == 7047:
@@ -1703,6 +1705,7 @@ class Findsource(BWindow):
 	def MessageReceived(self, msg):
 		if msg.what == 5348:
 			if self.looktv.Text() != "":
+				be_app.WindowAt(0).Lock()
 				lista=be_app.WindowAt(0).sourcestrings.lv
 				total=lista.CountItems()
 				indaco=lista.CurrentSelection()
@@ -1828,6 +1831,7 @@ class Findsource(BWindow):
 						say = BAlert('not_found', 'No matches found on other entries', 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
 						self.alerts.append(say)
 						say.Go()
+				be_app.WindowAt(0).Unlock()
 
 class POmetadata(BWindow):
 	kWindowFrame = BRect(150, 150, 585, 480)
