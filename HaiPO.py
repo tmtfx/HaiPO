@@ -1268,7 +1268,7 @@ class srcTextView(BTextView):
 					else:
 						self.SetHighColor(200,0,0,0)
 						self.MovePenTo(BPoint(asd[0].x+self.font.StringWidth(ci)/2,asd[0].y+asd[1]-3))
-						self.DrawString('̳')#'.')##'_')#(' ̳')#' ᪶ ')#'˽'
+						self.DrawString('̳',None)#'.')##'_')#(' ̳')#' ᪶ ')#'˽'
 						self.SetHighColor(0,0,0,0)
 				elif mum=="\\xa":
 					foundo=self.Text().find(ci,foundo)
