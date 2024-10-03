@@ -1045,7 +1045,7 @@ class EventTextView(BTextView):
 		self.tosave=False
 		
 	def CheckSpell(self):
-		try:
+		#try:
 			txt=self.Text()
 			indi,indf=self.GetSelection()
 			ret=True
@@ -1064,6 +1064,7 @@ class EventTextView(BTextView):
 			
 			newarr=[]
 			txtarr=get_all_splits(txt)
+			print(txtarr)
 			for w in txtarr:
 				if w[0]:
 					parola=w[1]
@@ -1081,6 +1082,7 @@ class EventTextView(BTextView):
 									w=(w[0],w[1],newvalue,w[3])
 								else:
 									parola=parola[:n]+" "+parola[n+1:]
+					print("Analizzo parola:",parola)
 					if not self.superself.spellchecker.check(parola):
 						ret=False
 						TXT_ARR.append(text_run())
@@ -1101,8 +1103,8 @@ class EventTextView(BTextView):
 			
 			self.Select(indi,indf)
 			return ret
-		except:
-			return None
+		#except:
+		#	return None
 def find_byte(lookf,looka,offset=0):
 	retc=looka.find(lookf,offset)
 	if retc>-1:
@@ -1140,7 +1142,7 @@ def get_all_splits(text):
 	if b:
 		bc=byte_count(t)
 		newarr.append((False,t,bc[0],byte_offset))#False = non analizzare con spellcheck
-		text=text[:text.find(words[0])]
+		text=text[text.find(words[0]):]
 		byte_offset+=bc[0]
 	while i<len(words)-1:
 		bc=byte_count(words[i])
@@ -1156,11 +1158,13 @@ def get_all_splits(text):
 		
 	bc=byte_count(words[-1])
 	newarr.append((True,words[-1],bc[0],byte_offset))
+	print(newarr)
 	byte_offset+=bc[0]
 	text=text[text.find(words[-1])+len(words[-1]):]
 	if text!="":
 		bc=byte_count(text)
 		newarr.append((False,text,bc[0],byte_offset))
+		print(newarr)
 
 	return newarr
 
@@ -3823,8 +3827,8 @@ class MainWindow(BWindow):
 			return
 		elif msg.what == 12343:
 			if self.sourcestrings.lv.CurrentSelection()>-1:
-				#self.Looper().Lock()
-				try:
+				##self.Looper().Lock()
+				#try:
 					if self.listemsgstr[self.transtabview.Selection()].trnsl.Text()=="":
 						be_app.WindowAt(0).PostMessage(826066)
 					else:
@@ -3832,9 +3836,9 @@ class MainWindow(BWindow):
 							be_app.WindowAt(0).PostMessage(735157)
 						else:
 							be_app.WindowAt(0).PostMessage(982757)
-				except:
-					pass
-				#self.Looper().Unlock()
+				#except:
+				#	pass
+				##self.Looper().Unlock()
 			return
 		elif msg.what == 6:
 			# Find source
