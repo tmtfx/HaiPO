@@ -1524,7 +1524,9 @@ class LangListItem(BListItem):
 			owner.SetHighColor(0,0,0,0)
 		owner.MovePenTo(5,frame.bottom-5)
 		if self.iso==None:
-			owner.SetFont(be_bold_font)
+			myf=be_bold_font
+			myf.SetSize(be_plain_font.Size())
+			owner.SetFont(myf)
 		else:
 			owner.SetFont(be_plain_font)
 		owner.DrawString(self.txt,None)
