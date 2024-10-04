@@ -2353,7 +2353,7 @@ class SpellcheckSettings(BWindow):
 				bret = ConfigSectionMap("Translator")['spell_esclusion']
 			except:
 				bret = ""
-		self.esclus = BTextControl(cstep(3,r,h),'inclusion','Chars-categories escluded in words:',bret,BMessage(8088))
+		self.esclus = BTextControl(cstep(3,r,h),'inclusion','Chars-categories excluded in words:',bret,BMessage(8088))
 		self.esclus.SetText("Pc,Pd,Pe,Pi,Po,Ps,Cc,Pf")
 		topr=cstep(4,r,h)
 		botr=cstep(6,r,h)
