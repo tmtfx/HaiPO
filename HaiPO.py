@@ -799,7 +799,6 @@ class EventTextView(BTextView):
 		return BTextView.MouseUp(self,point)
 
 	def MessageReceived(self, msg):
-		msg.PrintToStream()
 		if msg.what in [B_CUT,B_PASTE]:
 			thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
 			thisBlistitem.tosave=True
@@ -847,7 +846,7 @@ class EventTextView(BTextView):
 			arrow=False
 			ochar=ord(char)
 			print(ochar)
-			if ochar in (B_DOWN_ARROW,B_UP_ARROW,B_PAGE_UP,B_PAGE_DOWN,10,49,50,51,52,53): #B_ENTER =10?
+			if ochar in (B_DOWN_ARROW,B_UP_ARROW,B_PAGE_UP,B_PAGE_DOWN,10,48,49,50,51,52,53,54,55,56,57): #B_ENTER =10?
 				self.superself.sem.acquire()
 				value=self.superself.modifier #CTRL pressed
 				shrtctvalue=self.superself.shortcut
@@ -935,8 +934,16 @@ class EventTextView(BTextView):
 						be_app.WindowAt(0).PostMessage(kmesg)
 						return
 					return BTextView.KeyDown(self,char,bytes)
+				elif ochar == 48:
+					if value:
+						cpmsg=BMessage(8147420)
+						cpmsg.AddInt8("sel",9)
+						be_app.WindowAt(0).PostMessage(cpmsg)
+						return
+					else:
+						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 49:
-					if shrtctvalue:
+					if value:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",0)
 						be_app.WindowAt(0).PostMessage(cpmsg)
@@ -944,7 +951,7 @@ class EventTextView(BTextView):
 					else:
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 50:
-					if shrtctvalue:
+					if value:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",1)
 						be_app.WindowAt(0).PostMessage(cpmsg)
@@ -952,7 +959,7 @@ class EventTextView(BTextView):
 					else:
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 51:
-					if shrtctvalue:
+					if value:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",2)
 						be_app.WindowAt(0).PostMessage(cpmsg)
@@ -960,7 +967,7 @@ class EventTextView(BTextView):
 					else:
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 52:
-					if shrtctvalue:
+					if value:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",3)
 						be_app.WindowAt(0).PostMessage(cpmsg)
@@ -968,9 +975,41 @@ class EventTextView(BTextView):
 					else:
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 53:
-					if shrtctvalue:
+					if value:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",4)
+						be_app.WindowAt(0).PostMessage(cpmsg)
+						return
+					else:
+						return BTextView.KeyDown(self,char,bytes)
+				elif ochar == 54:
+					if value:
+						cpmsg=BMessage(8147420)
+						cpmsg.AddInt8("sel",5)
+						be_app.WindowAt(0).PostMessage(cpmsg)
+						return
+					else:
+						return BTextView.KeyDown(self,char,bytes)
+				elif ochar == 55:
+					if value:
+						cpmsg=BMessage(8147420)
+						cpmsg.AddInt8("sel",6)
+						be_app.WindowAt(0).PostMessage(cpmsg)
+						return
+					else:
+						return BTextView.KeyDown(self,char,bytes)
+				elif ochar == 56:
+					if value:
+						cpmsg=BMessage(8147420)
+						cpmsg.AddInt8("sel",7)
+						be_app.WindowAt(0).PostMessage(cpmsg)
+						return
+					else:
+						return BTextView.KeyDown(self,char,bytes)
+				elif ochar == 57:
+					if value:
+						cpmsg=BMessage(8147420)
+						cpmsg.AddInt8("sel",8)
 						be_app.WindowAt(0).PostMessage(cpmsg)
 						return
 					else:
@@ -3809,6 +3848,7 @@ class MainWindow(BWindow):
 					self.listemsgstr[self.transtabview.Selection()].trnsl.Select(lngth,lngth)
 					self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
 					self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
+					#TODO: launch checkspell?
 #						print self.tmscrollsugj.lv.ItemAt(askfor).text #settext con tutte i vari controlli ortografici mettere tosave = True a eventtextview interessato
 		elif msg.what == 33:
 			#copy from source from keyboard
