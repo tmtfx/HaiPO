@@ -799,22 +799,16 @@ class EventTextView(BTextView):
 		return BTextView.MouseUp(self,point)
 
 	def MessageReceived(self, msg):
-		#msg.PrintToStream()
+		msg.PrintToStream()
 		if msg.what in [B_CUT,B_PASTE]:
 			thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
 			thisBlistitem.tosave=True
 			self.tosave=True
 			be_app.WindowAt(0).PostMessage(333111)
-		#elif msg.what == self.mousemsg:
-		#	try:
-		#		mexico=msg.FindMessage('be:drag_message',msg)
-		#		print(mexico)
-		#		self.superself.drop.acquire()
-		#		self.dragndrop=True
-		#		self.superself.drop.release()
-		#		self.superself.listemsgstr[self.superself.transtabview.Selection()].trnsl.MakeFocus()
-		#	except:
-		#		pass
+		elif msg.what == self.dragmsg:
+			indexBlistitem=self.superself.sourcestrings.lv.CurrentSelection()
+			name=time.time()
+			self.checklater(str(name), self.Text(),indexBlistitem)
 		elif msg.what == self.middlemsgdn:
 			button=msg.FindInt32('buttons')
 			if button == 4: #4=middle button
