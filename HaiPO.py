@@ -690,10 +690,12 @@ class EventTextView(BTextView):
 		self.oldtext=""
 		self.oldtextloaded=False
 		self.tosave=False
+		self.paste=False
 		color=rgb_color()
 		BTextView.__init__(self,frame,name,textRect,be_plain_font,color,resizingMode,flags)
 		self.mousemsg=struct.unpack('!l', b'_MMV')[0]#mouse move
-		self.middlemsg=struct.unpack('!l', b'_MUP')[0]#middle mouse up
+		self.middlemsgup=struct.unpack('!l', b'_MUP')[0]#middle mouse up
+		self.middlemsgdn=struct.unpack('!l', b'_MDN')[0]
 		self.dragmsg=struct.unpack('!l', b'MIME')[0]
 		self.dragndrop = False
 		self.event= threading.Event()
@@ -813,25 +815,34 @@ class EventTextView(BTextView):
 		#		self.superself.listemsgstr[self.superself.transtabview.Selection()].trnsl.MakeFocus()
 		#	except:
 		#		pass
-		elif msg.what == self.middlemsg:
-			position=BPoint()
-			where=msg.FindPoint('be:view_where',position)
-			pos1,pos2 = self.superself.listemsgid[self.superself.srctabview.Selection()].src.GetSelection()
-			if pos1==pos2:
-				pos1,pos2 = self.superself.expander.GetSelection()
+		elif msg.what == self.middlemsgdn:
+			button=msg.FindInt32('buttons')
+			print(button)
+			if button == 4: #4=middle button
+				self.paste=True
+			else:
+				self.paste=False
+		elif msg.what == self.middlemsgup:
+			if self.paste:
+				position=BPoint()
+				where=msg.FindPoint('be:view_where',position)
+				pos1,pos2 = self.superself.listemsgid[self.superself.srctabview.Selection()].src.GetSelection()
 				if pos1==pos2:
-					return BTextView.MessageReceived(self,msg)
+					pos1,pos2 = self.superself.expander.GetSelection()
+					if pos1==pos2:
+						return BTextView.MessageReceived(self,msg)
+					else:
+						bytext=self.superself.expander.GetText(pos1,pos2-pos1)
+						self.superself.expander.Select(0,0)
+						pos1=0
+						pos2=0
 				else:
-					bytext=self.superself.expander.GetText(pos1,pos2-pos1)
-					self.superself.expander.Select(0,0)
+					bytext=self.superself.listemsgid[self.superself.srctabview.Selection()].src.GetText(pos1,pos2-pos1)
+					self.superself.listemsgid[self.superself.srctabview.Selection()].src.Select(0,0)
 					pos1=0
 					pos2=0
-			else:
-				bytext=self.superself.listemsgid[self.superself.srctabview.Selection()].src.GetText(pos1,pos2-pos1)
-				self.superself.listemsgid[self.superself.srctabview.Selection()].src.Select(0,0)
-				pos1=0
-				pos2=0
-			self.Insert(self.OffsetAt(position),bytext,byte_count(bytext)[0],None)
+				self.Insert(self.OffsetAt(position),bytext,byte_count(bytext)[0],None)
+				self.paste=False
 
 		return BTextView.MessageReceived(self,msg)
 
