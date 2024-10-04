@@ -845,7 +845,6 @@ class EventTextView(BTextView):
 		try:
 			arrow=False
 			ochar=ord(char)
-			print(ochar)
 			if ochar in (B_DOWN_ARROW,B_UP_ARROW,B_PAGE_UP,B_PAGE_DOWN,10,48,49,50,51,52,53,54,55,56,57): #B_ENTER =10?
 				self.superself.sem.acquire()
 				value=self.superself.modifier #CTRL pressed
@@ -3848,7 +3847,9 @@ class MainWindow(BWindow):
 					self.listemsgstr[self.transtabview.Selection()].trnsl.Select(lngth,lngth)
 					self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
 					self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
-					#TODO: launch checkspell?
+					indexBlistitem=self.sourcestrings.lv.CurrentSelection()
+					name=time.time()
+					self.listemsgstr[self.transtabview.Selection()].trnsl.checklater(str(name), self.listemsgstr[self.transtabview.Selection()].trnsl.Text(),indexBlistitem)
 #						print self.tmscrollsugj.lv.ItemAt(askfor).text #settext con tutte i vari controlli ortografici mettere tosave = True a eventtextview interessato
 		elif msg.what == 33:
 			#copy from source from keyboard
