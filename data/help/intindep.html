@@ -128,6 +128,139 @@
 			Look here an example:
 			<p align="center" style="margin-bottom: 0cm"><img src="spellcheck.png" name="Image7" alt="spell check" align="bottom" width="1031" height="748" border="0"/>
 </p>
+			<br></br>
+			<p><font size="5" style="font-size: 18pt">Settings windows:</font><font color="#000000">
+			</br>
+			Here we cover three settings windows: General Settings, Spellchecking Settings and Translation Memory Settings
+			every change needs a program-restart to apply
+			</br>
+			<p align="center" style="margin-bottom: 0cm"><img src="set1.png" name="Image8" alt="settings1" align="bottom" width="1028" height="745" border="0"/>
+</p>
+			</br>
+			In <font color="#FFAA00">General Settings</font> there are 2 options:
+			<ul>
+				<li><p>Check language compliance between pofile and user
+				</p>
+			</ul>
+			<ul>
+				<li><p>Check mimetype of file</p>
+			</ul>
+			Both are used at file-loading time.</br>
+			The first inspects the po-metadata looking for its translation language;
+			if this is checked the program checks for compliance between the user
+			supported language and the detected translation language.
+			</br>
+			The second one checks the file's MIME type. If it isn't a gettext-translation
+			file the program warns the user about it. Not a blocking error, so you can
+			avoid this check if you want
+			<br></br>
+			In <font color="#FFAA00">Spellchecking Settings</font> there are 1 option, 3 fields and a text-entry field:
+			<ul>
+				<li><p>Enable/Disable spellcheck</p>
+			</ul>
+			<ul>
+				<li><p>Dictionary path</p>
+			</ul>
+			<ul>
+				<li><p>Chars included in words</p>
+			</ul>
+			<ul>
+				<li><p>Chars-categories excluded in words</p>
+			</ul>
+			<ul>
+				<li><p>The text-entry field</p>
+			</ul>
+			The option "Enable/Disable spellcheck" activates or deactivates the
+			orthographic checks. This means that if disabled the translation field
+			will not give hints on misspelled words and corrections
+			</br>
+			the field "Dictionary path" is the dictionary file path of your
+			hunspell/myspell dictionary removed by its file extension (the actual
+			complete dictionary path in the above example is
+			/system/data/hunspell/fur_IT.dic)
+			</br>
+			The field "Chars included in words" is used for bypassing some chars that
+			belongs to the excluded categories. (see below for more info)
+			</br>
+			The field "Chars-categories excluded in words" indicates the category types
+			of chars that the HaiPO parsed chars substitution uses to let the Spelling
+			correction tool avoid the chars that it can't handle. For example, Po indicates
+			the Punctuations, so if our word is "table," the comma is removed by the
+			string pre-processor that feeds the spellchecker.
+			</br>
+			The text-entry field in the bottom helps the user detect the single char unicode
+			category. To know the category of your char you just need to press the key on your
+			keyboard.
+			<br></br>
+			In <font color="#FFAA00">Translation Memory Settings</font> there are 3
+			options and 3 fields:
+			<ul>
+				<li><p>Enable/Disable translation memory</p>
+			</ul>
+			<ul>
+				<li><p>Enable/Disable TM local server</p>
+			</ul>
+			<ul>
+				<li><p>Enable/Disable local server log</p>
+			</ul>
+			<ul>
+				<li><p>Server address</p>
+			</ul>
+			<ul>
+				<li><p>Server port</p>
+			</ul>
+			<ul>
+				<li><p>Header size</p>
+			</ul>
+			</br>
+			"Enable/Disable translation memory" is the global translation memory switch. The
+			translation memory keeps a log of translations with its relative source strings.
+			</br>
+			"Enable/Disable TM local server" is an option that let you decide if use the
+			internal local TM service or an external one (local or remote at your wish)
+			</br>
+			"Enable/Disable local server log" activates or disactivates a server log, to use
+			along with TM local server
+			</br>
+			Server address and Server port, are the TM server coordinates to access the TM
+			server. If you want to use the local server keep 127.0.0.1 address or at least a
+			network address assigned to your machine, those values will be used by the client
+			and the local server.
+			</br>
+			The field called "Header size" indicates the buffer size used for transmissions
+			<br></br>
+			Last but not the least, the <font color="#FFAA00">User Settings</font>:
+			</br>
+			<p align="center" style="margin-bottom: 0cm"><img src="set2.png" name="Image9" alt="settings2" align="bottom" width="1028" height="745" border="0"/>
+</p>
+			</br>
+			This is an important screen, these aren't just normal personal informations, these
+			values will be written to the po file, as there is:
+			<ul>
+				<li><p>the translator name</p>
+			</ul>
+			<ul>
+				<li><p>his/her contact e-mail</p>
+			</ul>
+			<ul>
+				<li><p>the translation team name</p>
+			</ul>
+			<ul>
+				<li><p>and its relative e-mail</p>
+			</ul>
+			<ul>
+				<li><p>the iso code for the language used by the translator</p>
+			</ul>
+			</br>
+			except the obvious first four points of this list, some words can be spent on the last one.
+			There are two lists, one on the left which keeps the available languages (if possible
+			localized as your system localization language).
+			On the right there's an empty list in which we put our language.
+			You just have to double click your language and it will show up on the right.
+			On the left list there will be a different colour language. that's the suggested one
+			based on you default localization.
+			If your iso code isn't there, you can add a custom code double-clicking the last one element
+			of the list.
 		</td>
 	</tr>
 </table>
