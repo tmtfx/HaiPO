@@ -2693,7 +2693,7 @@ class MainWindow(BWindow):
 						except:
 							pass
 						Config.set("TMSettings",'logSrv', "False")
-						log_srv = True
+						log_srv = False
 						Config.write(cfgfile)
 						cfgfile.close()
 					try:
@@ -2741,11 +2741,38 @@ class MainWindow(BWindow):
 			cfgfile = open(confile,'w')
 			Config.add_section('General')
 			Config.set('General','sort', "0")
+			Config.set('General','tm', 'False')
+			Config.set('General','modifierkey',"4100")
+			Config.set('General','spellchecking', 'False')
+			tm=False
 			self.sort=0
+			self.modifiervalue=4100
+			setspellcheck=False
+			Config.add_section('Listing')
+			Config.set('Listing','Fuzzy',"True")
+			Config.set('Listing','Untranslated',"True")
+			Config.set('Listing','Translated',"True")
+			Config.set('Listing','Obsolete',"False")
+			Config.add_section("TMSettings")
+			Config.set("TMSettings",'tmxsrv', '127.0.0.1')
+			tmxsrv = '127.0.0.1'
+			Config.set("TMSettings",'tmxprt', "2022")
+			tmxprt = 2022
+			Config.set("TMSettings",'builtinsrv', "False")
+			builtin_srv = False
+			Config.set("TMSettings",'header', "4096")
+			header = 4096
+			Config.set("TMSettings",'logSrv', "False")
+			log_srv = False
 			Config.write(cfgfile)
 			cfgfile.close()
 			Config.read(confile)
+			self.poview[0]=Config.getboolean('Listing', 'Fuzzy')
+			self.poview[1]=Config.getboolean('Listing', 'Untranslated')
+			self.poview[2]=Config.getboolean('Listing', 'Translated')
+			self.poview[3]=Config.getboolean('Listing', 'Obsolete')
 			setspellcheck=False
+			self.builtin_srv=[False,tmxsrv,tmxprt,4096,False]
 		
 		if setspellcheck:
 			showspell=True
