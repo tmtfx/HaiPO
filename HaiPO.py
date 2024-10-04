@@ -817,7 +817,6 @@ class EventTextView(BTextView):
 		#		pass
 		elif msg.what == self.middlemsgdn:
 			button=msg.FindInt32('buttons')
-			print(button)
 			if button == 4: #4=middle button
 				self.paste=True
 			else:
@@ -843,6 +842,9 @@ class EventTextView(BTextView):
 					pos2=0
 				self.Insert(self.OffsetAt(position),bytext,byte_count(bytext)[0],None)
 				self.paste=False
+				indexBlistitem=self.superself.sourcestrings.lv.CurrentSelection()
+				name=time.time()
+				self.checklater(str(name), self.Text(),indexBlistitem)
 
 		return BTextView.MessageReceived(self,msg)
 
@@ -1262,7 +1264,8 @@ class srcTextView(BTextView):
 					stmp+="\\"+a_hex[i][1:]
 					i+=1
 				if stmp in self.spaces:
-					foundo=self.Text().find(ci,foundo)
+					#foundo=self.Text().find(ci,foundo)
+					foundo=find_byte(ci,self.Text(),foundo)
 					asd=self.PointAt(foundo)
 					foundo+=1
 					self.SetHighColor(0,0,200,0)
@@ -1272,7 +1275,8 @@ class srcTextView(BTextView):
 			else:
 				mum="\\"+a_hex[0][1:]
 				if mum in self.spaces:
-					foundo=self.Text().find(ci,foundo)
+					#foundo=self.Text().find(ci,foundo)
+					foundo=find_byte(ci,self.Text(),foundo)
 					asd=self.PointAt(foundo)
 					foundo+=1
 					if index+1<len(lis):
@@ -1312,7 +1316,8 @@ class srcTextView(BTextView):
 						self.DrawString('̳',None)#'.')##'_')#(' ̳')#' ᪶ ')#'˽'
 						self.SetHighColor(0,0,0,0)
 				elif mum=="\\xa":
-					foundo=self.Text().find(ci,foundo)
+					#foundo=self.Text().find(ci,foundo)
+					foundo=find_byte(ci,self.Text(),foundo)
 					asd=self.PointAt(foundo)
 					foundo+=1
 					self.SetHighColor(200,0,0,0)
@@ -1323,7 +1328,8 @@ class srcTextView(BTextView):
 					self.SetHighColor(0,0,0,0)
 				elif mum=="\\x9":
 					self.SetHighColor(200,0,0,0)
-					foundo=self.Text().find(ci,foundo)
+					#foundo=self.Text().find(ci,foundo)
+					foundo=find_byte(ci,self.Text(),foundo)
 					asd=self.PointAt(foundo)
 					foundo+=1
 					self.MovePenTo(BPoint(asd[0].x,asd[0].y+asd[1]-3))
