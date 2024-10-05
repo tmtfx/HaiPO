@@ -3593,7 +3593,7 @@ class MainWindow(BWindow):
 		return (infos,warnings,fatals)
 	def Save(self, path):
 		self.pofile.save(path)
-		if path[-7:] != "temp.po":
+		if path[-8:] != ".temp.po":
 			infos, warnings, fatals = self.CheckPO(path)
 			#exit=False
 			if len(warnings)>0:
@@ -3630,7 +3630,7 @@ class MainWindow(BWindow):
 								guut[-1].PostMessage(mxg)
 					#print(f"Position: {fatal[1]}, error: {fatal[0]}\nstrtosrc={strtosrc}")
 		#################################################
-		########## This should be done by the OS ############
+		######### This should be done by the OS #########
 		st=BMimeType("text/x-gettext-translation")
 		nd=BNode(path)
 		ni = BNodeInfo(nd)
@@ -4628,7 +4628,7 @@ class MainWindow(BWindow):
 			savepath=perc.Path()
 			e = msg.FindString("name")
 			completepath = savepath +"/"+ e
-			#self.pofile.save(completepath) <---
+			#self.pofile.save(completepath) <--- moved inside self.Save
 			ent,confile=Ent_config()
 			try:
 				Config.read(confile)
@@ -4638,8 +4638,6 @@ class MainWindow(BWindow):
 				defname=self.pofile.metadata['Last-Translator']
 				grp=self.pofile.metadata['Language-Team']
 			now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
-			#savepath=self.filen+self.file_ext
-
 			self.writter.acquire()
 			self.pofile.metadata['Last-Translator']=defname
 			self.pofile.metadata['Language-Team']=grp
@@ -4648,10 +4646,9 @@ class MainWindow(BWindow):
 			self.Save(completepath)
 			self.name=e
 			self.percors=completepath
-			self.pofile= polib.pofile(completepath,encoding=self.encoding)#wrongo
+			self.pofile= polib.pofile(completepath,encoding=self.encoding)
 			self.filen, self.file_ext = os.path.splitext(completepath)
 			self.backupfile= self.filen+".temp"+self.file_ext
-			
 			return
 		elif msg.what == 376:
 			if self.builtin_srv[0]:
@@ -4669,7 +4666,7 @@ class MainWindow(BWindow):
 			tabs=len(self.listemsgstr)-1
 			
 			if indexBlistitem == self.sourcestrings.lv.CurrentSelection():
-				if self.listemsgstr[self.transtabview.Selection()].trnsl.oldtext != self.listemsgstr[self.transtabview.Selection()].trnsl.Text():  ### o è meglio controllare nel caso di plurale tutti gli eventtextview?
+				if self.listemsgstr[self.transtabview.Selection()].trnsl.oldtext != self.listemsgstr[self.transtabview.Selection()].trnsl.Text():
 					self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
 			self.speloc.acquire()
 			self.intime=time.time()
@@ -5304,3 +5301,10 @@ def main():
  
 if __name__ == "__main__":
     main()
+	
+#TODO:
+#opening a pot and generating a po, remember to:
+#- set self.name
+#- set self.percors
+#- set backupfile
+#- set Window Title
