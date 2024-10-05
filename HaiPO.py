@@ -2607,17 +2607,6 @@ class MainWindow(BWindow):
 		if ent.Exists():
 			Config.read(confile)
 			try:
-				self.sort=int(ConfigSectionMap("General")['sort'])
-			except:
-				#no section
-				cfgfile = open(confile,'w')
-				Config.add_section('General')
-				Config.set('General','sort', "0")
-				self.sort=0
-				Config.write(cfgfile)
-				cfgfile.close()
-				Config.read(confile)
-			try:
 				self.poview[0]=Config.getboolean('Listing', 'Fuzzy')
 				self.poview[1]=Config.getboolean('Listing', 'Untranslated')
 				self.poview[2]=Config.getboolean('Listing', 'Translated')
@@ -2716,6 +2705,10 @@ class MainWindow(BWindow):
 					self.builtin_srv=[False,tmxsrv,tmxprt,4096,False]
 			except:
 				cfgfile = open(confile,'w')
+				try:
+					Config.add_section("General")
+				except:
+					pass
 				Config.set('General','tm', 'False')
 				Config.write(cfgfile)
 				cfgfile.close()
@@ -2747,12 +2740,10 @@ class MainWindow(BWindow):
 			#no file
 			cfgfile = open(confile,'w')
 			Config.add_section('General')
-			Config.set('General','sort', "0")
 			Config.set('General','tm', 'False')
 			Config.set('General','modifierkey',"4100")
 			Config.set('General','spellchecking', 'False')
 			tm=False
-			self.sort=0
 			self.modifiervalue=4100
 			setspellcheck=False
 			Config.add_section('Listing')
@@ -3792,7 +3783,6 @@ class MainWindow(BWindow):
 					#eventtextview changed
 					self.listemsgstr[self.transtabview.Selection()].trnsl.Save()
 				try:
-					
 					Config.read(confile)
 					namo=ConfigSectionMap("Translator")['name']
 					defname=namo+' <'+ConfigSectionMap("Translator")['mail']+'>'
@@ -3933,6 +3923,7 @@ class MainWindow(BWindow):
 				be_app.WindowAt(0).PostMessage(12343)
 			return
 		elif msg.what == 12343:
+			#run checkspell
 			if self.sourcestrings.lv.CurrentSelection()>-1:
 				##self.Looper().Lock()
 				#try:
@@ -4637,12 +4628,30 @@ class MainWindow(BWindow):
 			savepath=perc.Path()
 			e = msg.FindString("name")
 			completepath = savepath +"/"+ e
-			self.pofile.save(completepath)
+			#self.pofile.save(completepath) <---
+			ent,confile=Ent_config()
+			try:
+				Config.read(confile)
+				defname=ConfigSectionMap("Translator")['name']+' <'+ConfigSectionMap("Translator")['mail']+'>'
+				grp=ConfigSectionMap("Translator")['team']+' <'+ConfigSectionMap("Translator")['ltmail']+'>'
+			except:
+				defname=self.pofile.metadata['Last-Translator']
+				grp=self.pofile.metadata['Language-Team']
+			now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
+			#savepath=self.filen+self.file_ext
+
+			self.writter.acquire()
+			self.pofile.metadata['Last-Translator']=defname
+			self.pofile.metadata['Language-Team']=grp
+			self.pofile.metadata['PO-Revision-Date']=now
+			self.pofile.metadata['X-Editor']=version
+			self.Save(completepath)
 			self.name=e
 			self.percors=completepath
 			self.pofile= polib.pofile(completepath,encoding=self.encoding)#wrongo
 			self.filen, self.file_ext = os.path.splitext(completepath)
 			self.backupfile= self.filen+".temp"+self.file_ext
+			
 			return
 		elif msg.what == 376:
 			if self.builtin_srv[0]:
