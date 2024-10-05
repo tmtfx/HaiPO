@@ -1252,19 +1252,24 @@ class CategoryTextView(BTextView):
 		self.mousemsg=struct.unpack('!l', b'_MMV')[0]
 		self.dragmsg=struct.unpack('!l', b'MIME')[0]
 		
-	def KeyDown(self,char,bytes):
-		myTXT=char+" ⇨ "+unicodedata.category(char)+"\nchar bytes: "+str(byte_count(char)[0])#→
+	def SetSingleChar(self,char,bytes):
+		myTXT=char+" ⇨ "+unicodedata.category(char)+"\nchar bytes: "+str(bytes)#→
 		txt_run2=text_run()
 		txt_run2.offset=find_byte("char",myTXT)
 		txt_run2.font=self.small_font
 		txt_run2.color=self.bc_color
 		myruns=[self.first_run,txt_run2]
 		self.SetText(myTXT,myruns)
+	def KeyDown(self,char,bytes):
+		self.SetSingleChar(char,bytes)
 
 	def MessageReceived(self, msg):
-		if msg.what in [B_CUT,B_PASTE]:
-			#self.SelectAll()
-			#self.Clear()
+		if msg.what == B_PASTE:
+			BTextView.MessageReceived(self,msg)
+			nt=self.Text()[0]
+			self.SetSingleChar(nt,byte_count(nt)[0])
+			return
+		elif msg.what == B_CUT:
 			return
 		elif msg.what == self.dragmsg:
 			#mexico=msg.FindMessage('be:drag_message')
