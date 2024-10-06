@@ -1,0 +1,18 @@
+"Plural-Forms: nplurals=1; plural=0;\n"#id/ja/kk/km/ko/ms/tg/th/tr/ug/uz/vi/zh_CN/zh_TW
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"#ab/af/an/as/az/bg/bn_IN/ca/ckb/da/de/dz/el/en_CA/en_GB/es/et/fa/fur/fy/gl/gu/hi/hu/ie/ig/it/ka/kn/ku/mai/ml/mn/mr/nb/nds/nl/nn/or/pa/ps/pt/rw/si/sq/sv/ta/te/tk/yo
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"#pt_BR/fr/br/hy/wa/oc/kab/mg
+"Plural-Forms: nplurals=2; plural=1;\n"#vi
+"Plural-Forms: nplurals=2; plural= n==1 || n%10==1 ? 0 : 1\n"#mk
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"#pl
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"#cs
+"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : (n == 2 ? 1 : 2);\n"#gv
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2);\n"#ro
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"#ru/sr/uk/be/bs/hr
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n%100<10 || n%100>=20) ? 1 : 2);\n"#lt
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);\n"#lv
+"Plural-Forms: nplurals=3; plural=(n==1) ? 1 : (n>=2 && n<=4) ? 2 : 0;\n"#sk
+"Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || n%100==4 ? 3 : 0);\n"#sl
+"Plural-Forms: nplurals=4; plural=(n==1 ? 0 : n==2 ? 1 : n>10 && n%10==0 ? 2 : 3);\n"#he
+"Plural-Forms: nplurals=4; plural= (n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != 11) ? 2 : 3;\n"#cy
+"Plural-Forms: nplurals=5; plural=n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n<11 ? 3 : 4;\n"#ga
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"#ar
