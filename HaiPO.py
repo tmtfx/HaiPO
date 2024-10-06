@@ -2757,6 +2757,10 @@ class POTchooser(BWindow):
 					pass
 			now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
 			po.metadata['PO-Revision-Date']=now
+			try:
+				codecs.lookup(self.charset)
+			except:
+				self.charset="UTF-8"
 			po.metadata['Content-Type']=f'text/plain; charset={self.charset}'
 			filename=f'{potname}.{target_language}.po'
 			po.save(filename)
