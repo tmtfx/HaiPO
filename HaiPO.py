@@ -2762,6 +2762,7 @@ class POTchooser(BWindow):
 			except:
 				self.charset="UTF-8"
 			po.metadata['Content-Type']=f'text/plain; charset={self.charset}'
+			po.metadata['X-Generator']=version
 			filename=f'{potname}.{target_language}.po'
 			po.save(filename)
 			mxg=BMessage(45371)
