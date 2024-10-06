@@ -67,7 +67,44 @@ def cstep(n,r,h):
 	s=5*(n+1)+(6+h)*n
 	sh=5*n+(6+h)*(n+1)		
 	return BRect(5,s,r-5,sh)
-		
+
+def lookfdata(name):
+	perc=BPath()
+	find_directory(directory_which.B_SYSTEM_DATA_DIRECTORY,perc,False,None)
+	ent=BEntry(perc.Path()+"/HaiPO2/"+name)
+	if ent.Exists():
+		#use mascot installed in system data folder
+		ent.GetPath(perc)
+		return (True,perc.Path())
+	else:
+		find_directory(directory_which.B_USER_NONPACKAGED_DATA_DIRECTORY,perc,False,None)
+		ent=BEntry(perc.Path()+"/HaiPO2/"+name)
+		if ent.Exists():
+			#use mascot installed in user data folder
+			ent.GetPath(perc)
+			return (True,perc.Path())
+		else:
+			nopages=True
+			cwd = os.getcwd()
+			ent=BEntry(cwd+"/data/"+name)
+			if ent.Exists():
+				#use mascot downloaded with git by cmdline
+				ent.GetPath(perc)
+				return (True,perc.Path())
+				nopages=False
+			else:
+				alt="".join(sys.argv)
+				mydir=os.path.dirname(alt)
+				link=mydir+"/data/"+name
+				ent=BEntry(link)
+				if ent.Exists():
+					#use mascot downloaded with git by graphical launc
+					ent.GetPath(perc)
+					return (True,perc.Path())
+					nopages=False
+			if nopages:
+				return (False,None)
+
 class ScrollView:
 	HiWhat = 53 #Doppioclick
 	SectionSelection = 54
@@ -2555,7 +2592,7 @@ class AboutWindow(BWindow):
 		bbox.AddChild(self.messagjio,None)
 		bbox.AddChild(self.CloseButton,None)
 		self.CloseButton.MakeFocus(1)
-		link=sys.path[0]+"/data/HaiPO.png"
+		link=sys.path[0]+"/data/HaiPO.png"#TODO cercare nel posto giusto
 		perc=BPath()
 		ent=BEntry(link)
 		ent.GetPath(perc)
@@ -2569,6 +2606,106 @@ class AboutWindow(BWindow):
 			self.Quit()
 		else:
 			BWindow.MessageReceived(self, msg)
+
+class BaOButton(BButton):
+	def __init__(self,frame,name,label,message):
+		self.iso=""
+		self.langname=""
+		self.name=label
+		BButton.__init__(self,frame,name,label,message,B_FOLLOW_LEFT | B_FOLLOW_BOTTOM,B_WILL_DRAW | B_NAVIGABLE)
+
+class LangMenuItem(BMenuItem):
+	def __init__(self,cubie):
+		self.name=cubie[0]
+		self.code=cubie[1]
+		msg=BMessage(707)
+		msg.AddString("code",self.code)
+		msg.AddString("name",self.name)
+		BMenuItem.__init__(self,self.name,msg,self.name[0],0)
+
+class POTchooser(BWindow):
+	def __init__(self,potfile,langlist,oldsize):
+		a=display_mode()
+		BScreen().GetMode(a)
+		w=a.virtual_width
+		h=a.virtual_height
+		fon=BFont()
+		BWindow.__init__(self, BRect(w/2-200, h/2-100, w/2+200, h/2+100),"Choose your destiny...",window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
+		self.bckgnd = BView(self.Bounds(), "bckgnd_View", 8, 20000000)
+		self.AddChild(self.bckgnd,None)
+		bounds=self.Bounds()
+		r = bounds.right
+		h = fon.Size()
+		self.langmenu=BMenu("Language")
+		self.langmenu.SetLabelFromMarked(True)
+		for y in langlist:
+			self.langmenu.AddItem(LangMenuItem(y))
+		self.langmenufield = BMenuField(cstep(1,r,h), 'pop0', 'Build PO with this language:', self.langmenu,B_FOLLOW_TOP)
+		self.langmenufield.SetDivider(fon.StringWidth("Build PO with this language: "))
+		self.bckgnd.AddChild(self.langmenufield,None)
+		self.baobtn=BaOButton(cstep(3,r,h),"build_and_open_btn", "Build and open", BMessage(5252))
+		self.bckgnd.AddChild(self.baobtn,None)
+		self.ResizeTo(r,cstep(4,r,h).bottom)
+		self.potfile=potfile
+		self.new_dict = {}
+		b,pth=lookfdata('plural_forms.txt')
+		if b:
+			with open(pth, 'r') as infile:
+				for line in infile:
+					spline=line.split('#')
+					plural=spline[0]
+					splingue=spline[1].split('/')
+					for lingua in splingue:
+						self.new_dict[lingua]=plural
+		else:
+			print("non trovo il file per i plurali")
+	def MessageReceived(self, msg):
+		if msg.what == 707:
+			self.baobtn.iso=msg.FindString('code')
+			self.baobtn.langname=msg.FindString('name')
+			self.baobtn.SetLabel(self.baobtn.name+" for "+self.baobtn.langname)
+		elif msg.what == 5252:
+			#before starting retrieve Plural-Forms
+			pot = polib.pofile(self.potfile)
+			potname,potextension=os.path.splitext(self.potfile)
+			target_language = self.baobtn.iso
+			po = polib.POFile()
+			po.metadata = pot.metadata.copy()
+			po.metadata['Language'] = target_language
+			nplurrule_txt = self.new_dict[self.baobtn.iso]#'nplurals=2; plural=(n != 1);' 
+			po.metadata['Plural-Forms'] = nplurrule_txt
+			nplur_txt=nplurrule_txt[:nplurrule_txt.find(';')]
+			
+			nplur=nplur_txt[nplur_txt.find('=')+1:]
+			
+			for entry in pot:
+				new_entry_data = {
+					'msgid': entry.msgid,
+				}
+				
+				# Copia solo i campi che esistono nell'entry originale
+				pl=False
+				if entry.msgid_plural:
+					pl=True
+				for field in ['msgctxt', 'msgid_plural', 'flags', 'occurrences', 'comment', 'tcomment', 
+							  'previous_msgctxt', 'previous_msgid', 'previous_msgid_plural', 'linenum']:
+					if hasattr(entry, field):
+						new_entry_data[field] = getattr(entry, field)
+				#to create a plural msgstr you should pass msgstr_plural, but its value should not be a list ["",""...]
+				#it should be a dict {int:str} as these comments indicates:
+				#https://github.com/python/typeshed/pull/11273
+				if pl:
+					dic={}
+					i=0
+					while i<int(nplur):
+						dic[i]=""
+						i+=1
+					new_entry_data["msgstr_plural"]=dic
+				new_entry = polib.POEntry(**new_entry_data)
+				po.append(new_entry)
+			po.header=pot.header
+			po.save(f'{potname}.{target_language}.po')
+		BWindow.MessageReceived(self,msg)
 
 class MainWindow(BWindow):
 	alerts=[]
@@ -3129,37 +3266,11 @@ class MainWindow(BWindow):
 		self.NichilizeTM()
 		self.NichilizeTabs()
 		self.NichilizeMsgs()
+		subtype="none"
 		
 		#2)controllo mimetype
 		filename, file_extension = os.path.splitext(f)
 		
-		#3)controllo errori
-		exit=False
-		infos,warnings,fatals=self.CheckPO(f)
-		if len(infos)>0:
-			for info in infos:
-				say = BAlert(info[1], info[0], 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_INFO_ALERT)
-				self.alerts.append(say)
-				say.Go()
-			exit=True
-		if len(warnings)>0:
-			for warn in warnings:
-				say = BAlert(warn[1], warn[0], 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
-				self.alerts.append(say)
-				say.Go()
-			exit=True
-		if len(fatals)>0:
-			for fatal in fatals:
-				if fatal[1]!=None:
-					txt=f"At position {fatal[1]}: {fatal[0]}"
-				else:
-					txt=fatal[0]
-				say = BAlert(fatal[2], txt, 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_STOP_ALERT)
-				self.alerts.append(say)
-				say.Go()
-			exit=True
-		if exit:
-			return
 		ent,confile=Ent_config()
 		Config.read(confile)
 		try:
@@ -3177,10 +3288,10 @@ class MainWindow(BWindow):
 			boolgo=False
 			try:
 				supertype,subtype = mimetype.split('/')
-				if supertype=="text" and subtype=="x-gettext-translation":
+				if supertype=="text" and (subtype=="x-gettext-translation" or subtype=="x-gettext-translation-template"):
 					boolgo=True
 				else:
-					say = BAlert('Warn', 'This is a workaround, the file\'s mimetype is not a x-gettext-translation. Do you want to open the file despite this?', 'Yes','No', None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+					say = BAlert('Warn', 'This is a workaround, the file\'s mimetype is not a x-gettext-translation nor a x-gettext-translation-template. Do you want to open the file despite this?', 'Yes','No', None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
 					self.alerts.append(say)
 					ret=say.Go()
 					if ret==0:
@@ -3199,11 +3310,14 @@ class MainWindow(BWindow):
 				if ret==0:
 					# mimetype not detected, check file extension
 					boolgo=False
-					supertype = "text"
-					subtype = "x-gettext-translation"
 					if not(file_extension in [".po", ".pot", ".mo"]):
 						return
 					else:
+						supertype = "text"
+						if file_extension == ".pot":
+							subtype = "x-gettext-translation-template"
+						else:
+							subtype = "x-gettext-translation"
 						boolgo=True
 				else:
 					return
@@ -3213,58 +3327,93 @@ class MainWindow(BWindow):
 			else:
 				return
 		if boolgo:
-			# file correctly detected ... so open...
-			# check user accepted languages
-			fileenc = polib.detect_encoding(f)
-			self.pof = polib.pofile(f,encoding=fileenc)
-			ordmdata=self.pof.ordered_metadata()
-			for i in ordmdata:
-				if i[0]=="Language":
-					self.tmxlang=i[1]
-			a,b = checklang(ordmdata)
-			#overwrite "a", controllo config.ini per info Traduttore
-			Config.read(confile)
-			try:
-				self.tname=ConfigSectionMap("Translator")['name']
-				self.pemail=ConfigSectionMap("Translator")['mail']
-				self.team=ConfigSectionMap("Translator")['team']
-				self.temail=ConfigSectionMap("Translator")['ltmail']
-			except:
-				a=False
-			if a:
-				if b==-1:
-					#non c'è language nei metadati del file po
-					say = BAlert('Warn', 'There\'s no language section in metadata! Continue?', 'Yes','No', None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
-					self.alerts.append(say)
-					ret=say.Go()
-					if ret==0:
-						self.loadPO(f,self.pof)
+			# file correctly detected ... 
+			# check poerrors
+			if (file_extension in [".po",".mo"]) or (subtype == "x-gettext-translation"):
+				exit=False
+				infos,warnings,fatals=self.CheckPO(f)
+				if len(infos)>0:
+					for info in infos:
+						say = BAlert(info[1], info[0], 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_INFO_ALERT)
+						self.alerts.append(say)
+						say.Go()
+					exit=True
+				if len(warnings)>0:
+					for warn in warnings:
+						say = BAlert(warn[1], warn[0], 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+						self.alerts.append(say)
+						say.Go()
+					exit=True
+				if len(fatals)>0:
+					for fatal in fatals:
+						if fatal[1]!=None:
+							txt=f"At position {fatal[1]}: {fatal[0]}"
+						else:
+							txt=fatal[0]
+						say = BAlert(fatal[2], txt, 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_STOP_ALERT)
+						self.alerts.append(say)
+						say.Go()
+					exit=True
+				if exit:
+					return
+				#...so open...
+				# check user accepted languages
+				fileenc = polib.detect_encoding(f)
+				self.pof = polib.pofile(f,encoding=fileenc)
+				ordmdata=self.pof.ordered_metadata()
+				for i in ordmdata:
+					if i[0]=="Language":
+						self.tmxlang=i[1]
+				a,b = checklang(ordmdata)
+				#overwrite "a", controllo config.ini per info Traduttore
+				Config.read(confile)
+				try:
+					self.tname=ConfigSectionMap("Translator")['name']
+					self.pemail=ConfigSectionMap("Translator")['mail']
+					self.team=ConfigSectionMap("Translator")['team']
+					self.temail=ConfigSectionMap("Translator")['ltmail']
+				except:
+					a=False
+				if a:
+					if b==-1:
+						#non c'è language nei metadati del file po
+						say = BAlert('Warn', 'There\'s no language section in metadata! Continue?', 'Yes','No', None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+						self.alerts.append(say)
+						ret=say.Go()
+						if ret==0:
+							self.loadPO(f,self.pof)
+						else:
+							return
+					elif b==1:
+						#ci sono altre lingue nel file rispetto a quelle dell'utente
+						say = BAlert('Warn', 'This gettext portable object file is not for your language!', 'OK',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+						self.alerts.append(say)
+						ret=say.Go()
 					else:
-						return
-				elif b==1:
-					#ci sono altre lingue nel file rispetto a quelle dell'utente
-					say = BAlert('Warn', 'This gettext portable object file is not for your language!', 'OK',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+						if self.builtin_srv[0]:
+							try:
+								if self.serv.is_alive():
+									be_app.WindowAt(0).PostMessage(376)#cambia file/lingua
+								else:
+									self.serv.start()
+							except:
+								self.serv=Thread(target=self.server,args=(self.builtin_srv[1],self.builtin_srv[2],self.builtin_srv[3],self.builtin_srv[4],))
+								self.serv.start()
+						self.loadPO(f,self.pof)
+				else:
+					#mostra BBox per la creazione dell'utente
+					say = BAlert('Warn', 'Please, fill the fields below, these informations will be written to saved po files and in config.ini', 'OK',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_IDEA_ALERT)
 					self.alerts.append(say)
 					ret=say.Go()
-				else:
-					if self.builtin_srv[0]:
-						try:
-							if self.serv.is_alive():
-								be_app.WindowAt(0).PostMessage(376)#cambia file/lingua
-							else:
-								self.serv.start()
-						except:
-							self.serv=Thread(target=self.server,args=(self.builtin_srv[1],self.builtin_srv[2],self.builtin_srv[3],self.builtin_srv[4],))
-							self.serv.start()
-					self.loadPO(f,self.pof)
+					self.bckgnd.Hide()
+					self.overbox.Show()
 			else:
-				#mostra BBox per la creazione dell'utente
-				say = BAlert('Warn', 'Please, fill the fields below, these informations will be written to saved po files and in config.ini', 'OK',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_IDEA_ALERT)
-				self.alerts.append(say)
-				ret=say.Go()
-				self.bckgnd.Hide()
-				self.overbox.Show()
-	
+				print("apro pot")
+				langlist=[]
+				for i in self.overbox.acceptedlang.lv.Items():
+					langlist.append((i.txt,i.iso))
+				self.chooser=POTchooser(f,langlist,self.oldsize)
+				self.chooser.Show()
 	def loadPO(self, pth, pof):
 		filen, file_ext = os.path.splitext(pth)
 		self.wob=False
