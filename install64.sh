@@ -17,7 +17,7 @@ pkgman install hunspell
 ret5=$?
 echo "Please write your language code here (example1: en - example2: it)"
 read text
-if ! [$text == ""]
+if ! [ -z "$text" ]
 then
 	pkgman install myspell_$text
 	ret6=$?
@@ -37,7 +37,7 @@ then
 		#addattr -t \'MSGG\' BEOS:FILE_TYPES text/x-gettext-translation LauncherApp
 		#addattr -t mime BEOS:APP_SIG application/x-vnd.dw-LauncherApp LauncherApp
 		unzip LaunchHaiPO.zip
-		cp LauncherApp /boot/home/config/non-packaged/data/HaiPO2/
+		cp LaunchHaiPO /boot/home/config/non-packaged/data/HaiPO2/
 		mv LaunchHaiPO /boot/home/config/non-packaged/bin
 		if [ -f home-config-settings-mime_db-text.zip ]
 		then
@@ -73,7 +73,7 @@ echo
 
 pkgman install babel_python310
 ret10=$?
-pkgman install cmake / cmake_86
+pkgman install cmake
 ret11=$?
 pkgman install lxml_python310
 ret12=$?
@@ -91,6 +91,7 @@ then
 	python3 setup.py install
 	ret15=$?
 	cd -
+	rm -rf rapidfuzz-3.9.7
 fi
 pip install scikit-build
 ret16=$?
@@ -98,12 +99,16 @@ patch /boot/system/non-packaged/lib/python3.10/site-packages/skbuild/platform_sp
 ret17=$?
 pip install translate-toolkit
 ret18=$?
-if [ -e Levenshtein-0.25.1.tar.gz]; then
+if [ -e Levenshtein-0.25.1.tar.gz ]
+then
 	tar -xvzf Levenshtein-0.25.1.tar.gz
 	cd Levenshtein-0.25.1
 	python3 setup.py install
 	ret19=$?
 	cd -
+	rm -rf Levenshtein-0.25.1
+else
+	ret19=1
 fi
 
 if [ $ret1 -lt 1 ]
