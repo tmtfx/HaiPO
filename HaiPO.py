@@ -23,7 +23,7 @@ from Be.TabView import tab_side
 from Be.TextView import text_run,text_run_array
 from Be.Architecture import get_architecture
 
-import configparser,struct,threading,os,polib,re,datetime,time
+import configparser,struct,threading,os,polib,re,datetime,time,codecs,encodings
 import enchant
 import pickle,socket,os,sys,html
 from translate.storage.tmx import tmxfile
@@ -2622,8 +2622,16 @@ class LangMenuItem(BMenuItem):
 		msg.AddString("code",self.code)
 		msg.AddString("name",self.name)
 		BMenuItem.__init__(self,self.name,msg,self.name[0],0)
-
+class CharsetMenuItem(BMenuItem):
+	def __init__(self,name):
+		self.name=name
+		msg=BMessage(777)
+		msg.AddString("name",self.name)
+		BMenuItem.__init__(self,self.name,msg,self.name[0],0)
 class POTchooser(BWindow):
+	charset="UTF-8"
+	setchrset=False
+	setlang=False
 	def __init__(self,potfile,langlist,oldsize):
 		a=display_mode()
 		BScreen().GetMode(a)
@@ -2643,9 +2651,10 @@ class POTchooser(BWindow):
 		self.langmenufield = BMenuField(cstep(1,r,h), 'pop0', 'Build PO with this language:', self.langmenu,B_FOLLOW_TOP)
 		self.langmenufield.SetDivider(fon.StringWidth("Build PO with this language: "))
 		self.bckgnd.AddChild(self.langmenufield,None)
-		self.baobtn=BaOButton(cstep(3,r,h),"build_and_open_btn", "Build and open", BMessage(5252))
+		self.baobtn=BaOButton(cstep(5,r,h),"build_and_open_btn", "Build and open", BMessage(5252))
+		self.baobtn.SetEnabled(False)
 		self.bckgnd.AddChild(self.baobtn,None)
-		self.ResizeTo(r,cstep(4,r,h).bottom)
+		
 		self.potfile=potfile
 		self.new_dict = {}
 		b,pth=lookfdata('plural_forms.txt')
@@ -2659,11 +2668,43 @@ class POTchooser(BWindow):
 						self.new_dict[lingua]=plural
 		else:
 			print("non trovo il file per i plurali")
+		po_supported_charsets = [
+    'utf-8',
+    'iso-8859-1', 'iso-8859-2', 'iso-8859-3', 'iso-8859-4', 'iso-8859-5',
+    'iso-8859-6', 'iso-8859-7', 'iso-8859-8', 'iso-8859-9', 'iso-8859-10',
+    'iso-8859-13', 'iso-8859-14', 'iso-8859-15',
+    'koi8-r', 'koi8-u',
+    'windows-1250', 'windows-1251', 'windows-1252', 'windows-1253',
+    'windows-1254', 'windows-1255', 'windows-1256', 'windows-1257',
+    'ascii',
+    'big5',
+    'gb2312',
+    'euc-jp', 'shift_jis',
+    'euc-kr',
+]
+		text_codec_list = sorted(po_supported_charsets)
+		self.charsetmenu=BMenu("Charset")
+		self.charsetmenu.SetLabelFromMarked(True)
+		for y in text_codec_list:
+			self.charsetmenu.AddItem(CharsetMenuItem(y))
+		self.charsetmenufield = BMenuField(cstep(3,r,h), 'pop0', 'Charset encoding:', self.charsetmenu,B_FOLLOW_BOTTOM)
+		self.charsetmenufield.SetDivider(fon.StringWidth("Build PO with this language: "))
+		self.bckgnd.AddChild(self.charsetmenufield,None)
+		self.ResizeTo(r,cstep(6,r,h).bottom)
+
 	def MessageReceived(self, msg):
 		if msg.what == 707:
 			self.baobtn.iso=msg.FindString('code')
 			self.baobtn.langname=msg.FindString('name')
 			self.baobtn.SetLabel(self.baobtn.name+" for "+self.baobtn.langname)
+			self.setlang=True
+			if self.setchrset:
+				self.baobtn.SetEnabled(True)
+		elif msg.what == 777:
+			self.charset = msg.FindString("name")
+			self.setchrset=True
+			if self.setlang:
+				self.baobtn.SetEnabled(True)
 		elif msg.what == 5252:
 			#before starting retrieve Plural-Forms
 			pot = polib.pofile(self.potfile)
@@ -2682,8 +2723,6 @@ class POTchooser(BWindow):
 				new_entry_data = {
 					'msgid': entry.msgid,
 				}
-				
-				# Copia solo i campi che esistono nell'entry originale
 				pl=False
 				if entry.msgid_plural:
 					pl=True
@@ -2704,7 +2743,27 @@ class POTchooser(BWindow):
 				new_entry = polib.POEntry(**new_entry_data)
 				po.append(new_entry)
 			po.header=pot.header
-			po.save(f'{potname}.{target_language}.po')
+			ent,confile=Ent_config()
+			if ent.Exists():
+				Config.read(confile)
+				try:
+					namo=ConfigSectionMap("Translator")['name']
+					defname=namo+' <'+ConfigSectionMap("Translator")['mail']+'>'
+					po.metadata['Last-Translator']=defname
+					grp=ConfigSectionMap("Translator")['team']+' <'+ConfigSectionMap("Translator")['ltmail']+'>'
+					po.metadata['Language-Team']=grp
+				except:
+					#keep those in pot file
+					pass
+			now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
+			po.metadata['PO-Revision-Date']=now
+			po.metadata['Content-Type']=f'text/plain; charset={self.charset}'
+			filename=f'{potname}.{target_language}.po'
+			po.save(filename)
+			mxg=BMessage(45371)
+			mxg.AddString('path',filename)
+			be_app.WindowAt(0).PostMessage(mxg)
+			self.Quit()
 		BWindow.MessageReceived(self,msg)
 
 class MainWindow(BWindow):
