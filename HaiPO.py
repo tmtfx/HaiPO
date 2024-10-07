@@ -79,30 +79,30 @@ pip install translate-toolkit
     """
 def executer(script):
 	with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_file:
-        temp_filename = temp_file.name
+		temp_filename = temp_file.name
         # Scrivi lo script nel file temporaneo
-        temp_file.write(script)
+		temp_file.write(script)
 	try:
         # Rendi il file eseguibile
-        os.chmod(temp_filename, 0o755)
+		os.chmod(temp_filename, 0o755)
         # Esegui lo script
-        result = subprocess.run(['/bin/bash', temp_filename], 
+		result = subprocess.run(['/bin/bash', temp_filename], 
                                 check=True, 
                                 capture_output=True, 
                                 text=True)
         
-        print("Output dello script:")
-        print(result.stdout)
+		print("Output dello script:")
+		print(result.stdout)
         
-        if result.stderr:
-            print("Errori:")
-            print(result.stderr)
+		if result.stderr:
+			print("Errori:")
+			print(result.stderr)
 
-    except subprocess.CalledProcessError as e:
-        print(f"Errore nell'esecuzione dello script: {e}")
-    finally:
+	except subprocess.CalledProcessError as e:
+		print(f"Errore nell'esecuzione dello script: {e}")
+	finally:
         # Rimuovi il file temporaneo
-        os.unlink(temp_filename)
+		os.unlink(temp_filename)
 execute=False
 try:
 	from translate.storage.tmx import tmxfile
@@ -123,30 +123,30 @@ if execute:
 	executer(Levensh_script1)
 	#patch
 	with tempfile.NamedTemporaryFile(mode='w+', delete=False) as patch_file:
-        patch_filename = patch_file.name
+		patch_filename = patch_file.name
         # Scrivi la patch nel file temporaneo
-        patch_file.write(skbuild_patch)
+		patch_file.write(skbuild_patch)
 	with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_file:
-        temp_filename = temp_file.name
+		temp_filename = temp_file.name
         # Scrivi lo script nel file temporaneo
-        temp_file.write(patch_script)
+		temp_file.write(patch_script)
 	try:
 		result = subprocess.run(['/bin/bash', temp_filename, patch_filename], 
                                 check=True, 
                                 capture_output=True, 
                                 text=True)
 		print("Output dello script:")
-        print(result.stdout)
+		print(result.stdout)
         
-        if result.stderr:
-            print("Errori:")
-            print(result.stderr)
+		if result.stderr:
+			print("Errori:")
+			print(result.stderr)
 
-    except subprocess.CalledProcessError as e:
-        print(f"Errore nell'esecuzione dello script: {e}")
-    finally:
+	except subprocess.CalledProcessError as e:
+		print(f"Errore nell'esecuzione dello script: {e}")
+	finally:
         # Rimuovi il file temporaneo
-        os.unlink(temp_filename)
+		os.unlink(temp_filename)
 		os.unlink(patch_filename)
 	#second part installation
 	executer(Levensh_script2)
