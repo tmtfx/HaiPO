@@ -7,14 +7,4 @@ It integrates a local TM server but a simple remote translation memory server is
 The spellchecking system uses pyenchant, which in our use-case, relies on hunspell/myspell dictionaries.
 
 tmserver.py
-the translation memory uses translate-toolkit (use pip download translate-toolkit) 
-
-after installing from haikudepot lxml_devel lxml2_devel lxslt_devel CMake and some others...I'll define them later
-
-pip install
-rapidfuzz
-pip download
-skbuild -> aggiungere in platforms bsd "haiku"
-Levenshtein <- scaricare da pip e compilare da terminale python3 setup.py install 
-
-per lo spellcheck utilizzare pyenchant e libreria enchant distribuiti in HaikuDepot
+is the standalone translation memory server
