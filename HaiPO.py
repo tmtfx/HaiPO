@@ -25,11 +25,132 @@ from Be.Architecture import get_architecture
 
 import configparser,struct,threading,os,polib,re,datetime,time,codecs,encodings
 import enchant
-import pickle,socket,os,sys,html
-from translate.storage.tmx import tmxfile
-#### this below is a replacement for popen di msgfmt ####
-from translate.tools import junitmsgfmt
-from Levenshtein import distance as lev
+import pickle,socket,os,sys,html,subprocess,tempfile
+
+skbuild_patch = """
+38c38
+<     if this_platform in {"freebsd", "netbsd", "os400", "openbsd"}:
+---
+>     if this_platform in {"freebsd", "netbsd", "os400", "openbsd", "haiku"}:
+
+    """
+Levensh_script1 = """
+#!/bin/bash
+cd /boot/system/var/shared_memory
+pip install rapidfuzz
+ret=$?
+if [ $ret -lt 1 ]
+then
+	echo "rapidfuzz done!"
+else
+	wget https://files.pythonhosted.org/packages/17/ac/1f1bf726645d7740df2d1371380e35098bb8a460f482343cba1dd1668ab6/rapidfuzz-3.9.7.tar.gz
+	tar -xvzf rapidfuzz-3.9.7.tar.gz
+	cd rapidfuzz-3.9.7
+	python3 setup.py install
+	ret15=$?
+	cd -
+	rm -rf rapidfuzz-3.9.7
+	rm -f rapidfuzz-3.9.7.tar.gz
+fi
+pip install scikit-build
+"""
+#skbuild.patch
+patch_script = """
+#!/bin/bash
+patch /boot/system/non-packaged/lib/python3.10/site-packages/skbuild/platform_specifics/platform_factory.py $1
+"""
+
+
+Levensh_script2 = """
+#!/bin/bash
+wget https://files.pythonhosted.org/packages/56/4b/9ca0071caba0ebe3dac4f9c97086f2cc07d1b908a97da26330c6ddbb0174/Levenshtein-0.25.1.tar.gz
+tar -xvzf Levenshtein-0.25.1.tar.gz
+cd Levenshtein-0.25.1
+python3 setup.py install
+cd -
+rm -rf Levenshtein-0.25.1
+rm -f Levenshtein-0.25.1.tar.gz
+    """
+	
+transtool_script = """
+#!/bin/bash
+cd /boot/system/var/shared_memory
+pip install translate-toolkit
+    """
+def executer(script):
+	with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_file:
+        temp_filename = temp_file.name
+        # Scrivi lo script nel file temporaneo
+        temp_file.write(script)
+	try:
+        # Rendi il file eseguibile
+        os.chmod(temp_filename, 0o755)
+        # Esegui lo script
+        result = subprocess.run(['/bin/bash', temp_filename], 
+                                check=True, 
+                                capture_output=True, 
+                                text=True)
+        
+        print("Output dello script:")
+        print(result.stdout)
+        
+        if result.stderr:
+            print("Errori:")
+            print(result.stderr)
+
+    except subprocess.CalledProcessError as e:
+        print(f"Errore nell'esecuzione dello script: {e}")
+    finally:
+        # Rimuovi il file temporaneo
+        os.unlink(temp_filename)
+execute=False
+try:
+	from translate.storage.tmx import tmxfile
+	#### this one below is a replacement for popen di msgfmt ####
+	from translate.tools import junitmsgfmt
+except:
+	execute=True
+if execute:
+	executer(transtool_script)
+
+execute=False
+try:
+	from Levenshtein import distance as lev
+except:
+	execute=True
+if execute:
+	#first part installation
+	executer(Levensh_script1)
+	#patch
+	with tempfile.NamedTemporaryFile(mode='w+', delete=False) as patch_file:
+        patch_filename = patch_file.name
+        # Scrivi la patch nel file temporaneo
+        patch_file.write(skbuild_patch)
+	with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_file:
+        temp_filename = temp_file.name
+        # Scrivi lo script nel file temporaneo
+        temp_file.write(patch_script)
+	try:
+		result = subprocess.run(['/bin/bash', temp_filename, patch_filename], 
+                                check=True, 
+                                capture_output=True, 
+                                text=True)
+		print("Output dello script:")
+        print(result.stdout)
+        
+        if result.stderr:
+            print("Errori:")
+            print(result.stderr)
+
+    except subprocess.CalledProcessError as e:
+        print(f"Errore nell'esecuzione dello script: {e}")
+    finally:
+        # Rimuovi il file temporaneo
+        os.unlink(temp_filename)
+		os.unlink(patch_filename)
+	#second part installation
+	executer(Levensh_script2)
+
 from distutils.spawn import find_executable
 import socket,pickle,unicodedata
 from threading import Thread
