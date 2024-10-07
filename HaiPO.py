@@ -5399,6 +5399,15 @@ class MainWindow(BWindow):
 			datapath.CreateDirectory(perc.Path()+"/HaiPO2", datapath)
 		ent.GetPath(perc)
 		ftmx=perc.Path()+'/outtmx'+self.tmxlang+'.db'
+		e = BEntry(ftmx)
+		if not e.Exists():
+			with open(ftmx, 'a') as des:
+				des.write(
+				"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE tmx SYSTEM \"tmx14.dtd\">\n"
+				"<tmx version=\"1.4\">\n  <header creationtool=\"Translate Toolkit\" "
+				"creationtoolversion=\"3.8.0\" segtype=\"sentence\" o-tmf=\"UTF-8\" adminlang=\"en\" "
+				"srclang=\"en\" datatype=\"PlainText\"/>\n  <body>\n")
+				des.write("  </body>\n</tmx>\n")
 		flog=perc.Path()+'/log.txt'
 		tmp_ftmx=perc.Path()+'/tmp_outtmx'+self.tmxlang+'.db'
 		old_ftmx=perc.Path()+'/old_outtmx'+self.tmxlang+'.db'
