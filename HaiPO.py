@@ -3143,6 +3143,11 @@ class MainWindow(BWindow):
 					Config.write(cfgfile)
 					cfgfile.close()
 					Config.read(confile)
+			else:
+				showspell=False
+				say = BAlert('Warn', 'Your dictionary cannot be found, disabling spell check...', 'Ooook', None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+				self.alerts.append(say)
+				say.Go()
 		else:
 			showspell=False
 		
@@ -4258,7 +4263,7 @@ class MainWindow(BWindow):
 			return
 		elif msg.what == 12343:
 			#run checkspell
-			if self.sourcestrings.lv.CurrentSelection()>-1:
+			if self.sourcestrings.lv.CurrentSelection()>-1 and showspell:
 				##self.Looper().Lock()
 				#try:
 					if self.listemsgstr[self.transtabview.Selection()].trnsl.Text()=="":
