@@ -91,12 +91,12 @@ def executer(script):
                                 capture_output=True, 
                                 text=True)
         
-		print("Output dello script:")
-		print(result.stdout)
+		#print("Output dello script:")
+		#print(result.stdout)
         
-		if result.stderr:
-			print("Errori:")
-			print(result.stderr)
+		#if result.stderr:
+		#	print("Errori:")
+		#	print(result.stderr)
 
 	except subprocess.CalledProcessError as e:
 		print(f"Errore nell'esecuzione dello script: {e}")
@@ -135,12 +135,12 @@ if execute:
                                 check=True, 
                                 capture_output=True, 
                                 text=True)
-		print("Output dello script:")
-		print(result.stdout)
+		#print("Output dello script:")
+		#print(result.stdout)
         
-		if result.stderr:
-			print("Errori:")
-			print(result.stderr)
+		#if result.stderr:
+		#	print("Errori:")
+		#	print(result.stderr)
 
 	except subprocess.CalledProcessError as e:
 		print(f"Errore nell'esecuzione dello script: {e}")
