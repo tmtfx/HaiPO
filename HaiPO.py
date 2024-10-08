@@ -65,11 +65,12 @@ patch /boot/system/non-packaged/lib/python3.10/site-packages/skbuild/platform_sp
 #################################################################
 Levensh_script2 = """
 #!/bin/bash
+cd /boot/system/var/shared_memory
 wget https://files.pythonhosted.org/packages/56/4b/9ca0071caba0ebe3dac4f9c97086f2cc07d1b908a97da26330c6ddbb0174/Levenshtein-0.25.1.tar.gz
 tar -xvzf Levenshtein-0.25.1.tar.gz
 cd Levenshtein-0.25.1
 python3 setup.py install
-cd -
+cd ..
 rm -rf Levenshtein-0.25.1
 rm -f Levenshtein-0.25.1.tar.gz
     """
@@ -2870,28 +2871,8 @@ class Installer(BWindow):
 	def Start(self):
 		for command in self.commands:
 			if command[0] == 0:
-				#xms=BMessage(571007)
-				#xms.AddString('stdout',self.stdout.Text()+"\nRunning script, please wait...\n")
-				#be_app.WindowAt(0).PostMessage(xms)
-				##self.seg.acquire()
-				#while self.waitfor:
-				#	be_app.WindowAt(0).PostMessage(1122)
-				#	self.event.wait(0.1)
-				#self.waitfor=True
-				#print("eseguo script")
-				#Thread(target=self.executer,args=(command[1],)).start()
 				self.executer(command[1])
 			elif command[0] == 1:
-				#xms=BMessage(571007)
-				#xms.AddString('stdout',self.stdout.Text()+"\nPatching...\n")
-				#be_app.WindowAt(0).PostMessage(xms)
-				##self.seg.acquire()
-				#while self.waitfor:
-				#	be_app.WindowAt(0).PostMessage(1122)
-				#	self.event.wait(0.1)
-				#self.waitfor=True
-				#print("eseguo patch")
-				#Thread(target=self.patcher,args=(command[1],command[2],)).start()
 				self.patcher(command[1],command[2])
 		xms=BMessage(571007)
 		xms.AddString('stdout',"____________________________________\nAll the installer scripts has been launched, wait for the program to close by itself")
@@ -2918,19 +2899,15 @@ class Installer(BWindow):
 			xms=BMessage(571007)
 			xms.AddString('stdout',"____________________________________\nScript output:\n"+result.stdout)
 			be_app.WindowAt(0).PostMessage(xms)
-			#self.stdout.SetText(self.stdout.Text()+"____________________________________\nScript output:\n"+result.stdout,None)
 			if result.stderr:
 				ems=BMessage(5710344)
 				ems.AddString('stderr',"____________________________________\nErrors:\n"+result.stderr)
 				be_app.WindowAt(0).PostMessage(ems)
-				#self.stderr.SetText(self.stderr.Text()+"____________________________________\nErrors:\n"+result.stdout,None)
 		except subprocess.CalledProcessError as e:
 			print(f"Errore nell'esecuzione dello script: {e}")
 		finally:
 			# Remove temporary file
 			os.unlink(temp_filename)
-			#self.seg.release()
-			#self.waitfor=False
 
 	def patcher(self,script,patch):
 		with tempfile.NamedTemporaryFile(mode='w+', delete=False) as patch_file:
@@ -2949,22 +2926,18 @@ class Installer(BWindow):
 			xms=BMessage(571007)
 			xms.AddString('stdout',"____________________________________\nPatch script output:\n"+result.stdout)
 			be_app.WindowAt(0).PostMessage(xms)
-			#self.stdout.SetText(self.stdout.Text()+"____________________________________\nPatch script output:\n"+result.stdout,None)
 			if result.stderr:
 				ems=BMessage(5710344)
 				ems.AddString('stderr',"____________________________________\nPatch error:\n"+result.stderr)
 				be_app.WindowAt(0).PostMessage(ems)
-				#self.stderr.SetText(self.stderr.Text()+"____________________________________\nPatch error:\n"+result.stdout,None)
 		except subprocess.CalledProcessError as e:
 			print(f"Errore nell'esecuzione dello script: {e}")
 		finally:
 			# Remove temporary file
 			os.unlink(temp_filename)
 			os.unlink(patch_filename)
-			#self.waitfor=False
 	def MessageReceived(self, msg):
 		if msg.what==574:
-			#self.Start()
 			Thread(target=self.Start).start()
 		elif msg.what == 571007:
 			self.stdout.SetText(self.stdout.Text()+msg.FindString('stdout'),None)
@@ -2974,8 +2947,6 @@ class Installer(BWindow):
 			self.stderr.SetText(self.stderr.Text()+msg.FindString('stderr'),None)
 			self.stderr.Select(self.stderr.TextLength(),self.stderr.TextLength())
 			self.stderr.ScrollToSelection()
-		#elif msg.what == 1122:
-		#	self.event.wait(0.1)
 		BWindow.MessageReceived(self,msg)
 class MainWindow(BWindow):
 	alerts=[]
