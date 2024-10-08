@@ -2609,8 +2609,8 @@ class AboutWindow(BWindow):
 		bpf.SetSize(16)
 		bbf=be_bold_font
 		bbf.SetSize(16)
-		bbox=BBox(brec, 'underbox', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
-		self.AddChild(bbox,None)
+		self.bbox=BBox(brec, 'underbox', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
+		self.AddChild(self.bbox,None)
 		self.CloseButton = BButton(self.kButtonFrame, self.kButtonName, self.kButtonName, BMessage(self.BUTTON_MSG))
 		cise=BRect(4,4,brec.right-4,brec.bottom-44)
 		cjamput=BRect(4,0,brec.right-14,brec.bottom-48)
@@ -2664,23 +2664,48 @@ class AboutWindow(BWindow):
 		ntr2.color=ngcol
 		command.append(ntr2)
 		self.messagjio.SetText(stuff, command)
-		bbox.AddChild(self.messagjio,None)
-		bbox.AddChild(self.CloseButton,None)
+		self.bbox.AddChild(self.messagjio,None)
+		self.bbox.AddChild(self.CloseButton,None)
 		self.CloseButton.MakeFocus(1)
-		link=sys.path[0]+"/data/HaiPO.png"#TODO cercare nel posto giusto
+		perc=BPath()
+		find_directory(directory_which.B_SYSTEM_DATA_DIRECTORY,perc,False,None)
+		if self.show_img(perc.Path()+"/HaiPO2/HaiPO.png"):
+			pass
+		else:
+			find_directory(directory_which.B_USER_NONPACKAGED_DATA_DIRECTORY,perc,False,None)
+			if self.show_img(perc.Path()+"/HaiPO2/data/HaiPO.png"):
+				pass
+			else:
+				nopages=True
+				cwd = os.getcwd()
+				if self.show_img(cwd+"/data/HaiPO.png"):
+					nopages=False
+				else:
+					alt="".join(sys.argv)
+					mydir=os.path.dirname(alt)
+					link=mydir+"/data/HaiPO.png"
+					if self.show_img(link):
+						nopages=False
+				if nopages:
+					print("no mascot found")
+	def show_img(self,link):
 		perc=BPath()
 		ent=BEntry(link)
-		ent.GetPath(perc)
-		self.img=BTranslationUtils.GetBitmap(perc.Path(),None)
-		#self.img=BTranslationUtils.GetBitmap(link)
-		self.photoframe=PView(BRect(40,50,255,255),"photoframe",self.img)
-		bbox.AddChild(self.photoframe,None)
-
+		if ent.Exists():
+			ent.GetPath(perc)
+			self.img=BTranslationUtils.GetBitmap(perc.Path(),None)
+			self.photoframe=PView(BRect(40,50,255,255),"photoframe",self.img)
+			self.bbox.AddChild(self.photoframe,None)
+			return True
+		else:
+			return False
 	def MessageReceived(self, msg):
 		if msg.what == self.BUTTON_MSG:
 			self.Quit()
 		else:
 			BWindow.MessageReceived(self, msg)
+
+
 
 class BaOButton(BButton):
 	def __init__(self,frame,name,label,message):
