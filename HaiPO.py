@@ -1286,6 +1286,7 @@ class EventTextView(BTextView):
 		#except:
 		#	return None
 def find_byte(lookf,looka,offset=0):
+	#note offset is not byte-offset but char-offset
 	retc=looka.find(lookf,offset)
 	if retc>-1:
 		trunc=looka[:retc]
@@ -1404,7 +1405,7 @@ class srcTextView(BTextView):
 		foundo = 0
 		for index,ci in enumerate(lis):
 			a=bytearray(ci.encode('utf-8'))
-			bob=self.PointAt(index)
+			bob=self.PointAt(index)			
 			a_hex=[hex(x) for x in a]
 			if len(a_hex)>1:
 				i=0
@@ -1414,7 +1415,7 @@ class srcTextView(BTextView):
 					i+=1
 				if stmp in self.spaces:
 					#foundo=self.Text().find(ci,foundo)
-					foundo=find_byte(ci,self.Text(),foundo)
+					foundo=find_byte(ci,self.Text(),index)#foundo)
 					asd=self.PointAt(foundo)
 					foundo+=1
 					self.SetHighColor(0,0,200,0)
@@ -1425,7 +1426,7 @@ class srcTextView(BTextView):
 				mum="\\"+a_hex[0][1:]
 				if mum in self.spaces:
 					#foundo=self.Text().find(ci,foundo)
-					foundo=find_byte(ci,self.Text(),foundo)
+					foundo=find_byte(ci,self.Text(),index)#foundo)
 					asd=self.PointAt(foundo)
 					foundo+=1
 					if index+1<len(lis):
@@ -1466,8 +1467,9 @@ class srcTextView(BTextView):
 						self.SetHighColor(0,0,0,0)
 				elif mum=="\\xa":
 					#foundo=self.Text().find(ci,foundo)
-					foundo=find_byte(ci,self.Text(),foundo)
+					foundo=find_byte(ci,self.Text(),index)#foundo)
 					asd=self.PointAt(foundo)
+					#print(index,ci,a,bob[0].x,bob[0].y,asd[0].x,asd[0].y)
 					foundo+=1
 					self.SetHighColor(200,0,0,0)
 					fon=BFont()
@@ -1478,7 +1480,7 @@ class srcTextView(BTextView):
 				elif mum=="\\x9":
 					self.SetHighColor(200,0,0,0)
 					#foundo=self.Text().find(ci,foundo)
-					foundo=find_byte(ci,self.Text(),foundo)
+					foundo=find_byte(ci,self.Text(),index)#foundo)
 					asd=self.PointAt(foundo)
 					foundo+=1
 					self.MovePenTo(BPoint(asd[0].x,asd[0].y+asd[1]-3))
