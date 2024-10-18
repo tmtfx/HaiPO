@@ -4136,17 +4136,21 @@ class MainWindow(BWindow):
 	def MessageReceived(self, msg):
 		if msg.what == B_MODIFIERS_CHANGED:
 			value=msg.FindInt32("modifiers")
+			print(value)
 			self.sem.acquire()
 			if value==self.modifiervalue or value==self.modifiervalue+8 or value ==self.modifiervalue+32 or value ==self.modifiervalue+40:
 				#"modificatore"
+				print("è modificatore")
 				self.modifier=True
 				self.shortcut = False
-			elif value == self.modifiervalue+4357 or value==self.modifiervalue+265 or value==self.modifiervalue+289 or value == self.modifiervalue+297:
+			elif value == self.modifiervalue+257 or value==self.modifiervalue+265 or value==self.modifiervalue+289 or value == self.modifiervalue+297:
 				#"scorciatoia"
+				print("è scorciatoia")
 				self.shortcut = True
 				self.modifier = False
 			else:
 				#"altro"
+				print("è altro")
 				self.modifier=False
 				self.shortcut=False
 			self.sem.release()
