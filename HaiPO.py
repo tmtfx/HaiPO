@@ -603,11 +603,11 @@ class sourcetabview(BTabView):
 		self.superself.listemsgstr[self.superself.transtabview.Selection()].trnsl.ScrollToSelection()
 
 class srctabbox(BBox):
-	def __init__(self,playground1,name,altece):
+	def __init__(self,superself,playground1,name,altece):
 		self.name = name
 		BBox.__init__(self,BRect(0,0,playground1[2]-playground1[0],playground1[3]-playground1[1]),name,B_FOLLOW_BOTTOM|B_FOLLOW_LEFT_RIGHT,B_FULL_UPDATE_ON_RESIZE |B_WILL_DRAW | B_FRAME_EVENTS,B_FANCY_BORDER)
 		self.hsrc = playground1[3] - playground1[1] - altece
-		self.src = srcTextView(BRect(playground1[0],playground1[1],playground1[2]-playground1[0]-18,playground1[3]-playground1[1]),name+'_source_BTextView',BRect(5.0,5.0,playground1[2]-30,playground1[3]-5),B_FOLLOW_ALL_SIDES,B_WILL_DRAW|B_FRAME_EVENTS)
+		self.src = srcTextView(superself,BRect(playground1[0],playground1[1],playground1[2]-playground1[0]-18,playground1[3]-playground1[1]),name+'_source_BTextView',BRect(5.0,5.0,playground1[2]-30,playground1[3]-5),B_FOLLOW_ALL_SIDES,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.src.MakeEditable(False)
 		self.AddChild(self.src,None)
 		bi,bu,bo,ba = playground1
@@ -957,6 +957,7 @@ class EventTextView(BTextView):
 		try:
 			arrow=False
 			ochar=ord(char)
+			print(ochar)
 			if ochar in (B_DOWN_ARROW,B_UP_ARROW,B_PAGE_UP,B_PAGE_DOWN,10,48,49,50,51,52,53,54,55,56,57): #B_ENTER =10?
 				self.superself.sem.acquire()
 				value=self.superself.modifier #CTRL pressed
@@ -1393,8 +1394,9 @@ class CategoryTextView(BTextView):
 		return BTextView.MessageReceived(self,msg)
 
 class srcTextView(BTextView):
-	def __init__(self,frame,name,textRect,resizingMode,flags):
+	def __init__(self,superself,frame,name,textRect,resizingMode,flags):
 		BTextView.__init__(self,frame,name,textRect,resizingMode,flags)
+		self.superself=superself
 		self.SetStylable(1)
 		self.spaces=["\\x20","\\xc2\\xa0","\\xe1\x9a\\x80","\\xe2\\x80\\x80","\\xe2\\x80\\x81","\\xe2\\x80\\x82","\\xe2\\x80\\x83","\\xe2\\x80\\x84","\\xe2\\x80\\x85","\\xe2\\x80\\x86","\\xe2\\x80\\x87","\\xe2\\x80\\x88","\\xe2\\x80\\x89","\\xe2\\x80\\x8a","\\xe2\\x80\\x8b","\\xe2\\x80\\xaf","\\xe2\\x81\\x9f","\\xe3\\x80\\x80"]
 	def Draw(self,suaze):
@@ -1503,6 +1505,14 @@ class srcTextView(BTextView):
 					self.DrawString(wst,None)
 					self.SetHighColor(0,0,0,0)
 		return
+	def KeyDown(self,char,bytes):
+		ochar=ord(char)
+		if self.superself.shortcut:
+			if ochar == 116: #ctrl+shift+t
+				self.superself.switcher()
+				return
+			else:
+				return BTextView.KeyDown(self,char,bytes)
 		
 def checklang(orderedata):
 	ent,confile=Ent_config()
@@ -2443,6 +2453,23 @@ class TransEngine(BMenuItem):
 		msg.AddString("name",self.name)
 		BMenuItem.__init__(self,self.name,msg,self.name[0],0)
 
+class TranslatorSourceLang(BMenuItem):
+	def __init__(self,name,code):
+		self.name=name
+		self.code=code
+		msg=BMessage(800)
+		msg.AddString("name",self.name)
+		msg.AddString("code",self.code)
+		BMenuItem.__init__(self,self.name,msg,'\x00',0)
+class TranslatorTargetLang(BMenuItem):
+	def __init__(self,name,code):
+		self.name=name
+		self.code=code
+		msg=BMessage(900)
+		msg.AddString("name",self.name)
+		msg.AddString("code",self.code)
+		BMenuItem.__init__(self,self.name,msg,'\x00',0)
+
 class SpellcheckSettings(BWindow):
 	kWindowFrame = BRect(250, 150, 755, 297)
 	kWindowName = "Spellchecking Settings"
@@ -2777,8 +2804,6 @@ class AboutWindow(BWindow):
 			self.Quit()
 		else:
 			BWindow.MessageReceived(self, msg)
-
-
 
 class BaOButton(BButton):
 	def __init__(self,frame,name,label,message):
@@ -3330,6 +3355,8 @@ class MainWindow(BWindow):
 			engine='GoogleTranslator'
 			src_lang="en"
 			trans_lang="it"
+		self.curtain=False
+		
 
 		self.steps=['˹','   ˺','   ˼','˻']
 		self.indsteps=0
@@ -3384,7 +3411,7 @@ class MainWindow(BWindow):
 		altece2 = self.transtabview.TabHeight()
 		tabrc = (3.0, 3.0, self.srctabview.Bounds().Width() - 3, self.srctabview.Bounds().Height()-altece)
 		tabrc2 = (3.0, 3.0, self.transtabview.Bounds().Width() - 3, self.transtabview.Bounds().Height()-altece2)
-		self.sourcebox=srctabbox(tabrc,'msgid',altece)
+		self.sourcebox=srctabbox(self,tabrc,'msgid',altece)
 		self.listemsgid.append(self.sourcebox)
 		self.srctablabels.append(BTab(None))
 		self.srctabview.AddTab(self.listemsgid[0], self.srctablabels[0])
@@ -3446,11 +3473,12 @@ class MainWindow(BWindow):
 		self.tmscrollsugj.sv.ResizeBy(0-dx,0-dy)
 		self.upperbox.AddChild(self.tmscrollsugj.sv,None)
 		
+		
 		######## expander for sugj #########
 		rectcksp=BRect(self.upperbox.Bounds().right*2/3+4,self.upperbox.Bounds().bottom/2+10,self.upperbox.Bounds().right-4,self.upperbox.Bounds().bottom-70)
 		insetcksp=BRect(0,0,rectcksp.Width(),rectcksp.Height())
 		insetcksp.InsetBy(5,5)
-		self.expander = srcTextView(rectcksp,"checkres",insetcksp,B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM,B_WILL_DRAW|B_FRAME_EVENTS)
+		self.expander = srcTextView(self,rectcksp,"checkres",insetcksp,B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM,B_WILL_DRAW|B_FRAME_EVENTS)
 		self.expander.MakeEditable(0)
 		self.upperbox.AddChild(self.expander,None)
 		myFont=BFont()
@@ -3513,6 +3541,46 @@ class MainWindow(BWindow):
 		self.badItems.append(ErrorItem(" Error connecting to Translation"))
 		self.badItems.append(ErrorItem("          Memory server  "))
 		self.badItems.append(ErrorItem("└──────────────┘"))
+		#### Translators ####
+		if showspell:
+			nr=cstep(0,self.upperbox.Bounds().right-4-self.upperbox.Bounds().right*2/3,self.oldsize*2)
+			self.esb_rect=BRect(self.upperbox.Bounds().right*2/3,4,self.upperbox.Bounds().right-4,self.upperbox.Bounds().bottom-4)
+			self.esbox=BBox(self.esb_rect,"ext_support_box",B_FOLLOW_RIGHT,border_style.B_PLAIN_BORDER)
+			txt_rect=BRect(4,4+nr.Height(),self.esb_rect.Width()-4,self.esb_rect.Height()/2-4-nr.Height()/2)
+			inrect=BRect(4,4,txt_rect.Width()-8,txt_rect.Height()-8)
+			self.es_src=BTextView(txt_rect,"es_source",inrect,B_FOLLOW_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)#txt_rect.InsetByCopy(4,4),B_FOLLOW_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
+			txt_rect1=BRect(4,self.esb_rect.Height()/2+4+nr.Height()/2,self.esb_rect.Width()-4,self.esb_rect.Height()-nr.Height()-4)
+			inrect1=BRect(4,4,txt_rect1.Width()-8,txt_rect1.Height()-8)
+			self.es_trans=BTextView(txt_rect1,"es_translation",inrect1,B_FOLLOW_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
+			import deep_translator
+			Traduttore = getattr(deep_translator, engine)
+			langs_dict = Traduttore().get_supported_languages(as_dict=True)
+			self.msl=BMenu("Source language")
+			self.mtl=BMenu("Target language")
+			self.msl.SetLabelFromMarked(True)
+			self.mtl.SetLabelFromMarked(True)
+			for language, code in langs_dict.items():
+				sitm=TranslatorSourceLang(language,code)
+				if code == src_lang:
+					sitm.SetMarked(True)
+				self.msl.AddItem(sitm)
+				titm=TranslatorTargetLang(language,code)
+				if code == trans_lang:
+					titm.SetMarked(True)
+				self.mtl.AddItem(titm)
+			self.src_langs=BMenuField(nr, 'src_pop', 'Source language:', self.msl,B_FOLLOW_RIGHT)
+			self.trg_langs=BMenuField(BRect(4,self.esb_rect.Height()/2-nr.Height()/2,self.esb_rect.Width()-4,self.esb_rect.Height()/2+4+nr.Height()/2), 'target_pop', 'Target language:', self.mtl,B_FOLLOW_RIGHT)
+			self.traduttore = Traduttore(source=src_lang, target=trans_lang)
+			self.gotrans=BButton(BRect(4,self.esb_rect.Height()-nr.Height()-4,self.esb_rect.Width()-4,self.esb_rect.Height()-4),'TranslateBtn','Translate',BMessage(909),B_FOLLOW_BOTTOM|B_FOLLOW_RIGHT)
+			self.esbox.AddChild(self.gotrans,None)
+			self.esbox.AddChild(self.src_langs,None)
+			self.esbox.AddChild(self.trg_langs,None)
+			self.esbox.AddChild(self.es_src,None)
+			self.esbox.AddChild(self.es_trans,None)
+			self.upperbox.AddChild(self.esbox,None)
+			self.esbox.ResizeTo(self.esb_rect.Width(),0)
+		
+		####### end Translator #######
 		if arg!="":
 			f=os.path.abspath(arg)
 			if BEntry(f).Exists():
@@ -4229,6 +4297,31 @@ class MainWindow(BWindow):
 			be_app.WindowAt(0).PostMessage(hidemsg)
 		self.netlock.release()
 	
+	def switcher(self):
+		if ext_sup:
+			if self.shortcut:
+				if self.curtain:
+					#close curtain
+					self.expander.Show()
+					self.TM_srv_status.Show()
+					self.tmscrollsugj.sv.Show()
+					self.spellabel.Show()
+					self.checkres.Show()
+					self.curtain=False
+					self.esbox.ResizeTo(self.esb_rect.Width(),0)
+				else:
+					#show curtain
+					p1,p2=self.listemsgid[self.srctabview.Selection()].src.GetSelection()
+					if p1!=p2:
+						self.es_src.SetText(self.listemsgid[self.srctabview.Selection()].src.GetText(p1,p2-p1),None)
+					self.expander.Hide()
+					self.TM_srv_status.Hide()
+					self.tmscrollsugj.sv.Hide()
+					self.spellabel.Hide()
+					self.checkres.Hide()
+					self.curtain=True
+					self.esbox.ResizeTo(self.esb_rect.Width(),self.esb_rect.Height())
+
 	def MessageReceived(self, msg):
 		if msg.what == B_MODIFIERS_CHANGED:
 			value=msg.FindInt32("modifiers")
@@ -4253,6 +4346,7 @@ class MainWindow(BWindow):
 			return
 		elif msg.what == B_KEY_DOWN:	#on tab key pressed, focus on translation or translation of first item list of translations
 			key=msg.FindInt32('key')
+			print(key)
 			if key==38: #tab key
 				if self.sourcestrings.lv.CurrentSelection()>-1:
 					self.listemsgstr[self.transtabview.Selection()].trnsl.MakeFocus() ########### LOOK HERE 
@@ -4271,6 +4365,8 @@ class MainWindow(BWindow):
 #						else:
 #							pass
 #						self.sem.release()
+			elif key== 43:
+						self.switcher()
 			return
 		elif msg.what == 1:
 			# Close opened file
@@ -4359,6 +4455,22 @@ class MainWindow(BWindow):
 		elif msg.what == 5:
 			if self.sourcestrings.lv.CountItems()>0:
 				self.fp.Show()
+		elif msg.what == 800:
+			src_lang = msg.FindString("code")
+			ent,confile=Ent_config()
+			cfgfile = open(confile,'w')
+			Config.set('Translator','src_lang', src_lang)
+			Config.write(cfgfile)
+			cfgfile.close()
+		elif msg.what == 900:
+			trans_lang = msg.FindString("code")
+			ent,confile=Ent_config()
+			cfgfile = open(confile,'w')
+			Config.set('Translator','trans_lang', trans_lang)
+			Config.write(cfgfile)
+			cfgfile.close()
+		elif msg.what == 909:
+			self.es_trans.SetText(self.traduttore.translate(text=self.es_src.Text()),None)
 		elif msg.what == 735157:
 			color=rgb_color()
 			color.green=150
@@ -4788,7 +4900,7 @@ class MainWindow(BWindow):
 					self.listemsgstr.append(trnsltabbox(tabrc2,'msgstr[0]',self))
 					self.transtablabels.append(BTab(None))
 					self.transtabview.AddTab(self.listemsgstr[0],self.transtablabels[0])
-					self.listemsgid.append(srctabbox((3,3,self.listemsgid[0].Bounds().right+3,self.listemsgid[0].Bounds().bottom+3),'msgid_plural',altece2))
+					self.listemsgid.append(srctabbox(self,(3,3,self.listemsgid[0].Bounds().right+3,self.listemsgid[0].Bounds().bottom+3),'msgid_plural',altece2))
 					self.srctablabels.append(BTab(None))
 					self.srctabview.AddTab(self.listemsgid[1], self.srctablabels[1])
 					x=len(self.listemsgid)-1
