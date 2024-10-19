@@ -1353,7 +1353,7 @@ class CategoryTextView(BTextView):
 		self.MakeSelectable(0)
 		self.SetAlignment(alignment.B_ALIGN_CENTER)
 		self.SetStylable(1)
-		big_font = be_plain_font
+		big_font = BFont()#be_plain_font
 		oldsize=be_plain_font.Size()
 		big_font.SetSize(32)
 		self.first_run=text_run()
@@ -2436,10 +2436,27 @@ class TMSettings(BWindow):
 			return
 		BWindow.MessageReceived(self, msg)
 
+class TransEngine(BMenuItem):
+	def __init__(self,name):
+		self.name=name
+		msg=BMessage(600)
+		msg.AddString("name",self.name)
+		BMenuItem.__init__(self,self.name,msg,self.name[0],0)
+
 class SpellcheckSettings(BWindow):
 	kWindowFrame = BRect(250, 150, 755, 297)
 	kWindowName = "Spellchecking Settings"
 	alerts=[]
+	motori=["GoogleTranslator",
+			"ChatGptTranslator",
+			"MicrosoftTranslator",
+			"PonsTranslator",
+			"LingueeTranslator",
+			"MyMemoryTranslator",
+			"YandexTranslator",
+			"PapagoTranslator",
+			"DeeplTranslator",
+			"QcriTranslator"]
 	def __init__(self,showspell,oldsize):
 		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
 		bounds=self.Bounds()
@@ -2465,17 +2482,39 @@ class SpellcheckSettings(BWindow):
 			except:
 				bret = "/boot/system/data/hunspell/en_US"
 			self.diz = BTextControl(cstep(1,r,h),'dictionary','Dictionary path:',bret,BMessage(8086))
+			self.underframe.AddChild(self.diz,None)
 			try:
 				bret = ConfigSectionMap("Translator")['spell_inclusion']
 			except:
 				bret = ""
 			self.inclus = BTextControl(cstep(2,r,h),'inclusion','Chars included in words:',bret,BMessage(8087))
+			self.underframe.AddChild(self.inclus,None)
 			try:
 				bret = ConfigSectionMap("Translator")['spell_esclusion']
 			except:
+				bret = "Pc,Pd,Pe,Pi,Po,Ps,Cc,Pf"
+			self.esclus = BTextControl(cstep(3,r,h),'inclusion','Chars-categories excluded in words:',bret,BMessage(8088))
+			self.underframe.AddChild(self.esclus,None)
+			self.es_enabler=BCheckBox(cstep(8,r,h),'es_enabler', 'Enable/Disable external translator', BMessage(333))
+			if ext_sup:
+				self.es_enabler.SetValue(1)
+			else:
+				self.es_enabler.SetValue(0)
+			self.underframe.AddChild(self.es_enabler,None)
+			try:
+				bret = ConfigSectionMap("Translator")['engine']
+			except:
 				bret = ""
-		self.esclus = BTextControl(cstep(3,r,h),'inclusion','Chars-categories excluded in words:',bret,BMessage(8088))
-		self.esclus.SetText("Pc,Pd,Pe,Pi,Po,Ps,Cc,Pf")
+			self.menu=BMenu("Translator Engine")
+			self.menu.SetLabelFromMarked(True)
+			for z in self.motori:
+				itm=TransEngine(z)
+				if itm.name==bret:
+					itm.SetMarked(True)
+				self.menu.AddItem(itm)
+			self.te_bar = BMenuField(cstep(9,r,h), 'pop1', 'Translator engine:', self.menu,B_FOLLOW_TOP)
+			self.te_bar.SetDivider(self.underframe.StringWidth("Translator engine: "))
+			self.underframe.AddChild(self.te_bar,None)
 		topr=cstep(4,r,h)
 		botr=cstep(6,r,h)
 		fusionr=BRect(topr.left,topr.top+10,botr.right,botr.bottom+10)
@@ -2486,12 +2525,12 @@ class SpellcheckSettings(BWindow):
 		
 		self.getcat=CategoryTextView(fusionr,"Category_TextView",innerfusion,B_FOLLOW_ALL_SIDES,B_WILL_DRAW|B_FRAME_EVENTS)
 		
-		lastr=cstep(7,r,h)
-		self.ResizeTo(r,lastr.bottom)
+		#lastr=cstep(7,r,h)
+		#be_plain_font.SetSize(oldsize)
+		
+		
+		self.ResizeTo(r,cstep(10,r,h).bottom)
 		self.underframe.AddChild(self.enablecheck,None)
-		self.underframe.AddChild(self.diz,None)
-		self.underframe.AddChild(self.inclus,None)
-		self.underframe.AddChild(self.esclus,None)
 		self.underframe.AddChild(self.getcat,None)
 
 	def MessageReceived(self, msg):
@@ -2510,6 +2549,38 @@ class SpellcheckSettings(BWindow):
 				self.alerts.append(say)
 				say.Go()
 			cfgfile.close()
+		elif msg.what == 333:
+			ent,confile=Ent_config()
+			cfgfile = open(confile,'w')
+			try:
+				if self.enablecheck.Value():
+					ext_sup=True
+					Config.set('Translator','es_enabled', "True")
+					Config.write(cfgfile)
+				else:
+					ext_sup=False
+					Config.set('Translator','es_enabled', "False")
+					Config.write(cfgfile)
+			except:
+				say = BAlert("error_enable_ext_support", "Error enabling external translator, check config.ini", 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_STOP_ALERT)
+				self.alerts.append(say)
+				say.Go()
+			cfgfile.close()
+			Config.read(confile)
+		elif msg.what == 600:
+			ent,confile=Ent_config()
+			cfgfile = open(confile,'w')
+			try:
+				name=msg.FindString("name")
+				engine=name
+				Config.set('Translator','engine', name)
+				Config.write(cfgfile)
+			except:
+				say = BAlert("error_engine_selection", "Error selecting the translator engine, check config.ini", 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_STOP_ALERT)
+				self.alerts.append(say)
+				say.Go()
+			cfgfile.close()
+			Config.read(confile)
 		elif msg.what == 8086:
 			confent,confile=Ent_config()
 			ent=BEntry(self.diz.Text()+".dic")
@@ -3007,7 +3078,7 @@ class MainWindow(BWindow):
 		fon=BFont()
 		self.oldsize=be_plain_font.Size()
 		ent,confile=Ent_config()
-		global tm,tmxsrv,tmxprt,tmsocket,showspell,comm,esclusion,inclusion
+		global tm,tmxsrv,tmxprt,tmsocket,showspell,comm,esclusion,inclusion,ext_sup,engine,src_lang,trans_lang
 		showspell = False
 		if ent.Exists():
 			Config.read(confile)
@@ -3207,6 +3278,25 @@ class MainWindow(BWindow):
 					Config.write(cfgfile)
 					cfgfile.close()
 					spelldict="/system/data/hunspell/en_US"
+				try:
+					Config.read(confile)
+					ext_sup=Config.getboolean('Translator', 'es_enabled')
+					engine=ConfigSectionMap("Translator")['engine']
+					src_lang=ConfigSectionMap("Translator")['src_lang']
+					trans_lang=ConfigSectionMap("Translator")['trans_lang']
+				except:
+					cfgfile = open(confile,'w')
+					Config.set('Translator','es_enabled', 'False')
+					Config.set('Translator','engine', 'GoogleTranslator')
+					Config.set('Translator','src_lang', 'en')
+					Config.set('Translator','trans_lang', 'it')
+					Config.write(cfgfile)
+					cfgfile.close()
+					Config.read(confile)
+					ext_sup=False
+					engine='GoogleTranslator'
+					src_lang="en"
+					trans_lang="it"
 			except:
 				spelldict="/system/data/hunspell/en_US"
 				inclusion = []
@@ -3233,8 +3323,14 @@ class MainWindow(BWindow):
 				say.Go()
 		else:
 			showspell=False
-		
-		
+			spelldict="/system/data/hunspell/en_US"
+			inclusion = []
+			esclusion = ["Pc","Pd","Pe","Pi","Po","Ps","Cc","Pf"]
+			ext_sup=False
+			engine='GoogleTranslator'
+			src_lang="en"
+			trans_lang="it"
+
 		self.steps=['˹','   ˺','   ˼','˻']
 		self.indsteps=0
 		self.ofp=BFilePanel(B_OPEN_PANEL,None,None,node_flavor.B_ANY_NODE,True, None, None, True, True)
