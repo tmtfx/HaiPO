@@ -79,6 +79,7 @@ transtool_script = """
 #!/bin/bash
 cd /boot/system/var/shared_memory
 pip install translate-toolkit
+pip install deep-translator
     """
 #################################################################
 global executett,executelv
@@ -110,7 +111,7 @@ import socket,pickle,unicodedata
 from threading import Thread
 from babel import Locale
 
-version='HaiPO 2.0 beta'
+version='HaiPO 2.1 beta'
 (appname,ver,state)=version.split(' ')
 
 Config=configparser.ConfigParser()
