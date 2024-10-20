@@ -2300,7 +2300,6 @@ class TMSettings(BWindow):
 		r=bounds.right
 		b=bounds.bottom
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
-		be_plain_font.SetSize(16)
 		h=be_plain_font.Size()
 		self.AddChild(self.underframe,None)
 		self.enablecheck = BCheckBox(cstep(0,r,h),'enabcheck', 'Enable/Disable translation memory', BMessage(222))
@@ -2514,9 +2513,10 @@ class SpellcheckSettings(BWindow):
 		t = bounds.top
 		r = bounds.right
 		b = bounds.bottom
-		be_plain_font.SetSize(oldsize)
+		#be_plain_font.SetSize(oldsize)
 		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
-		h=oldsize
+		#h=oldsize
+		h=be_plain_font.Size()
 		self.AddChild(self.underframe,None)
 		ent,confile=Ent_config()
 		self.enablecheck = BCheckBox(cstep(0,r,h),'enabcheck', 'Enable/Disable spellcheck', BMessage(222))
@@ -2566,7 +2566,7 @@ class SpellcheckSettings(BWindow):
 			self.te_bar.SetDivider(self.underframe.StringWidth("Translator engine: "))
 			self.underframe.AddChild(self.te_bar,None)
 		topr=cstep(4,r,h)
-		botr=cstep(6,r,h)
+		botr=cstep(7,r,h)
 		fusionr=BRect(topr.left,topr.top+10,botr.right,botr.bottom+10)
 		del topr
 		del botr
