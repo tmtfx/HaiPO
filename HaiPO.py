@@ -3668,6 +3668,7 @@ class MainWindow(BWindow):
 		self.tmscrollsugj.sv.ResizeTo(self.tmscrollsugj.sv.Bounds().right,self.upperbox.Bounds().Height()/2)
 		sbh=self.tmscrollsugj.sv.ScrollBar(orientation.B_HORIZONTAL).Frame().Height()
 		self.tmscrollsugj.lv.ResizeTo(self.tmscrollsugj.lv.Bounds().right,self.upperbox.Bounds().Height()/2-sbh)
+		self.esbox.MoveTo(self.upperbox.Bounds().right-4-self.esbox.Bounds().Width(),4)
 		self.expander.MoveTo(self.upperbox.Bounds().right-4-self.expander.Bounds().Width(),4+self.tmscrollsugj.sv.Bounds().Height()+10)
 		self.expander.ResizeTo(self.expander.Bounds().right,self.upperbox.Bounds().Height()/2-80)
 		for view in self.listemsgs:
