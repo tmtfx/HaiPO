@@ -2591,9 +2591,11 @@ class SpellcheckSettings(BWindow):
 				if self.enablecheck.Value():
 					Config.set('General','spellchecking', "True")
 					Config.write(cfgfile)
+					ext_sup=True
 				else:
 					Config.set('General','spellchecking', "False")
 					Config.write(cfgfile)
+					ext_sup=False
 			except:
 				say = BAlert("error_enable_spellcheck", "Error enabling spellcheck, check config.ini", 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_STOP_ALERT)
 				self.alerts.append(say)
@@ -2603,7 +2605,7 @@ class SpellcheckSettings(BWindow):
 			ent,confile=Ent_config()
 			cfgfile = open(confile,'w')
 			try:
-				if self.enablecheck.Value():
+				if self.es_enabler.Value():
 					ext_sup=True
 					Config.set('Translator','es_enabled', "True")
 					Config.write(cfgfile)
@@ -3329,19 +3331,27 @@ class MainWindow(BWindow):
 				try:
 					Config.read(confile)
 					ext_sup=Config.getboolean('Translator', 'es_enabled')
+					print("rilevato ext_sup",ext_sup)
+				except:
+					print("errore nel recuperare ext_sup")
+					cfgfile = open(confile,'w')
+					Config.set('Translator','es_enabled', 'False')
+					Config.write(cfgfile)
+					cfgfile.close()
+					Config.read(confile)
+					ext_sup=False
+				try:
 					engine=ConfigSectionMap("Translator")['engine']
 					src_lang=ConfigSectionMap("Translator")['src_lang']
 					trans_lang=ConfigSectionMap("Translator")['trans_lang']
 				except:
 					cfgfile = open(confile,'w')
-					Config.set('Translator','es_enabled', 'False')
 					Config.set('Translator','engine', 'GoogleTranslator')
 					Config.set('Translator','src_lang', 'en')
 					Config.set('Translator','trans_lang', 'it')
 					Config.write(cfgfile)
 					cfgfile.close()
 					Config.read(confile)
-					ext_sup=False
 					engine='GoogleTranslator'
 					src_lang="en"
 					trans_lang="it"
