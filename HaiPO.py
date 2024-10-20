@@ -3119,7 +3119,7 @@ class MainWindow(BWindow):
 		)
 		
 	def __init__(self,arg):
-		BWindow.__init__(self, BRect(6,64,1024,768), "HaiPO 2.0", window_type.B_TITLED_WINDOW, B_QUIT_ON_WINDOW_CLOSE)
+		BWindow.__init__(self, BRect(6,64,1024,768), " ".join([appname,ver]), window_type.B_TITLED_WINDOW, B_QUIT_ON_WINDOW_CLOSE)
 		self.speloc = threading.Semaphore()
 		self.intime=time.time()
 		self.t1=time.time()
@@ -4450,7 +4450,7 @@ class MainWindow(BWindow):
 				self.listemsgid[0].src.SelectAll()
 				self.listemsgid[0].src.Clear()
 				self.srctabview.Draw(self.srctabview.Bounds())
-				self.SetTitle("HaiPO 2.0")
+				self.SetTitle(" ".join([appname,ver]))
 				
 				#self.srctabview.Draw(self.srctabview.Bounds()) <<< look this!! bug fix
 			return
