@@ -1393,6 +1393,28 @@ class CategoryTextView(BTextView):
 
 		return BTextView.MessageReceived(self,msg)
 
+class TranslatorTextView(BTextView):
+	def __init__(self,superself,frame,name,textRect,resizingMode,flags):
+		BTextView.__init__(self,frame,name,textRect,resizingMode,flags)
+		self.superself=superself
+	def KeyDown(self,char,bytes):
+		ochar=ord(char)
+		print(ochar)
+		if self.superself.shortcut:
+			if ochar == 116: #ctrl+shift+t
+				self.superself.switcher()
+				return
+			elif ochar == 99:
+				self.superself.es_src.SelectAll()
+				self.superself.es_src.Clear()
+				self.superself.es_trans.SelectAll()
+				self.superself.es_trans.Clear()
+				return
+			else:
+				return BTextView.KeyDown(self,char,bytes)
+		else:
+			return BTextView.KeyDown(self,char,bytes)
+			
 class srcTextView(BTextView):
 	def __init__(self,superself,frame,name,textRect,resizingMode,flags):
 		BTextView.__init__(self,frame,name,textRect,resizingMode,flags)
@@ -3548,10 +3570,11 @@ class MainWindow(BWindow):
 			self.esbox=BBox(self.esb_rect,"ext_support_box",B_FOLLOW_RIGHT,border_style.B_PLAIN_BORDER)
 			txt_rect=BRect(4,4+nr.Height(),self.esb_rect.Width()-4,self.esb_rect.Height()/2-4-nr.Height()/2)
 			inrect=BRect(4,4,txt_rect.Width()-8,txt_rect.Height()-8)
-			self.es_src=BTextView(txt_rect,"es_source",inrect,B_FOLLOW_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)#txt_rect.InsetByCopy(4,4),B_FOLLOW_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
+			self.es_src=TranslatorTextView(self,txt_rect,"es_source",inrect,B_FOLLOW_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)#txt_rect.InsetByCopy(4,4),B_FOLLOW_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
 			txt_rect1=BRect(4,self.esb_rect.Height()/2+4+nr.Height()/2,self.esb_rect.Width()-4,self.esb_rect.Height()-nr.Height()-4)
 			inrect1=BRect(4,4,txt_rect1.Width()-8,txt_rect1.Height()-8)
-			self.es_trans=BTextView(txt_rect1,"es_translation",inrect1,B_FOLLOW_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
+			self.es_trans=TranslatorTextView(self,txt_rect1,"es_translation",inrect1,B_FOLLOW_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
+			self.es_trans.MakeEditable(False)
 			import deep_translator
 			Traduttore = getattr(deep_translator, engine)
 			langs_dict = Traduttore().get_supported_languages(as_dict=True)
@@ -3579,6 +3602,7 @@ class MainWindow(BWindow):
 			self.esbox.AddChild(self.es_trans,None)
 			self.upperbox.AddChild(self.esbox,None)
 			self.esbox.ResizeTo(self.esb_rect.Width(),0)
+			self.ongoing=threading.Semaphore() # locker for curtain
 		
 		####### end Translator #######
 		if arg!="":
@@ -4297,8 +4321,20 @@ class MainWindow(BWindow):
 			hidemsg=BMessage(104501)
 			be_app.WindowAt(0).PostMessage(hidemsg)
 		self.netlock.release()
+		
+	def curtain_roller(self,up_down):
+		x=self.esb_rect.Height()
+		print("altezza riquadro",x)
+		while x>0:
+			curt=BMessage(2363)
+			curt.AddBool("dir",up_down)
+			self.event.wait(0.005)
+			be_app.WindowAt(0).PostMessage(curt)
+			x-=1
+		self.ongoing.release()
 	
 	def switcher(self):
+		self.ongoing.acquire()
 		if ext_sup:
 			if self.shortcut:
 				if self.curtain:
@@ -4309,7 +4345,8 @@ class MainWindow(BWindow):
 					self.spellabel.Show()
 					self.checkres.Show()
 					self.curtain=False
-					self.esbox.ResizeTo(self.esb_rect.Width(),0)
+					
+					#self.esbox.ResizeTo(self.esb_rect.Width(),0)
 				else:
 					#show curtain
 					p1,p2=self.listemsgid[self.srctabview.Selection()].src.GetSelection()
@@ -4321,7 +4358,10 @@ class MainWindow(BWindow):
 					self.spellabel.Hide()
 					self.checkres.Hide()
 					self.curtain=True
-					self.esbox.ResizeTo(self.esb_rect.Width(),self.esb_rect.Height())
+				Thread(target=self.curtain_roller,args=(self.curtain,)).start()
+				#self.curtain_roller(self.curtain)	
+					#self.esbox.ResizeTo(self.esb_rect.Width(),self.esb_rect.Height())
+		
 
 	def MessageReceived(self, msg):
 		if msg.what == B_MODIFIERS_CHANGED:
@@ -4368,7 +4408,15 @@ class MainWindow(BWindow):
 #						self.sem.release()
 			elif key== 43:
 						self.switcher()
+						#Thread(target=self.switcher).start()
 			return
+		elif msg.what == 2363:
+			direction=msg.FindBool("dir")
+			if direction:
+				self.esbox.ResizeBy(0,1)
+			else:
+				self.esbox.ResizeBy(0,-1)
+			
 		elif msg.what == 1:
 			# Close opened file
 			if self.sourcestrings.lv.CountItems()>0:
@@ -5472,17 +5520,12 @@ class MainWindow(BWindow):
 			if self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection()).state == 1:	
 				if self.tmscrollsugj.lv.CountItems()>0:
 					if self.tmscrollsugj.lv.ItemAt(0).percent < 100:
-						#mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text().decode(self.encoding),self.listemsgstr[self.transtabview.Selection()].trnsl.Text()).decode(self.encoding))
 						mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text(),self.listemsgstr[self.transtabview.Selection()].trnsl.Text())
 						Thread(target=self.tmcommunicate,args=(mx,)).start()
-						#thread.start_new_thread( self.tmcommunicate, (mx,) )
 						#print "beh, questo è corretto ma ha suggerimenti sbagliati, salvare in tmx!"
 				else:
-					#mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text().decode(self.encoding),self.listemsgstr[self.transtabview.Selection()].trnsl.Text().decode(self.encoding))
 					mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text(),self.listemsgstr[self.transtabview.Selection()].trnsl.Text())
-					#print "eseguo riga: 5083"
 					Thread(target=self.tmcommunicate,args=(mx,)).start()
-					#thread.start_new_thread( self.tmcommunicate, (mx,) )
 					#print "mah, questo è corretto ma non ha suggerimenti, da salvare in tmx!"
 			return
 		elif msg.what == 963741:
