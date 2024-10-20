@@ -3138,7 +3138,7 @@ class MainWindow(BWindow):
 		fon=BFont()
 		self.oldsize=be_plain_font.Size()
 		ent,confile=Ent_config()
-		global tm,tmxsrv,tmxprt,tmsocket,showspell,comm,esclusion,inclusion,ext_sup,engine,src_lang,trans_lang
+		global tm,tmxsrv,tmxprt,tmsocket,showspell,comm,esclusion,inclusion,ext_sup,engine
 		showspell = False
 		if ent.Exists():
 			Config.read(confile)
@@ -3350,8 +3350,8 @@ class MainWindow(BWindow):
 					ext_sup=False
 				try:
 					engine=ConfigSectionMap("Translator")['engine']
-					src_lang=ConfigSectionMap("Translator")['src_lang']
-					trans_lang=ConfigSectionMap("Translator")['trans_lang']
+					self.src_lang=ConfigSectionMap("Translator")['src_lang']
+					self.trans_lang=ConfigSectionMap("Translator")['trans_lang']
 				except:
 					cfgfile = open(confile,'w')
 					Config.set('Translator','engine', 'GoogleTranslator')
@@ -3361,8 +3361,8 @@ class MainWindow(BWindow):
 					cfgfile.close()
 					Config.read(confile)
 					engine='GoogleTranslator'
-					src_lang="en"
-					trans_lang="it"
+					self.src_lang="en"
+					self.trans_lang="it"
 			except:
 				spelldict="/system/data/hunspell/en_US"
 				inclusion = []
@@ -3394,8 +3394,8 @@ class MainWindow(BWindow):
 			esclusion = ["Pc","Pd","Pe","Pi","Po","Ps","Cc","Pf"]
 			ext_sup=False
 			engine='GoogleTranslator'
-			src_lang="en"
-			trans_lang="it"
+			self.src_lang="en"
+			self.trans_lang="it"
 		self.curtain=False
 		
 
@@ -3595,24 +3595,24 @@ class MainWindow(BWindow):
 			self.es_trans=TranslatorTextView(self,txt_rect1,"es_translation",inrect1,B_FOLLOW_RIGHT,B_WILL_DRAW|B_FRAME_EVENTS)
 			self.es_trans.MakeEditable(False)
 			import deep_translator
-			Traduttore = getattr(deep_translator, engine)
-			langs_dict = Traduttore().get_supported_languages(as_dict=True)
+			self.Traduttore = getattr(deep_translator, engine)
+			langs_dict = self.Traduttore().get_supported_languages(as_dict=True)
 			self.msl=BMenu("Source language")
 			self.mtl=BMenu("Target language")
 			self.msl.SetLabelFromMarked(True)
 			self.mtl.SetLabelFromMarked(True)
 			for language, code in langs_dict.items():
 				sitm=TranslatorSourceLang(language,code)
-				if code == src_lang:
+				if code == self.src_lang:
 					sitm.SetMarked(True)
 				self.msl.AddItem(sitm)
 				titm=TranslatorTargetLang(language,code)
-				if code == trans_lang:
+				if code == self.trans_lang:
 					titm.SetMarked(True)
 				self.mtl.AddItem(titm)
 			self.src_langs=BMenuField(nr, 'src_pop', 'Source language:', self.msl,B_FOLLOW_RIGHT)
 			self.trg_langs=BMenuField(BRect(4,self.esb_rect.Height()/2-nr.Height()/2,self.esb_rect.Width()-4,self.esb_rect.Height()/2+4+nr.Height()/2), 'target_pop', 'Target language:', self.mtl,B_FOLLOW_RIGHT)
-			self.traduttore = Traduttore(source=src_lang, target=trans_lang)
+			self.traduttore = self.Traduttore(source=self.src_lang, target=self.trans_lang)
 			self.gotrans=BButton(BRect(4,self.esb_rect.Height()-nr.Height()-4,self.esb_rect.Width()-4,self.esb_rect.Height()-4),'TranslateBtn','Translate',BMessage(909),B_FOLLOW_BOTTOM|B_FOLLOW_RIGHT)
 			self.esbox.AddChild(self.gotrans,None)
 			self.esbox.AddChild(self.src_langs,None)
@@ -4517,19 +4517,21 @@ class MainWindow(BWindow):
 			if self.sourcestrings.lv.CountItems()>0:
 				self.fp.Show()
 		elif msg.what == 800:
-			src_lang = msg.FindString("code")
+			self.src_lang = msg.FindString("code")
 			ent,confile=Ent_config()
 			cfgfile = open(confile,'w')
-			Config.set('Translator','src_lang', src_lang)
+			Config.set('Translator','src_lang', self.src_lang)
 			Config.write(cfgfile)
 			cfgfile.close()
+			self.traduttore = self.Traduttore(source=self.src_lang, target=self.trans_lang)
 		elif msg.what == 900:
-			trans_lang = msg.FindString("code")
+			self.trans_lang = msg.FindString("code")
 			ent,confile=Ent_config()
 			cfgfile = open(confile,'w')
-			Config.set('Translator','trans_lang', trans_lang)
+			Config.set('Translator','trans_lang', self.trans_lang)
 			Config.write(cfgfile)
 			cfgfile.close()
+			self.traduttore = self.Traduttore(source=self.src_lang, target=self.trans_lang)
 		elif msg.what == 909:
 			self.es_trans.SetText(self.traduttore.translate(text=self.es_src.Text()),None)
 		elif msg.what == 735157:
