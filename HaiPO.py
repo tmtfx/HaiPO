@@ -958,6 +958,7 @@ class EventTextView(BTextView):
 		try:
 			arrow=False
 			ochar=ord(char)
+			print(ochar)
 			if ochar in (B_DOWN_ARROW,B_UP_ARROW,B_PAGE_UP,B_PAGE_DOWN,10,48,49,50,51,52,53,54,55,56,57): #B_ENTER =10?
 				self.superself.sem.acquire()
 				value=self.superself.modifier #CTRL pressed
@@ -1047,7 +1048,7 @@ class EventTextView(BTextView):
 						return
 					return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 48:
-					if value:
+					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",9)
 						be_app.WindowAt(0).PostMessage(cpmsg)
@@ -1055,7 +1056,7 @@ class EventTextView(BTextView):
 					else:
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 49:
-					if value:
+					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",0)
 						be_app.WindowAt(0).PostMessage(cpmsg)
@@ -1063,7 +1064,7 @@ class EventTextView(BTextView):
 					else:
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 50:
-					if value:
+					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",1)
 						be_app.WindowAt(0).PostMessage(cpmsg)
@@ -1071,7 +1072,7 @@ class EventTextView(BTextView):
 					else:
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 51:
-					if value:
+					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",2)
 						be_app.WindowAt(0).PostMessage(cpmsg)
@@ -1079,7 +1080,7 @@ class EventTextView(BTextView):
 					else:
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 52:
-					if value:
+					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",3)
 						be_app.WindowAt(0).PostMessage(cpmsg)
@@ -1087,7 +1088,7 @@ class EventTextView(BTextView):
 					else:
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 53:
-					if value:
+					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",4)
 						be_app.WindowAt(0).PostMessage(cpmsg)
@@ -1095,7 +1096,7 @@ class EventTextView(BTextView):
 					else:
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 54:
-					if value:
+					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",5)
 						be_app.WindowAt(0).PostMessage(cpmsg)
@@ -1103,7 +1104,7 @@ class EventTextView(BTextView):
 					else:
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 55:
-					if value:
+					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",6)
 						be_app.WindowAt(0).PostMessage(cpmsg)
@@ -1111,7 +1112,7 @@ class EventTextView(BTextView):
 					else:
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 56:
-					if value:
+					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",7)
 						be_app.WindowAt(0).PostMessage(cpmsg)
@@ -1119,7 +1120,7 @@ class EventTextView(BTextView):
 					else:
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 57:
-					if value:
+					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",8)
 						be_app.WindowAt(0).PostMessage(cpmsg)
@@ -1189,6 +1190,13 @@ class EventTextView(BTextView):
 							return
 					elif ochar in [B_LEFT_ARROW,B_RIGHT_ARROW,B_DOWN_ARROW,B_UP_ARROW]:
 						arrow=True
+					elif ochar == 116:
+						self.superself.sem.acquire()
+						value=self.superself.shortcut #CTRL SHIFT pressed
+						self.superself.sem.release()
+						if value:
+							self.superself.switcher()
+							return
 					BTextView.KeyDown(self,char,bytes)
 					if self.oldtext != self.Text():
 						thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
