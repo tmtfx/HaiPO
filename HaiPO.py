@@ -958,7 +958,6 @@ class EventTextView(BTextView):
 		try:
 			arrow=False
 			ochar=ord(char)
-			print(ochar)
 			if ochar in (B_DOWN_ARROW,B_UP_ARROW,B_PAGE_UP,B_PAGE_DOWN,10,48,49,50,51,52,53,54,55,56,57): #B_ENTER =10?
 				self.superself.sem.acquire()
 				value=self.superself.modifier #CTRL pressed
@@ -1400,7 +1399,6 @@ class TranslatorTextView(BTextView):
 		self.superself=superself
 	def KeyDown(self,char,bytes):
 		ochar=ord(char)
-		print(ochar)
 		if self.superself.shortcut:
 			if ochar == 116: #ctrl+shift+t
 				self.superself.switcher()
@@ -2607,10 +2605,14 @@ class SpellcheckSettings(BWindow):
 			try:
 				if self.es_enabler.Value():
 					ext_sup=True
+					if not Config.has_section('Translator'):
+						Config.add_section('Translator')						
 					Config.set('Translator','es_enabled', "True")
 					Config.write(cfgfile)
 				else:
 					ext_sup=False
+					if not Config.has_section('Translator'):
+						Config.add_section('Translator')	
 					Config.set('Translator','es_enabled', "False")
 					Config.write(cfgfile)
 			except:
@@ -2624,6 +2626,8 @@ class SpellcheckSettings(BWindow):
 			cfgfile = open(confile,'w')
 			try:
 				name=msg.FindString("name")
+				if not Config.has_section('Translator'):
+					Config.add_section('Translator')	
 				engine=name
 				Config.set('Translator','engine', name)
 				Config.write(cfgfile)
@@ -2640,6 +2644,8 @@ class SpellcheckSettings(BWindow):
 				Config.read(confile)
 				cfgfile = open(confile,'w')
 				try:
+					if not Config.has_section('Translator'):
+						Config.add_section('Translator')	
 					Config.set("Translator",'spell_dictionary',self.diz.Text())
 				except:
 					say = BAlert("error_name_path", "Cannot save dictionary name path", 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_STOP_ALERT)
@@ -2656,6 +2662,8 @@ class SpellcheckSettings(BWindow):
 			Config.read(confile)
 			cfgfile = open(confile,'w')
 			try:
+				if not Config.has_section('Translator'):
+					Config.add_section('Translator')	
 				Config.set("Translator",'spell_inclusion',self.inclus.Text())
 				Config.write(cfgfile)
 			except:
@@ -2671,6 +2679,8 @@ class SpellcheckSettings(BWindow):
 			Config.read(confile)
 			cfgfile = open(confile,'w')
 			try:
+				if not Config.has_section('Translator'):
+					Config.add_section('Translator')	
 				Config.set("Translator",'spell_esclusion',self.esclus.Text())
 				Config.write(cfgfile)
 			except:
@@ -3331,9 +3341,7 @@ class MainWindow(BWindow):
 				try:
 					Config.read(confile)
 					ext_sup=Config.getboolean('Translator', 'es_enabled')
-					print("rilevato ext_sup",ext_sup)
 				except:
-					print("errore nel recuperare ext_sup")
 					cfgfile = open(confile,'w')
 					Config.set('Translator','es_enabled', 'False')
 					Config.write(cfgfile)
@@ -3881,7 +3889,6 @@ class MainWindow(BWindow):
 					self.bckgnd.Hide()
 					self.overbox.Show()
 			else:
-				print("apro pot")
 				langlist=[]
 				for i in self.overbox.acceptedlang.lv.Items():
 					langlist.append((i.txt,i.iso))
@@ -4335,7 +4342,6 @@ class MainWindow(BWindow):
 		
 	def curtain_roller(self,up_down):
 		x=self.esb_rect.Height()
-		print("altezza riquadro",x)
 		while x>0:
 			curt=BMessage(2363)
 			curt.AddBool("dir",up_down)
@@ -4377,28 +4383,23 @@ class MainWindow(BWindow):
 	def MessageReceived(self, msg):
 		if msg.what == B_MODIFIERS_CHANGED:
 			value=msg.FindInt32("modifiers")
-			print(value)
 			self.sem.acquire()
 			if value==self.modifiervalue or value==self.modifiervalue+8 or value ==self.modifiervalue+32 or value ==self.modifiervalue+40:
 				#"modificatore"
-				print("è modificatore")
 				self.modifier=True
 				self.shortcut = False
 			elif value == self.modifiervalue+257 or value==self.modifiervalue+265 or value==self.modifiervalue+289 or value == self.modifiervalue+297:
 				#"scorciatoia"
-				print("è scorciatoia")
 				self.shortcut = True
 				self.modifier = False
 			else:
 				#"altro"
-				print("è altro")
 				self.modifier=False
 				self.shortcut=False
 			self.sem.release()
 			return
 		elif msg.what == B_KEY_DOWN:	#on tab key pressed, focus on translation or translation of first item list of translations
 			key=msg.FindInt32('key')
-			print(key)
 			if key==38: #tab key
 				if self.sourcestrings.lv.CurrentSelection()>-1:
 					self.listemsgstr[self.transtabview.Selection()].trnsl.MakeFocus() ########### LOOK HERE 
