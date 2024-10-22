@@ -2729,7 +2729,7 @@ class HeaderWindow(BWindow):
 		bckpmsg.AddInt8('savetype',4)
 		bckpmsg.AddString('header',self.headerview.Text())
 		bckpmsg.AddString('bckppath',self.backupfile)
-		BApplication.be_app.WindowAt(0).PostMessage(bckpmsg)
+		be_app.WindowAt(0).PostMessage(bckpmsg)
 
 	def MessageReceived(self, msg):
 		if msg.what == 5252:
