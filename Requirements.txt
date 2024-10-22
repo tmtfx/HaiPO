@@ -15,4 +15,4 @@ pips:
 	rapidfuzz
 	scikit-build [file to patch with skbuild.patch /boot/system/non-packaged/lib/python3.10/site-packages/skbuild/platform_specifics/platform_factory.py]
 	Levenshtein [python3 setup.py install, but if you are on x86 haiku, do a "setarch x86" before running the command]
-	?translate? <---maybe not...
+	deep-translator
