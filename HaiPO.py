@@ -26,79 +26,10 @@ from Be.Architecture import get_architecture
 import configparser,struct,threading,os,polib,re,datetime,time,codecs,encodings
 import enchant
 import pickle,socket,os,sys,html,subprocess,tempfile
-#global skbuild_patch,Levensh_script1,Levensh_script2,patch_script,transtool_script
-##################################################################
-#skbuild_patch = """
-#38c38
-#<     if this_platform in {"freebsd", "netbsd", "os400", "openbsd"}:
-#---
-#>     if this_platform in {"freebsd", "netbsd", "os400", "openbsd", "haiku"}:
-#
-#    """
-##################################################################
-#Levensh_script1 = """
-##!/bin/bash
-#cd /boot/system/var/shared_memory
-#pip install rapidfuzz
-#ret=$?
-#if [ $ret -lt 1 ]
-#then
-#	echo "rapidfuzz done!"
-#else
-#	wget https://files.pythonhosted.org/packages/17/ac/1f1bf726645d7740df2d1371380e35098bb8a460f482343cba1dd1668ab6/rapidfuzz-3.9.7.tar.gz
-#	tar -xvzf rapidfuzz-3.9.7.tar.gz
-#	cd rapidfuzz-3.9.7
-#	python3 setup.py install
-#	ret15=$?
-#	cd -
-#	rm -rf rapidfuzz-3.9.7
-#	rm -f rapidfuzz-3.9.7.tar.gz
-#fi
-#pip install scikit-build
-#"""
-##################################################################
-##skbuild.patch
-#patch_script = """
-##!/bin/bash
-#patch /boot/system/non-packaged/lib/python3.10/site-packages/skbuild/platform_specifics/platform_factory.py $1
-#"""
-##################################################################
-#Levensh_script2 = """
-##!/bin/bash
-#cd /boot/system/var/shared_memory
-#wget https://files.pythonhosted.org/packages/56/4b/9ca0071caba0ebe3dac4f9c97086f2cc07d1b908a97da26330c6ddbb0174/Levenshtein-0.25.1.tar.gz
-#tar -xvzf Levenshtein-0.25.1.tar.gz
-#cd Levenshtein-0.25.1
-#python3 setup.py install
-#cd ..
-#rm -rf Levenshtein-0.25.1
-#rm -f Levenshtein-0.25.1.tar.gz
-#    """
-	
-#transtool_script = """
-##!/bin/bash
-#cd /boot/system/var/shared_memory
-#pip install translate-toolkit
-#pip install deep-translator
-#    """
-##################################################################
-#global executett,executelv
-#executett=False
+
 from translate.storage.tmx import tmxfile
 from translate.tools import junitmsgfmt
 from Levenshtein import distance as lev
-#try:
-#	from translate.storage.tmx import tmxfile
-#	#### this one below is a replacement for popen di msgfmt ####
-#	from translate.tools import junitmsgfmt
-#except:
-#	executett=True
-
-#executelv=False
-#try:
-#	from Levenshtein import distance as lev
-#except:
-#	executelv=True
 
 from distutils.spawn import find_executable
 import socket,pickle,unicodedata
@@ -3006,108 +2937,6 @@ class POTchooser(BWindow):
 			self.Quit()
 		BWindow.MessageReceived(self,msg)
 
-class Installer(BWindow):
-	kWindowFrame = BRect(150, 150, 1280, 600)
-	kWindowName = "Installer"
-	Wins=[]
-	def __init__(self,commands):
-		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_TITLED_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
-		bounds=self.Bounds()
-		#self.seg=threading.Semaphore()
-		self.waitfor=False
-		self.event= threading.Event()
-		self.commands=commands
-		ix=bounds.left
-		iy=bounds.top
-		fx=bounds.right
-		fy=bounds.bottom
-		self.underframe= BBox(bounds, 'underframe', B_FOLLOW_ALL_SIDES, B_WILL_DRAW|B_NAVIGABLE, B_NO_BORDER)
-		self.AddChild(self.underframe,None)
-		self.stdout=BTextView(BRect(4,4,fx/2-4,fy-50),"stdout",BRect(4,4,fx/2-12,fy-48),B_FOLLOW_ALL_SIDES)
-		self.stderr=BTextView(BRect(fx/2+4,4,fx+4,fy-50),"stderr",BRect(fx/2+4,4,fx-12,fy-48),B_FOLLOW_ALL_SIDES)
-		self.underframe.AddChild(self.stdout,None)
-		self.underframe.AddChild(self.stderr,None)
-		
-	def Start(self):
-		for command in self.commands:
-			if command[0] == 0:
-				self.executer(command[1])
-			elif command[0] == 1:
-				self.patcher(command[1],command[2])
-		xms=BMessage(571007)
-		xms.AddString('stdout',"____________________________________\nAll the installer scripts has been launched, wait for the program to close by itself")
-		be_app.WindowAt(0).PostMessage(xms)
-		say = BAlert('Info', 'All the installer scripts has been launched, relaunch the app', 'Ok', None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_INFO_ALERT)
-		self.Wins.append(say)
-		ret=say.Go()
-		if ret==0:
-			be_app.WindowAt(0).PostMessage(B_QUIT_REQUESTED)
-			be_app.PostMessage(B_QUIT_REQUESTED)
-		
-	def executer(self,script):
-		with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_file:
-			temp_filename = temp_file.name
-			# Write the script in the temporary file
-			temp_file.write(script)
-		try:
-			# make it executable
-			os.chmod(temp_filename, 0o755)
-			result = subprocess.run(['/bin/bash', temp_filename], 
-									check=True, 
-									capture_output=True, 
-									text=True)
-			xms=BMessage(571007)
-			xms.AddString('stdout',"____________________________________\nScript output:\n"+result.stdout)
-			be_app.WindowAt(0).PostMessage(xms)
-			if result.stderr:
-				ems=BMessage(5710344)
-				ems.AddString('stderr',"____________________________________\nErrors:\n"+result.stderr)
-				be_app.WindowAt(0).PostMessage(ems)
-		except subprocess.CalledProcessError as e:
-			print(f"Errore nell'esecuzione dello script: {e}")
-		finally:
-			# Remove temporary file
-			os.unlink(temp_filename)
-
-	def patcher(self,script,patch):
-		with tempfile.NamedTemporaryFile(mode='w+', delete=False) as patch_file:
-			patch_filename = patch_file.name
-			# Write the patch in the temporary file
-			patch_file.write(patch)
-		with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_file:
-			temp_filename = temp_file.name
-			# Write the script in the temporary file
-			temp_file.write(script)
-		try:
-			result = subprocess.run(['/bin/bash', temp_filename, patch_filename], 
-									check=True, 
-									capture_output=True, 
-									text=True)
-			xms=BMessage(571007)
-			xms.AddString('stdout',"____________________________________\nPatch script output:\n"+result.stdout)
-			be_app.WindowAt(0).PostMessage(xms)
-			if result.stderr:
-				ems=BMessage(5710344)
-				ems.AddString('stderr',"____________________________________\nPatch error:\n"+result.stderr)
-				be_app.WindowAt(0).PostMessage(ems)
-		except subprocess.CalledProcessError as e:
-			print(f"Errore nell'esecuzione dello script: {e}")
-		finally:
-			# Remove temporary file
-			os.unlink(temp_filename)
-			os.unlink(patch_filename)
-	def MessageReceived(self, msg):
-		if msg.what==574:
-			Thread(target=self.Start).start()
-		elif msg.what == 571007:
-			self.stdout.SetText(self.stdout.Text()+msg.FindString('stdout'),None)
-			self.stdout.Select(self.stdout.TextLength(),self.stdout.TextLength())
-			self.stdout.ScrollToSelection()
-		elif msg.what == 5710344:
-			self.stderr.SetText(self.stderr.Text()+msg.FindString('stderr'),None)
-			self.stderr.Select(self.stderr.TextLength(),self.stderr.TextLength())
-			self.stderr.ScrollToSelection()
-		BWindow.MessageReceived(self,msg)
 class MainWindow(BWindow):
 	alerts=[]
 	sugjs=[]
@@ -5950,30 +5779,6 @@ class App(BApplication):
 		else:
 			self.poeditor=MainWindow(self.realargs[0])
 		self.poeditor.Show()
-		#self.commands=[]
-		#if executett:
-		#	self.commands.append((0,transtool_script))
-		#if executelv:
-		#	self.commands.append((0,Levensh_script1))
-		#	self.commands.append((1,patch_script,skbuild_patch))
-		#	self.commands.append((0,Levensh_script2))
-		#if len(self.commands)>0:
-		#	self.installer=Installer(self.commands)
-		#	self.installer.Show()
-		#	#self.installer.Start()
-		#	be_app.WindowAt(0).PostMessage(574)
-		#else:
-		#	if len(self.realargs) == 0:
-		#		#self.Wins.append(MainWindow(""))
-		#		#self.Wins[-1].Show()
-		#		self.poeditor=MainWindow("")
-		#		self.poeditor.Show()
-		#	else:
-		#		#for i in self.realargs:
-		#		#	self.Wins.append(MainWindow(i))
-		#		#	self.Wins[-1].Show()
-		#		self.poeditor=MainWindow(self.realargs[0])
-		#		self.poeditor.Show()
 	def ArgvReceived(self,num,args):
 		realargs=args
 		if args[1][-8:]=="HaiPO.py" or args[1][-5:]=="HaiPO":
@@ -6013,7 +5818,6 @@ class App(BApplication):
 			return
 		BApplication.MessageReceived(self,msg)
 	def Pulse(self):
-		#if len(self.commands)==0:
 			be_app.WindowAt(0).PostMessage(BMessage(66))
 
 def main():
@@ -6023,10 +5827,3 @@ def main():
  
 if __name__ == "__main__":
     main()
-	
-#TODO:
-#opening a pot and generating a po, remember to:
-#- set self.name
-#- set self.percors
-#- set backupfile
-#- set Window Title
