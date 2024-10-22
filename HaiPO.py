@@ -36,7 +36,7 @@ import socket,pickle,unicodedata
 from threading import Thread
 from babel import Locale
 
-version='HaiPO 2.1 beta'
+version='HaiPO 2.2 beta'
 (appname,ver,state)=version.split(' ')
 
 Config=configparser.ConfigParser()
