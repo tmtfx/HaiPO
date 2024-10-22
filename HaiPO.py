@@ -2405,6 +2405,8 @@ class TransEngine(BMenuItem):
 		msg=BMessage(600)
 		msg.AddString("name",self.name)
 		BMenuItem.__init__(self,self.name,msg,self.name[0],0)
+		if self.name != "GoogleTranslator":
+			self.SetEnabled(False)
 
 class TranslatorSourceLang(BMenuItem):
 	def __init__(self,name,code):
