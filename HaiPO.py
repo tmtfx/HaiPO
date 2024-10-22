@@ -26,64 +26,64 @@ from Be.Architecture import get_architecture
 import configparser,struct,threading,os,polib,re,datetime,time,codecs,encodings
 import enchant
 import pickle,socket,os,sys,html,subprocess,tempfile
-global skbuild_patch,Levensh_script1,Levensh_script2,patch_script,transtool_script
-#################################################################
-skbuild_patch = """
-38c38
-<     if this_platform in {"freebsd", "netbsd", "os400", "openbsd"}:
----
->     if this_platform in {"freebsd", "netbsd", "os400", "openbsd", "haiku"}:
-
-    """
-#################################################################
-Levensh_script1 = """
-#!/bin/bash
-cd /boot/system/var/shared_memory
-pip install rapidfuzz
-ret=$?
-if [ $ret -lt 1 ]
-then
-	echo "rapidfuzz done!"
-else
-	wget https://files.pythonhosted.org/packages/17/ac/1f1bf726645d7740df2d1371380e35098bb8a460f482343cba1dd1668ab6/rapidfuzz-3.9.7.tar.gz
-	tar -xvzf rapidfuzz-3.9.7.tar.gz
-	cd rapidfuzz-3.9.7
-	python3 setup.py install
-	ret15=$?
-	cd -
-	rm -rf rapidfuzz-3.9.7
-	rm -f rapidfuzz-3.9.7.tar.gz
-fi
-pip install scikit-build
-"""
-#################################################################
-#skbuild.patch
-patch_script = """
-#!/bin/bash
-patch /boot/system/non-packaged/lib/python3.10/site-packages/skbuild/platform_specifics/platform_factory.py $1
-"""
-#################################################################
-Levensh_script2 = """
-#!/bin/bash
-cd /boot/system/var/shared_memory
-wget https://files.pythonhosted.org/packages/56/4b/9ca0071caba0ebe3dac4f9c97086f2cc07d1b908a97da26330c6ddbb0174/Levenshtein-0.25.1.tar.gz
-tar -xvzf Levenshtein-0.25.1.tar.gz
-cd Levenshtein-0.25.1
-python3 setup.py install
-cd ..
-rm -rf Levenshtein-0.25.1
-rm -f Levenshtein-0.25.1.tar.gz
-    """
+#global skbuild_patch,Levensh_script1,Levensh_script2,patch_script,transtool_script
+##################################################################
+#skbuild_patch = """
+#38c38
+#<     if this_platform in {"freebsd", "netbsd", "os400", "openbsd"}:
+#---
+#>     if this_platform in {"freebsd", "netbsd", "os400", "openbsd", "haiku"}:
+#
+#    """
+##################################################################
+#Levensh_script1 = """
+##!/bin/bash
+#cd /boot/system/var/shared_memory
+#pip install rapidfuzz
+#ret=$?
+#if [ $ret -lt 1 ]
+#then
+#	echo "rapidfuzz done!"
+#else
+#	wget https://files.pythonhosted.org/packages/17/ac/1f1bf726645d7740df2d1371380e35098bb8a460f482343cba1dd1668ab6/rapidfuzz-3.9.7.tar.gz
+#	tar -xvzf rapidfuzz-3.9.7.tar.gz
+#	cd rapidfuzz-3.9.7
+#	python3 setup.py install
+#	ret15=$?
+#	cd -
+#	rm -rf rapidfuzz-3.9.7
+#	rm -f rapidfuzz-3.9.7.tar.gz
+#fi
+#pip install scikit-build
+#"""
+##################################################################
+##skbuild.patch
+#patch_script = """
+##!/bin/bash
+#patch /boot/system/non-packaged/lib/python3.10/site-packages/skbuild/platform_specifics/platform_factory.py $1
+#"""
+##################################################################
+#Levensh_script2 = """
+##!/bin/bash
+#cd /boot/system/var/shared_memory
+#wget https://files.pythonhosted.org/packages/56/4b/9ca0071caba0ebe3dac4f9c97086f2cc07d1b908a97da26330c6ddbb0174/Levenshtein-0.25.1.tar.gz
+#tar -xvzf Levenshtein-0.25.1.tar.gz
+#cd Levenshtein-0.25.1
+#python3 setup.py install
+#cd ..
+#rm -rf Levenshtein-0.25.1
+#rm -f Levenshtein-0.25.1.tar.gz
+#    """
 	
-transtool_script = """
-#!/bin/bash
-cd /boot/system/var/shared_memory
-pip install translate-toolkit
-pip install deep-translator
-    """
-#################################################################
-global executett,executelv
-executett=False
+#transtool_script = """
+##!/bin/bash
+#cd /boot/system/var/shared_memory
+#pip install translate-toolkit
+#pip install deep-translator
+#    """
+##################################################################
+#global executett,executelv
+#executett=False
 from translate.storage.tmx import tmxfile
 from translate.tools import junitmsgfmt
 from Levenshtein import distance as lev
@@ -94,7 +94,7 @@ from Levenshtein import distance as lev
 #except:
 #	executett=True
 
-executelv=False
+#executelv=False
 #try:
 #	from Levenshtein import distance as lev
 #except:
@@ -5945,30 +5945,35 @@ class App(BApplication):
 		self.Wins=[]
 		self.SetPulseRate(1000000)
 	def ReadyToRun(self):
-		self.commands=[]
-		if executett:
-			self.commands.append((0,transtool_script))
-		if executelv:
-			self.commands.append((0,Levensh_script1))
-			self.commands.append((1,patch_script,skbuild_patch))
-			self.commands.append((0,Levensh_script2))
-		if len(self.commands)>0:
-			self.installer=Installer(self.commands)
-			self.installer.Show()
-			#self.installer.Start()
-			be_app.WindowAt(0).PostMessage(574)
+		if len(self.realargs) == 0:
+			self.poeditor=MainWindow("")
 		else:
-			if len(self.realargs) == 0:
-				#self.Wins.append(MainWindow(""))
-				#self.Wins[-1].Show()
-				self.poeditor=MainWindow("")
-				self.poeditor.Show()
-			else:
-				#for i in self.realargs:
-				#	self.Wins.append(MainWindow(i))
-				#	self.Wins[-1].Show()
-				self.poeditor=MainWindow(self.realargs[0])
-				self.poeditor.Show()
+			self.poeditor=MainWindow(self.realargs[0])
+		self.poeditor.Show()
+		#self.commands=[]
+		#if executett:
+		#	self.commands.append((0,transtool_script))
+		#if executelv:
+		#	self.commands.append((0,Levensh_script1))
+		#	self.commands.append((1,patch_script,skbuild_patch))
+		#	self.commands.append((0,Levensh_script2))
+		#if len(self.commands)>0:
+		#	self.installer=Installer(self.commands)
+		#	self.installer.Show()
+		#	#self.installer.Start()
+		#	be_app.WindowAt(0).PostMessage(574)
+		#else:
+		#	if len(self.realargs) == 0:
+		#		#self.Wins.append(MainWindow(""))
+		#		#self.Wins[-1].Show()
+		#		self.poeditor=MainWindow("")
+		#		self.poeditor.Show()
+		#	else:
+		#		#for i in self.realargs:
+		#		#	self.Wins.append(MainWindow(i))
+		#		#	self.Wins[-1].Show()
+		#		self.poeditor=MainWindow(self.realargs[0])
+		#		self.poeditor.Show()
 	def ArgvReceived(self,num,args):
 		realargs=args
 		if args[1][-8:]=="HaiPO.py" or args[1][-5:]=="HaiPO":
@@ -6008,7 +6013,7 @@ class App(BApplication):
 			return
 		BApplication.MessageReceived(self,msg)
 	def Pulse(self):
-		if len(self.commands)==0:
+		#if len(self.commands)==0:
 			be_app.WindowAt(0).PostMessage(BMessage(66))
 
 def main():
