@@ -84,27 +84,21 @@ pip install deep-translator
 #################################################################
 global executett,executelv
 executett=False
-try:
-	from translate.storage.tmx import tmxfile
-	#### this one below is a replacement for popen di msgfmt ####
-	from translate.tools import junitmsgfmt
-except:
-	executett=True
-#if executett:
-#	executer(transtool_script)
+from translate.storage.tmx import tmxfile
+from translate.tools import junitmsgfmt
+from Levenshtein import distance as lev
+#try:
+#	from translate.storage.tmx import tmxfile
+#	#### this one below is a replacement for popen di msgfmt ####
+#	from translate.tools import junitmsgfmt
+#except:
+#	executett=True
 
 executelv=False
-try:
-	from Levenshtein import distance as lev
-except:
-	executelv=True
-#if executelv:
-#	#first part installation
-#	executer(Levensh_script1)
-#	#patch
-#	patcher(patch_script,skbuild_patch)
-#	#second part installation
-#	executer(Levensh_script2)
+#try:
+#	from Levenshtein import distance as lev
+#except:
+#	executelv=True
 
 from distutils.spawn import find_executable
 import socket,pickle,unicodedata
