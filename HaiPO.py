@@ -772,23 +772,38 @@ class EventTextView(BTextView):
 		self.superself.progressinfo.Update(1,None,str(self.superself.pofile.percent_translated())+"%")
 
 	def checklater(self,name,oldtext,indexBlistitem):
-			mes=BMessage(112118)
-			mes.AddInt32('indexBlistitem',indexBlistitem)
-			mes.AddString('oldtext',oldtext)
-			self.event.wait(0.1)
-			be_app.WindowAt(0).PostMessage(mes)
+		mes=BMessage(112118)
+		mes.AddInt32('indexBlistitem',indexBlistitem)
+		mes.AddString('oldtext',oldtext)
+		self.event.wait(0.1)
+		be_app.WindowAt(0).PostMessage(mes)
+	def undropper(self):
+		self.event.wait(0.1)
+		be_app.WindowAt(0).PostMessage(BMessage(113119))
 
 	def MouseUp(self,point):
-		self.superself.drop.acquire()
-		if self.dragndrop:
-			indexBlistitem=self.superself.sourcestrings.lv.CurrentSelection()
-			name=time.time()
-			BTextView.MouseUp(self,point)
-			Thread(target=self.checklater,args=(str(name), self.Text(),indexBlistitem)).start()
-			self.dragndrop = False
-			self.superself.drop.release()
-			return
-		self.superself.drop.release()
+		#self.superself.drop.acquire()
+		#if self.dragndrop: #//NON VIENE MAI ESEGUITO è sempre FALSE
+		##	indexBlistitem=self.superself.sourcestrings.lv.CurrentSelection()
+		##	name=time.time()
+		##	BTextView.MouseUp(self,point)
+		##	Thread(target=self.checklater,args=(str(name), self.Text(),indexBlistitem)).start()
+	#		self.dragndrop = False
+	#		lngth=self.TextLength()
+	#		print("lngth:",lngth)
+	#		self.Select(lngth,lngth)
+	#		self.ScrollToSelection()
+	#		self.MakeFocus()
+	#	self.superself.drop.release()
+	#	#	
+	#	#	ubi1,ubi2=self.GetSelection()
+	#	#	print("selezione:",ubi1,ubi2)
+	#	#	#lngth=self.TextLength()
+	#	#	self.Select(ubi2,ubi2)
+	#	#	self.ScrollToSelection()
+	#	#	self.MakeFocus()
+	#	#	return
+	#	#self.superself.drop.release()
 		if showspell:
 			self.superself.sem.acquire()
 			self.mod=self.superself.modifier
@@ -837,12 +852,16 @@ class EventTextView(BTextView):
 		return BTextView.MouseUp(self,point)
 
 	def MessageReceived(self, msg):
+		#msg.PrintToStream()
 		if msg.what in [B_CUT,B_PASTE]:
 			thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
 			thisBlistitem.tosave=True
 			self.tosave=True
 			be_app.WindowAt(0).PostMessage(333111)
 		elif msg.what == self.dragmsg:
+			#print("c\'è un drag&drop")
+			Thread(target=self.undropper).start()
+			
 			indexBlistitem=self.superself.sourcestrings.lv.CurrentSelection()
 			name=time.time()
 			self.checklater(str(name), self.Text(),indexBlistitem)
@@ -5202,6 +5221,12 @@ class MainWindow(BWindow):
 			self.intime=time.time()
 			self.speloc.release()
 			return
+		elif msg.what == 113119:
+			ubi1,ubi2=self.listemsgstr[self.transtabview.Selection()].trnsl.GetSelection()
+			if ubi1!=ubi2:
+				self.listemsgstr[self.transtabview.Selection()].trnsl.Select(ubi2,ubi2)
+			self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
+			self.listemsgstr[self.transtabview.Selection()].trnsl.MakeFocus()
 		elif msg.what == 130550: # change listview selection
 			movetype=msg.FindInt8('movekind')
 			if tm:
@@ -5708,6 +5733,7 @@ class MainWindow(BWindow):
 										lung1=len(message[0])
 										lung2=round(lung1*0.75,0)
 										delta=lung1-lung2+1
+										print("file dizionario:",ftmx)
 										with open(ftmx, 'rb') as fin:
 											tmx_file = tmxfile(fin, "en", self.tmxlang)
 											for node in tmx_file.unit_iter():
