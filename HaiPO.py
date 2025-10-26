@@ -5752,6 +5752,7 @@ class MainWindow(BWindow):
 										des.write("  </body>\n</tmx>\n")
 										#des.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE tmx SYSTEM \"tmx14.dtd\">\n<tmx version=\"1.4\">\n  <header creationtool=\"Translate Toolkit\" creationtoolversion=\"3.8.0\" segtype=\"sentence\" o-tmf=\"UTF-8\" adminlang=\"en\" srclang=\"en\" datatype=\"PlainText\"/>\n  <body>\n")
 										#des.write("  </body>\n</tmx>\n")
+					#print("quit from keeper of the loop")
 				except KeyboardInterrupt:
 					server_socket.close()
 					print("interrotto dall'utente")
@@ -5762,10 +5763,13 @@ class MainWindow(BWindow):
 		print("Server closed")
 		
 	def QuitRequested(self):
+		# Note: this strange kind of QuitRequest is the only one which does not request a double free
+		# of this BWindow (don't know why). The actual Quit is done through be_app O_O'
 		self.keeperoftheloop = False
 		Thread(target=self.tmcommunicate,args=(None,)).start()
-		be_app.PostMessage(B_QUIT_REQUESTED)
-		return BWindow.QuitRequested(self)
+		self.event.wait(0.2)
+		be_app.Quit()
+		
 
 def save_db(old_ftmx,tmp_ftmx,ftmx):
 	e=BEntry(old_ftmx)
