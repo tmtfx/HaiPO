@@ -36,7 +36,7 @@ import socket,pickle,unicodedata
 from threading import Thread
 from babel import Locale
 
-version='HaiPO 2.2 beta'
+version='HaiPO 2.3 beta'
 (appname,ver,state)=version.split(' ')
 
 Config=configparser.ConfigParser()
@@ -902,7 +902,7 @@ class EventTextView(BTextView):
 		try:
 			arrow=False
 			ochar=ord(char)
-			print(ochar)
+			#print(ochar)
 			if ochar in (B_DOWN_ARROW,B_UP_ARROW,B_PAGE_UP,B_PAGE_DOWN,10,48,49,50,51,52,53,54,55,56,57): #B_ENTER =10?
 				self.superself.sem.acquire()
 				value=self.superself.modifier #CTRL pressed
