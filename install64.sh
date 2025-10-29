@@ -110,7 +110,8 @@ then
 else
 	ret19=1
 fi
-
+pip install polib
+ret20=$?
 if [ $ret1 -lt 1 ]
 then
 	echo "Installation of pip for python310 OK"
@@ -225,4 +226,9 @@ then
 else
 	echo "Installation of Levenshtein for python FAILED"
 fi
-
+if [ $ret20 -lt 1 ]
+then
+	echo "Installation of polib for python OK"
+else
+	echo "Installation of polib for python FAILED"
+fi
