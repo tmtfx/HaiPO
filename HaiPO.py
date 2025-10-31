@@ -998,6 +998,8 @@ class EventTextView(BTextView):
 						be_app.WindowAt(0).PostMessage(cpmsg)
 						return
 					else:
+						if not value:
+							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 49:
 					if shrtctvalue:
@@ -1006,6 +1008,8 @@ class EventTextView(BTextView):
 						be_app.WindowAt(0).PostMessage(cpmsg)
 						return
 					else:
+						if not value:
+							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 50:
 					if shrtctvalue:
@@ -1014,6 +1018,8 @@ class EventTextView(BTextView):
 						be_app.WindowAt(0).PostMessage(cpmsg)
 						return
 					else:
+						if not value:
+							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 51:
 					if shrtctvalue:
@@ -1022,6 +1028,8 @@ class EventTextView(BTextView):
 						be_app.WindowAt(0).PostMessage(cpmsg)
 						return
 					else:
+						if not value:
+							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 52:
 					if shrtctvalue:
@@ -1030,6 +1038,8 @@ class EventTextView(BTextView):
 						be_app.WindowAt(0).PostMessage(cpmsg)
 						return
 					else:
+						if not value:
+							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 53:
 					if shrtctvalue:
@@ -1038,6 +1048,8 @@ class EventTextView(BTextView):
 						be_app.WindowAt(0).PostMessage(cpmsg)
 						return
 					else:
+						if not value:
+							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 54:
 					if shrtctvalue:
@@ -1046,6 +1058,8 @@ class EventTextView(BTextView):
 						be_app.WindowAt(0).PostMessage(cpmsg)
 						return
 					else:
+						if not value:
+							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 55:
 					if shrtctvalue:
@@ -1054,6 +1068,8 @@ class EventTextView(BTextView):
 						be_app.WindowAt(0).PostMessage(cpmsg)
 						return
 					else:
+						if not value:
+							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 56:
 					if shrtctvalue:
@@ -1062,6 +1078,8 @@ class EventTextView(BTextView):
 						be_app.WindowAt(0).PostMessage(cpmsg)
 						return
 					else:
+						if not value:
+							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 57:
 					if shrtctvalue:
@@ -1070,6 +1088,8 @@ class EventTextView(BTextView):
 						be_app.WindowAt(0).PostMessage(cpmsg)
 						return
 					else:
+						if not value:
+							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 10: #ENTER
 					#CTRL + enter
@@ -4587,6 +4607,7 @@ class MainWindow(BWindow):
 			self.tmset = TMSettings()
 			self.tmset.Show()
 		elif msg.what == 66:
+			# pulse procedure
 			self.speloc.acquire()
 			tbef = self.intime
 			self.speloc.release()
@@ -4945,6 +4966,7 @@ class MainWindow(BWindow):
 				be_app.WindowAt(0).PostMessage(12343)
 			return
 		elif msg.what == 7484:
+			# status active - rotation 
 			self.spellabel.SetText(msg.FindString('graph'))
 			return
 		elif msg.what == 7485:
