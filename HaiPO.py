@@ -2038,7 +2038,7 @@ class Findsource(BWindow):
 
 class POmetadata(BWindow):
 	kWindowFrame = BRect(150, 150, 585, 480)
-	kWindowName = "POSettings"
+	kWindowName = "PO properties"
 	
 	def __init__(self,pofile,ordereddata):
 		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
@@ -2085,11 +2085,11 @@ class POmetadata(BWindow):
 			ind=msg.FindString('itemstring')
 			indi=msg.FindInt8('itemindex')
 			self.pofile.metadata[ind]=self.listBTextControl[indi].Text()
+			# ask update ordered metadata
 			# save self.pofile to backup file
 			smesg=BMessage(16893)
 			smesg.AddInt8('savetype',2)
 			#smesg.AddInt8('indexroot',self.indexroot)
-			pth=be_app.WindowAt(0).backupfile
 			smesg.AddString('bckppath',be_app.WindowAt(0).backupfile)
 			be_app.WindowAt(0).PostMessage(smesg)
 
@@ -4715,6 +4715,8 @@ class MainWindow(BWindow):
 			elif savetype == 2:
 				#save of metadata
 				self.writter.acquire()
+				#update self.orderedmetadata
+				self.orderedmetadata = self.pofile.ordered_metadata()
 				self.pofile.metadata['Last-Translator']=defname # metadata saved from po settings
 				self.pofile.metadata['PO-Revision-Date']=now
 				self.pofile.metadata['X-Editor']=version
