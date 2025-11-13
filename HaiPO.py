@@ -35,8 +35,9 @@ from distutils.spawn import find_executable
 import socket,pickle,unicodedata
 from threading import Thread
 from babel import Locale
+from itertools import combinations
 
-version='HaiPO 2.3 beta'
+version='HaiPO 2.4 beta'
 (appname,ver,state)=version.split(' ')
 
 Config=configparser.ConfigParser()
@@ -1197,6 +1198,11 @@ class EventTextView(BTextView):
 		self.tosave=False
 		
 	def CheckSpell(self):
+		if self.superself.skipcheck:
+			self.superself.speloc.acquire()
+			self.superself.intime=time.time()
+			self.superself.speloc.release()
+		else:
 		#try:
 			txt=self.Text()
 			indi,indf=self.GetSelection()
@@ -2989,9 +2995,22 @@ class MainWindow(BWindow):
 		('Settings', ((40, 'General'),(41, 'User settings'), (42, 'Po properties'), (43, 'Po header'), (44, 'Spellcheck'), (45,'Translation Memory'))),
 		('About', ((8, 'Help'),(None, None),(9, 'About')))
 		)
-		
+	
 	def __init__(self,arg):
 		BWindow.__init__(self, BRect(6,64,1024,768), " ".join([appname,ver]), window_type.B_TITLED_WINDOW, B_QUIT_ON_WINDOW_CLOSE)
+		okeys=[B_NUM_LOCK,B_SCROLL_LOCK,B_LEFT_COMMAND_KEY+B_COMMAND_KEY,B_OPTION_KEY+B_LEFT_OPTION_KEY,B_OPTION_KEY+B_RIGHT_OPTION_KEY,B_CAPS_LOCK]
+		self.combination_ok=[]
+		for r in range(1,len(okeys)+1):
+			for combo in combinations(okeys,r):
+				self.combination_ok.append(sum(combo,0))
+		shiftil=[B_LEFT_SHIFT_KEY]
+		for k in self.combination_ok:
+			shiftil.append(B_LEFT_SHIFT_KEY|k)
+		shiftir=[B_RIGHT_SHIFT_KEY]
+		for k in self.combination_ok:
+			shiftil.append(B_RIGHT_SHIFT_KEY|k)
+		self.shifti = shiftil+shiftir
+		self.skipcheck=False
 		self.speloc = threading.Semaphore()
 		self.intime=time.time()
 		self.t1=time.time()
@@ -4255,7 +4274,13 @@ class MainWindow(BWindow):
 	def MessageReceived(self, msg):
 		if msg.what == B_MODIFIERS_CHANGED:
 			value=msg.FindInt32("modifiers")
+			#print(value)
 			self.sem.acquire()
+			vtc=value-1
+			if vtc in self.shifti:
+				self.skipcheck=True
+			else:
+				self.skipcheck=False
 			if value==self.modifiervalue or value==self.modifiervalue+8 or value ==self.modifiervalue+32 or value ==self.modifiervalue+40:
 				#"modificatore"
 				self.modifier=True
@@ -4497,12 +4522,12 @@ class MainWindow(BWindow):
 				##self.Looper().Lock()
 				#try:
 					if self.listemsgstr[self.transtabview.Selection()].trnsl.Text()=="":
-						be_app.WindowAt(0).PostMessage(826066)
+						be_app.WindowAt(0).PostMessage(826066)#set empty square for checkspell result
 					else:
 						if self.listemsgstr[self.transtabview.Selection()].trnsl.CheckSpell():
-							be_app.WindowAt(0).PostMessage(735157)
+							be_app.WindowAt(0).PostMessage(735157)#set ok square for checkspell result
 						else:
-							be_app.WindowAt(0).PostMessage(982757)
+							be_app.WindowAt(0).PostMessage(982757)#set X square for checkspell result
 				#except:
 				#	pass
 				##self.Looper().Unlock()
