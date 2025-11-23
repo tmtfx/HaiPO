@@ -23,8 +23,9 @@ from Be.TabView import tab_side
 from Be.TextView import text_run,text_run_array
 from Be.Architecture import get_architecture
 
-import configparser,struct,threading,os,polib,re,datetime,time,codecs,encodings
+import configparser,struct,threading,os,re,datetime,time,codecs,encodings
 import enchant
+from polib import polib
 import pickle,socket,os,sys,html,subprocess,tempfile
 
 from translate.storage.tmx import tmxfile
