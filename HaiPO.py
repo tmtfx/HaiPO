@@ -2387,6 +2387,9 @@ class GeneralSettings(BWindow):
 				try:
 					Config.set('General','localization', value)
 					Config.write(cfgfile)
+					say = BAlert('restart', _('Restart required to apply changes.'), _('Ok'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_INFO_ALERT)
+					self.alerts.append(say)
+					say.Go()
 				except:
 					#print("Error setting the localization, missing config section?")
 					say = BAlert('error', _('Error setting the localization, missing config section?'), _('Ok'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
@@ -4311,14 +4314,17 @@ class MainWindow(BWindow):
 		self.pofile.save(path)
 		if path[-8:] != ".temp.po":
 			infos, warnings, fatals = self.CheckPO(path)
+			removetmp=(True,True)
 			#exit=False
 			if len(warnings)>0:
+				removetmp[0]=False
 				for warn,title in warnings:
 					say = BAlert(warn, title, ':-(',None, None, button_width.B_WIDTH_AS_USUAL , alert_type.B_STOP_ALERT)
 					self.alerts.append(say)
 					say.Go()
 				#exit=True
 			if len(fatals)>0:
+				removetmp[1]=False
 				polines = []
 				guut=[]
 				with open (path, 'rt') as pf:
@@ -4347,6 +4353,12 @@ class MainWindow(BWindow):
 								mxg.AddString('txt',s)
 								guut[-1].PostMessage(mxg)
 					#print(f"Position: {fatal[1]}, error: {fatal[0]}\nstrtosrc={strtosrc}")
+			if removetmp[0] and removetmp[1]:
+				#print("rimuovo file temporaneo di",path[:-3])
+				tmppth=path[:-3]+".temp.po"
+				entro=BEntry(tmppth)
+				if entro.Exists():
+					entro.Remove()
 		#################################################
 		######### This should be done by the OS #########
 		st=BMimeType("text/x-gettext-translation")
