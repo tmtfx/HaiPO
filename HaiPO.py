@@ -157,6 +157,7 @@ Config.read(confile)
 try:
 	localization=ConfigSectionMap("General")['localization']
 except:
+	localization = "en"
 	t = gettext.NullTranslations()
 	
 if locale_dir!=None:
@@ -3554,7 +3555,10 @@ class MainWindow(BWindow):
 		self.upperbox.AddChild(self.sourcestrings.sv,None)
 		
 		self.tmscrollsugj=ScrollSugj(BRect(self.upperbox.Bounds().right*2/3+4,4,self.upperbox.Bounds().right-4,self.upperbox.Bounds().bottom/2), 'ScrollSugj')
-		
+		splchkstat=_("Spellchecker status:")
+		#print(splchkstat)
+		statsplchkr=_(" disabled")
+		#print(statsplchkr)
 		if showspell:
 			rectcksp=BRect(self.upperbox.Bounds().right-55,self.upperbox.Bounds().bottom-55,self.upperbox.Bounds().right-4,self.upperbox.Bounds().bottom-4)
 			insetcksp=BRect(0,0,rectcksp.Width(),rectcksp.Height())
@@ -3569,8 +3573,6 @@ class MainWindow(BWindow):
 			self.checkres.MakeEditable(False)
 			l=self.font.StringWidth("  ˺")
 			rectspellab=BRect(self.upperbox.Bounds().right*2/3+4,self.upperbox.Bounds().bottom-80,self.upperbox.Bounds().right*2/3+l+10,self.upperbox.Bounds().bottom-4)
-			splchkstat=_("Spellchecker status:")
-			statsplchkr=_(" disabled")
 			self.spellabel= BStringView(rectspellab,"spellabel",splchkstat,B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM)
 			self.spellabel.SetFont(self.font)
 			self.upperbox.AddChild(self.spellabel,None)
