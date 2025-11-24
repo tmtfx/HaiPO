@@ -86,7 +86,7 @@ def lookfdata(name):
 				link=mydir+"/data/"+name
 				ent=BEntry(link)
 				if ent.Exists():
-					#use mascot downloaded with git by graphical launc
+					#use mascot downloaded with git by graphical launch
 					ent.GetPath(perc)
 					return (True,perc.Path())
 					nopages=False
@@ -104,7 +104,6 @@ class LocalizItem(BMenuItem):
 global locale_dir
 b,p=lookfdata("locale")
 if b:
-	#print("ho trovato locale:",p)
 	if BEntry(p).IsDirectory():
 		locale_dir=p
 		#creare lista di traduzioni disponibili
@@ -119,8 +118,6 @@ if b:
 				perc=BPath()
 				ent.GetPath(perc)
 				lista_traduzioni.append(LocalizItem(perc.Leaf()))
-		#print(lista_traduzioni)
-		
 	else:
 		locale_dir=None
 		t = gettext.NullTranslations()
