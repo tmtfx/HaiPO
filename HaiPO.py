@@ -102,6 +102,7 @@ class LocalizItem(BMenuItem):
 		BMenuItem.__init__(self,self.name,msg,'\x00',0)
 		
 global locale_dir
+locale_dir=None
 b,p=lookfdata("locale")
 if b:
 	if BEntry(p).IsDirectory():
