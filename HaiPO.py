@@ -1670,8 +1670,17 @@ class CreateUserBox(BBox):
 				dn=locale.languages[i]
 			if str(Locale.default()) in i:
 				suggested=True
-			self.lli.append(LangListItem(dn,i,suggested))
-			self.langlist.lv.AddItem(self.lli[-1])
+			try:
+				self.lli.append(LangListItem(dn,i,suggested))
+				self.langlist.lv.AddItem(self.lli[-1])
+			except:
+				#sometimes dn results in NoneType (because, in the current system localization,
+				#babel doesn't know the name of the iso code, this does not mean that it's 
+				#unknown in other localizations).
+				#Here we can choose to support the language through its iso code
+				#without knowing its name, or avoid supporting this language.
+				#For now we are ignoring these languages, but we are open to change our mind
+				pass
 		# Translators: Used to add a language iso code not present in available languages
 		self.lli.append(LangListItem(_("Add custom iso code"),None,False))
 		self.langlist.lv.AddItem(self.lli[-1])
