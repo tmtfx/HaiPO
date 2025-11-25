@@ -25,7 +25,10 @@ from Be.Architecture import get_architecture
 
 import configparser,struct,threading,os,re,datetime,time,codecs,encodings,gettext
 import enchant
-from polib import polib
+try:
+	from polib import polib
+except:
+	import polib
 import pickle,socket,os,sys,html,subprocess,tempfile
 
 from translate.storage.tmx import tmxfile
