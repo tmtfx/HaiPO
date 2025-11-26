@@ -104,7 +104,7 @@ class LocalizItem(BMenuItem):
 		msg.AddString("name",self.name)
 		BMenuItem.__init__(self,self.name,msg,'\x00',0)
 		
-global locale_dir
+#global locale_dir
 locale_dir=None
 b,p=lookfdata("locale")
 if b:
@@ -126,7 +126,6 @@ if b:
 		locale_dir=None
 		t = gettext.NullTranslations()
 		#print("ma era un file")
-
 
 
 def Ent_config():
@@ -850,7 +849,35 @@ class EventTextView(BTextView):
 		be_app.WindowAt(0).PostMessage(bckpmsg)  #save backup file
 		#self.superself.infoprogress.SetText(str(self.superself.pofile.percent_translated())) #reinsert if something doesn't work properly but it should write in 16892/3
 		self.superself.progressinfo.Update(1,None,str(self.superself.pofile.percent_translated())+"%")
-
+	def SaveToOrig(self):
+		thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
+		thisBlistitem.tosave=True
+		tabs=len(self.superself.listemsgstr)-1
+		savpmsg=BMessage(16893)
+		savpmsg.AddInt8('savetype',1)
+		savpmsg.AddBool('tmx',True)
+		savpmsg.AddInt32('tvindex',self.superself.sourcestrings.lv.CurrentSelection())
+		savpmsg.AddInt8('plurals',tabs)
+		if tabs == 0:
+			thisBlistitem.txttosave=self.Text()
+			thisBlistitem.msgstrs=self.Text()
+			savpmsg.AddString('translation',thisBlistitem.txttosave)
+		else:
+			thisBlistitem.txttosavepl=[]
+			thisBlistitem.txttosave=self.superself.listemsgstr[0].trnsl.Text()
+			thisBlistitem.msgstrs=[]
+			thisBlistitem.msgstrs.append(self.superself.listemsgstr[0].trnsl.Text())
+			savpmsg.AddString('translation',thisBlistitem.txttosave)
+			cox=1
+			while cox < tabs+1:
+				thisBlistitem.msgstrs=[]
+				thisBlistitem.msgstrs.append(self.superself.listemsgstr[cox].trnsl.Text())
+				thisBlistitem.txttosavepl.append(self.superself.listemsgstr[cox].trnsl.Text())
+				savpmsg.AddString('translationpl'+str(cox-1),self.superself.listemsgstr[cox].trnsl.Text())
+				cox+=1
+		savpmsg.AddString('bckppath',self.superself.filen+self.superself.file_ext)
+		be_app.WindowAt(0).PostMessage(savpmsg)
+		self.superself.progressinfo.Update(1,None,str(self.superself.pofile.percent_translated())+"%")
 	def checklater(self,name,oldtext,indexBlistitem):
 		mes=BMessage(112118)
 		mes.AddInt32('indexBlistitem',indexBlistitem)
@@ -1984,7 +2011,7 @@ class FindRepTrans(BWindow):
 		elif msg.what == 1010:
 			self.looktv.SetText(msg.FindString('txt'))
 			return
-		return
+		return BWindow.MessageReceived(self, msg)
 
 class Findsource(BWindow):
 	kWindowFrame = BRect(250, 150, 655, 226)
@@ -2150,6 +2177,11 @@ class Findsource(BWindow):
 						self.alerts.append(say)
 						say.Go()
 				be_app.WindowAt(0).Unlock()
+			return
+		elif msg.what == 1010:
+			self.looktv.SetText(msg.FindString('txt'))
+			return
+		return BWindow.MessageReceived(self, msg)
 
 class POmetadata(BWindow):
 	kWindowFrame = BRect(150, 150, 585, 480)
@@ -3913,20 +3945,20 @@ class MainWindow(BWindow):
 			# file correctly detected ... 
 			# check poerrors
 			if (file_extension in [".po",".mo"]) or (subtype == "x-gettext-translation"):
-				exit=False
+				errors=False
 				infos,warnings,fatals=self.CheckPO(f)
 				if len(infos)>0:
 					for info in infos:
 						say = BAlert(info[1], info[0], _('Ok'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_INFO_ALERT)
 						self.alerts.append(say)
 						say.Go()
-					exit=True
+					#errors=True
 				if len(warnings)>0:
 					for warn in warnings:
 						say = BAlert(warn[1], warn[0], _('Ok'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
 						self.alerts.append(say)
 						say.Go()
-					exit=True
+					#errors=True
 				if len(fatals)>0:
 					for fatal in fatals:
 						if fatal[1]!=None:
@@ -3938,60 +3970,153 @@ class MainWindow(BWindow):
 						say = BAlert(fatal[2], txt, _('Ok'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_STOP_ALERT)
 						self.alerts.append(say)
 						say.Go()
-					exit=True
-				if exit:
-					return
-				#...so open...
-				# check user accepted languages
-				fileenc = polib.detect_encoding(f)
-				self.pof = polib.pofile(f,encoding=fileenc)
-				ordmdata=self.pof.ordered_metadata()
-				for i in ordmdata:
-					if i[0]=="Language":
-						self.tmxlang=i[1]
-				a,b = checklang(ordmdata)
-				#overwrite "a", controllo config.ini per info Traduttore
-				Config.read(confile)
-				try:
-					self.tname=ConfigSectionMap("Translator")['name']
-					self.pemail=ConfigSectionMap("Translator")['mail']
-					self.team=ConfigSectionMap("Translator")['team']
-					self.temail=ConfigSectionMap("Translator")['ltmail']
-				except:
-					a=False
-				if a:
-					if b==-1:
-						#non c'è language nei metadati del file po
-						say = BAlert('Warn', _("There's no language section in metadata! Continue?"), _('Yes'),_('No'), None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
-						self.alerts.append(say)
-						ret=say.Go()
-						if ret==0:
-							self.loadPO(f,self.pof)
+					errors=True
+				if errors:
+					try:
+						fileenc = polib.detect_encoding(f)
+						self.pof = polib.pofile(f,encoding=fileenc)
+					except:
+						print("impossibile aprire il file po")
+						return
+					try:
+						ordmdata=self.pof.ordered_metadata()
+						for i in ordmdata:
+							if i[0]=="Language":
+								self.tmxlang=i[1]
+						a,b = checklang(ordmdata)
+					except:
+						print("errore nella lettura dei metadati")
+						return
+					Config.read(confile)
+					try:
+						self.tname=ConfigSectionMap("Translator")['name']
+						self.pemail=ConfigSectionMap("Translator")['mail']
+						self.team=ConfigSectionMap("Translator")['team']
+						self.temail=ConfigSectionMap("Translator")['ltmail']
+					except:
+						a=False
+					if a:
+						if b==-1:
+							#non c'è language nei metadati del file po
+							say = BAlert('Warn', _("There's no language section in metadata! Continue?"), _('Yes'),_('No'), None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+							self.alerts.append(say)
+							ret=say.Go()
+							if ret==0:
+								self.loadPO(f,self.pof)
+							else:
+								return
+						elif b==1:
+							#ci sono altre lingue nel file rispetto a quelle dell'utente
+							say = BAlert('Warn', _('This gettext portable object file is not for your language!'), _('OK'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+							self.alerts.append(say)
+							ret=say.Go()
 						else:
-							return
-					elif b==1:
-						#ci sono altre lingue nel file rispetto a quelle dell'utente
-						say = BAlert('Warn', _('This gettext portable object file is not for your language!'), _('OK'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+							if self.builtin_srv[0]:
+								try:
+									if self.serv.is_alive():
+										be_app.WindowAt(0).PostMessage(376)#cambia file/lingua
+									else:
+										self.serv.start()
+								except:
+									self.serv=Thread(target=self.server,args=(self.builtin_srv[1],self.builtin_srv[2],self.builtin_srv[3],self.builtin_srv[4],))
+									self.serv.start()
+							self.loadPO(f,self.pof)
+							note = BAlert('Note', _("Now you'll be addressed to the last fatal error"), _('OK'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_INFO_ALERT)
+							self.alerts.append(note)
+							ret=note.Go()
+							#guut=[]
+							for fatal in fatals:
+								if isinstance(fatal[1],int):
+									elemento=0
+									elemselez=self.sourcestrings.lv.ItemAt(0)
+									for elementi in self.sourcestrings.lv.Items():
+										if elementi.linenum <= fatal[1]:
+											if elementi.linenum> elemento:
+												elementoselez=elementi
+												elemento=elementi.linenum
+									self.sourcestrings.lv.Select(self.sourcestrings.lv.IndexOf(elementoselez))
+								
+								####################################################################
+								# abilitare questo se viene usato btextview al posto di btextcontrol
+								# in findsource
+								#if isinstance(fatal[1],int):
+								#	elemento=0
+								#	elemselez=self.sourcestrings.lv.ItemAt(0)
+								#	for elementi in self.sourcestrings.lv.Items():
+								#		if elementi.linenum <= fatal[1]:
+								#			if elementi.linenum> elemento:
+								#				elementoselez=elementi
+								#				elemento=elementi.linenum
+								#		else:
+								#			break
+								#	s=elementoselez.Text()
+								#	guut.append(Findsource())
+								#	trant=_("Find position:")
+								#	guut[-1].SetTitle(trant+" "+str(fatal[1]))
+								#	guut[-1].Show()
+								#	mxg=BMessage(1010)
+								#	mxg.AddString('txt',s)
+								#	guut[-1].PostMessage(mxg)
+					else:
+						#mostra BBox per la creazione dell'utente
+						say = BAlert('Warn', _('Please, fill the fields below, these informations will be written to saved po files and in config.ini'), _('OK'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_IDEA_ALERT)
 						self.alerts.append(say)
 						ret=say.Go()
-					else:
-						if self.builtin_srv[0]:
-							try:
-								if self.serv.is_alive():
-									be_app.WindowAt(0).PostMessage(376)#cambia file/lingua
-								else:
-									self.serv.start()
-							except:
-								self.serv=Thread(target=self.server,args=(self.builtin_srv[1],self.builtin_srv[2],self.builtin_srv[3],self.builtin_srv[4],))
-								self.serv.start()
-						self.loadPO(f,self.pof)
+						self.bckgnd.Hide()
+						self.overbox.Show()
+					return
 				else:
-					#mostra BBox per la creazione dell'utente
-					say = BAlert('Warn', _('Please, fill the fields below, these informations will be written to saved po files and in config.ini'), _('OK'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_IDEA_ALERT)
-					self.alerts.append(say)
-					ret=say.Go()
-					self.bckgnd.Hide()
-					self.overbox.Show()
+				#...so open...
+					# check user accepted languages
+					fileenc = polib.detect_encoding(f)
+					self.pof = polib.pofile(f,encoding=fileenc)
+					ordmdata=self.pof.ordered_metadata()
+					for i in ordmdata:
+						if i[0]=="Language":
+							self.tmxlang=i[1]
+					a,b = checklang(ordmdata)
+					#overwrite "a", controllo config.ini per info Traduttore
+					Config.read(confile)
+					try:
+						self.tname=ConfigSectionMap("Translator")['name']
+						self.pemail=ConfigSectionMap("Translator")['mail']
+						self.team=ConfigSectionMap("Translator")['team']
+						self.temail=ConfigSectionMap("Translator")['ltmail']
+					except:
+						a=False
+					if a:
+						if b==-1:
+							#non c'è language nei metadati del file po
+							say = BAlert('Warn', _("There's no language section in metadata! Continue?"), _('Yes'),_('No'), None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+							self.alerts.append(say)
+							ret=say.Go()
+							if ret==0:
+								self.loadPO(f,self.pof)
+							else:
+								return
+						elif b==1:
+							#ci sono altre lingue nel file rispetto a quelle dell'utente
+							say = BAlert('Warn', _('This gettext portable object file is not for your language!'), _('OK'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+							self.alerts.append(say)
+							ret=say.Go()
+						else:
+							if self.builtin_srv[0]:
+								try:
+									if self.serv.is_alive():
+										be_app.WindowAt(0).PostMessage(376)#cambia file/lingua
+									else:
+										self.serv.start()
+								except:
+									self.serv=Thread(target=self.server,args=(self.builtin_srv[1],self.builtin_srv[2],self.builtin_srv[3],self.builtin_srv[4],))
+									self.serv.start()
+							self.loadPO(f,self.pof)
+					else:
+						#mostra BBox per la creazione dell'utente
+						say = BAlert('Warn', _('Please, fill the fields below, these informations will be written to saved po files and in config.ini'), _('OK'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_IDEA_ALERT)
+						self.alerts.append(say)
+						ret=say.Go()
+						self.bckgnd.Hide()
+						self.overbox.Show()
 			else:
 				langlist=[]
 				for i in self.overbox.acceptedlang.lv.Items():
@@ -4328,7 +4453,7 @@ class MainWindow(BWindow):
 		self.pofile.save(path)
 		if path[-8:] != ".temp.po":
 			infos, warnings, fatals = self.CheckPO(path)
-			removetmp=(True,True)
+			removetmp=[True,True]
 			#exit=False
 			if len(warnings)>0:
 				removetmp[0]=False
@@ -4580,8 +4705,7 @@ class MainWindow(BWindow):
 			if self.sourcestrings.lv.CountItems()>0:     ###### FIX HERE check condition if file is loaded
 				ent,confile=Ent_config()
 				if self.listemsgstr[self.transtabview.Selection()].trnsl.tosave:
-					#eventtextview changed
-					self.listemsgstr[self.transtabview.Selection()].trnsl.Save()
+					self.listemsgstr[self.transtabview.Selection()].trnsl.SaveToOrig()
 				try:
 					Config.read(confile)
 					namo=ConfigSectionMap("Translator")['name']
@@ -4695,33 +4819,35 @@ class MainWindow(BWindow):
 #						print self.tmscrollsugj.lv.ItemAt(askfor).text #settext con tutte i vari controlli ortografici mettere tosave = True a eventtextview interessato
 		elif msg.what == 33:
 			#copy from source from keyboard
+			# commented out all saving rows to the backup
+			# if you want to save use copy from menu
 			if self.sourcestrings.lv.CurrentSelection()>-1:
 				thisBlistitem=self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection())
 				thisBlistitem.tosave=True
 				tabs=len(self.listemsgstr)-1
-				bckpmsg=BMessage(16893)
-				bckpmsg.AddInt8('savetype',1)
-				bckpmsg.AddBool('tmx',False)
-				bckpmsg.AddInt32('tvindex',self.sourcestrings.lv.CurrentSelection())
-				bckpmsg.AddInt8('plurals',tabs)
+				#bckpmsg=BMessage(16893)
+				#bckpmsg.AddInt8('savetype',1)
+				#bckpmsg.AddBool('tmx',False)
+				#bckpmsg.AddInt32('tvindex',self.sourcestrings.lv.CurrentSelection())
+				#bckpmsg.AddInt8('plurals',tabs)
 				if tabs == 0:   #-> if not thisBlistitem.hasplural:  <-- or this?
 					thisBlistitem.txttosave=thisBlistitem.text#.decode(self.cod)#(self.encoding)
 					thisBlistitem.msgstrs=thisBlistitem.txttosave
-					bckpmsg.AddString('translation',thisBlistitem.txttosave)
+					#bckpmsg.AddString('translation',thisBlistitem.txttosave)
 				else:
 					thisBlistitem.txttosavepl=[]
 					thisBlistitem.txttosave=self.listemsgid[0].src.Text()
 					thisBlistitem.msgstrs=[]
 					thisBlistitem.msgstrs.append(thisBlistitem.txttosave)
-					bckpmsg.AddString('translation',thisBlistitem.txttosave)
+					#bckpmsg.AddString('translation',thisBlistitem.txttosave)
 					cox=1
 					while cox < tabs+1:
 						thisBlistitem.msgstrs.append(self.listemsgid[cox].src.Text())
 						thisBlistitem.txttosavepl.append(self.listemsgid[cox].src.Text())
-						bckpmsg.AddString('translationpl'+str(cox-1),self.listemsgid[1].src.Text())
+						#bckpmsg.AddString('translationpl'+str(cox-1),self.listemsgid[1].src.Text())
 						cox+=1
-				bckpmsg.AddString('bckppath',self.backupfile)
-				be_app.WindowAt(0).PostMessage(bckpmsg)
+				#bckpmsg.AddString('bckppath',self.backupfile)
+				#be_app.WindowAt(0).PostMessage(bckpmsg)
 				if tabs == 0:
 					self.listemsgstr[self.transtabview.Selection()].trnsl.SetText(self.listemsgid[self.srctabview.Selection()].src.Text(),None)
 				else:
@@ -4733,8 +4859,9 @@ class MainWindow(BWindow):
 						else:
 							self.listemsgstr[pi].trnsl.SetText(self.listemsgid[1].src.Text(),None)
 						pi+=1
-				self.sourcestrings.sv.Hide()
-				self.sourcestrings.sv.Show() #Updates the MsgStrItem
+				self.sourcestrings.sv.Invalidate()#<---- test this
+				#self.sourcestrings.sv.Hide()
+				#self.sourcestrings.sv.Show() #Updates the MsgStrItem
 				lngth=self.listemsgstr[self.transtabview.Selection()].trnsl.TextLength()
 				self.listemsgstr[self.transtabview.Selection()].trnsl.Select(lngth,lngth)
 				self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
