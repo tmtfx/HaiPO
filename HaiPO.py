@@ -3120,14 +3120,21 @@ class MainWindow(BWindow):
 	alerts=[]
 	sugjs=[]
 	badItems=[]
+	filen=""
+	file_ext=""
+	viewtxt=_('View')
+	fuztxt=_('Fuzzy')
+	unttxt=_('Untranslated')
+	tratxt=_('Translated')
+	obstxt=_('Obsolete')
 	Menus = (
 		(_('File'), ((295485, _('Open')), (2, _('Save')), (1, _('Close')), (5, _('Save as...')),(None, None),(B_QUIT_REQUESTED, _('Quit')))),
 		(_('Translation'), ((3, _('Copy from source (ctrl+shift+s)')), (53,_('Edit comment')), (70,_('Done and next')), (71,_('Mark/Unmark fuzzy (ctrl+b)')), (72, _('Previous w/o saving')),(73,_('Next w/o saving')),(None, None), (6, _('Find source')), (7, _('Find/Replace translation')))),
-		(_('View'), ((74,_('Fuzzy')), (75, _('Untranslated')),(76,_('Translated')),(77, _('Obsolete')))),
+		(viewtxt, ((74,fuztxt), (75, unttxt),(76,tratxt),(77, obstxt))),
 		(_('Settings'), ((40, _('General')),(41, _('User settings')), (42, _('Po properties')), (43, _('Po header')), (44, _('Spellcheck')), (45,_('Translation Memory')))),
 		(_('About'), ((8, _('Help')),(None, None),(9,_('About'))))
 		)
-	
+
 	def __init__(self,arg):
 		BWindow.__init__(self, BRect(6,64,1024,768), " ".join([appname,ver]), window_type.B_TITLED_WINDOW, B_QUIT_ON_WINDOW_CLOSE)
 		okeys=[B_NUM_LOCK,B_SCROLL_LOCK,B_LEFT_COMMAND_KEY+B_COMMAND_KEY,B_OPTION_KEY+B_LEFT_OPTION_KEY,B_OPTION_KEY+B_RIGHT_OPTION_KEY,B_CAPS_LOCK]
@@ -3431,7 +3438,7 @@ class MainWindow(BWindow):
 		x, barheight = self.bar.GetPreferredSize()
 		self.viewarr = []		
 		for menu, items in self.Menus:
-			if menu == "View":
+			if menu == self.viewtxt:#"View":
 				savemenu=True
 			else:
 				savemenu=False
@@ -3442,13 +3449,13 @@ class MainWindow(BWindow):
 				else:
 						menuitem=BMenuItem(name, BMessage(k), '\x00',0)
 						#in base a Settings
-						if name == "Fuzzy":
+						if name == self.fuztxt:#"Fuzzy":
 							menuitem.SetMarked(self.poview[0])
-						elif name == "Untranslated":
+						elif name == self.unttxt:#"Untranslated":
 							menuitem.SetMarked(self.poview[1])
-						elif name == "Translated":
+						elif name == self.tratxt:#"Translated":
 							menuitem.SetMarked(self.poview[2])
-						elif name == "Obsolete":
+						elif name == self.obstxt:#"Obsolete":
 							menuitem.SetMarked(self.poview[3])
 						self.viewarr.append(menuitem)
 						menu.AddItem(menuitem)
@@ -4039,6 +4046,8 @@ class MainWindow(BWindow):
 				self.handlePO(pof,pth,self.wob)
 		else:
 			self.handlePO(pof,pth,self.wob)
+		
+		# enable Translation menu
 
 	def handlePO(self,pof,percors,workonbackup):
 		p=BPath(BEntry(percors)).Leaf()
@@ -4570,8 +4579,10 @@ class MainWindow(BWindow):
 				self.listemsgid[0].src.Clear()
 				self.srctabview.Draw(self.srctabview.Bounds())
 				self.SetTitle(" ".join([appname,ver]))
-				
+				self.filen=""
+				self.file_ext=""
 				#self.srctabview.Draw(self.srctabview.Bounds()) <<< look this!! bug fix
+			#disable Translation menu
 			return
 		elif msg.what == 2:
 			#Save from menu
