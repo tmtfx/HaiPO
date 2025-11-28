@@ -69,73 +69,64 @@
 				<li><p>About</p>
 			</ul>
 		
-		With <font color="#FF0000">File</font> menu you can Open, Save, Close, Save as and Quit.
-		Open will open the file you select from the FilePanel. If the program detects a backup file of the chosen file a question will be prompted like this:
-		
+		In the <font color="#FF0000">File</font> menu, you can perform several actions: Open, Save, Close, Save As, and Quit. Selecting Open will allow you to choose a file from the File Panel. If the program detects a backup file for the selected file, a prompt will appear, indicating that:		
 			<p align="center"><img src="backup.png" name="Image2" alt="details" align="bottom" width="452" height="115" border="0"/></p>
 		
-		This happens when the backup file is more recent than the original file. Every time you change a string or a metadata, those changes will be saved to a
-		backup file (temp.po). In this way you'll not loose your work if something bad happens, like a crash of the app or the system, or a power failure...
-		<br></br>
-		Under <font color="#FF0000">Translation</font> menu you can find some of the more common commands you'll use with this program:
+		This occurs when the backup file is more recent than the original file. Each time you modify a string or its metadata, those changes are saved to a backup file (temp.po). This ensures that you do not lose your work in the event of an application crash, system failure, or power outage.
+		<br></br>	
+		In the <font color="#FF0000">Translation</font> menu you will find some of the most common commands you will use with this program:
 			<ul>
-				<li><p>Copy from source: (with his shortcut Ctrl+Shif+s) copies the source string to the translation field</p>
+				<li><p>Copy from Source (shortcut: Ctrl+Shift+C): Copies the source string to the translation field.</p>
 			</ul>
 			<ul>
-				<li><p>Edit comment: (or by double-clicking the list entry) allows you to add and save a comment to the selected entry</p>
+				<li><p>Edit Comment: (function available double-clicking the list entry) allows you to add and save comments for the selected entries.</p>
 			</ul>
 			<ul>
-				<li><p>Done and next: (shortcut: Ctrl + down/up) saves the translation to the backup file and opens the next entry </p>
+				<li><p>Done and Next (shortcut: Ctrl + Down/Up): Saves the translation to the backup file and opens the next entry.</p>
 			</ul>
 			<ul>
-				<li><p>Mark/unmark fuzzy: (shortcut: Ctrl+b) Marks the list entry as Fuzzy translation or unmarks it</p>
+				<li><p>Mark/Unmark Fuzzy (shortcut: Ctrl+B): Marks the list entry as a fuzzy translation or unmarks it.</p>
 			</ul>
 			<ul>
-				<li><p>Previous/Next w/o saving: these allow you to go to the next/previous entry without saving the changes done. If you want to restore the
-				translation as it was when you selected the entry press ESC. </p> 
+				<li><p>Previous/Next without Saving: Allows you to navigate to the next or previous entry without saving any changes. If you want to restore the translation to its previous state when you selected the entry, press ESC. </p>
+			</ul>
+<ul><li><p align="left" style="margin-bottom: 0cm">PO Properties: Displays the PO metadata when a .po file is opened.</p></ul>
+<ul><li><p align="left" style="margin-bottom: 0cm">PO Header: Displays the PO header, usually containing the file description, when a .po file is opened.</p></ul>
+			<ul>
+				<li><p>Find Source: This feature allows you to search for text across all entries (source strings).</p> 
 			</ul>
 			<ul>
-				<li><p>Find source: this allows you to search for text on the entire list of entries (source strings)</p> 
-			</ul>
-			<ul>
-				<li><p>Find/replace translation: allows you to search for text on the translated entries and eventually replace them.</p> 
+				<li><p>Find/Replace Translation: Enables you to search for text in the translated entries and eventually replace them at your will.</p> 
 			</ul>
 		
-			<p align="left">with <font color="#FF0000">View</font> you can select which kind of entries show in the list.<br></br>
-			In <font color="#FF0000">Settings</font> there are:</p>
-			<ul>
-				<li><p align="left" style="margin-bottom: 0cm">General: some startup settings: check if user can handle the opened po file, and check the file's mimetype</p>
-				<li><p align="left" style="margin-bottom: 0cm">User settings: an important configuration as this data will be written to the po file</p>
-				<li><p align="left" style="margin-bottom: 0cm">Po properties: when there's an opened po file this will show the po metadata</p>
-				<li><p align="left" style="margin-bottom: 0cm">Po header: when there's an opened po file this will show the po header, usually a description</p>
-				<li><p align="left" style="margin-bottom: 0cm">Spellcheck: here you can enable/disable the spell check, set the hunspell/myspell dictionary, include
-				or exclude some chars / char's categories to help the spellchecker work better. Under these fields there's a convenient text entry that shows you the char's
-				category of the keys you press</p>
-				<li><p align="left">Translation Memory: in this configuration window you choose if enable/disable the translation memory, enable/disable a local translation
-				memory server, the address and port to use for the translation memory service, header is the buffer size used for transmission, enable a translation memory log</p>
-			</ul>
+			<p align="left">In the <font color="#FF0000">View</font> menu, you can choose which types of entries to display in the list.<br></br>
 			
-			By taking a look at the main window you can find, from the top left going clockwise:
+The <font color="#FF0000">Settings</font> menu includes several options:</p>
 			<ul>
-				<li><p align="left" style="margin-bottom: 0cm">Source string list: when a po file is loaded here shows up a list of original language (source) strings to translate</p>
-				<li><p align="left" style="margin-bottom: 0cm">Translation memory list: when selecting a source string from the list, if the translation memory is enabled and set up
-				properly, the suggestions will be listed here</p>
-				<li><p align="left" style="margin-bottom: 0cm">The suggestion preview: when you select a suggestion, it's text will be shown here along with its carriage returns, double spaces
-				or different spacing, which are hard to detect with bare eyes</p>
-				<li><p align="left" style="margin-bottom: 0cm">The local TM server status: this strings informs you about the state of the built-in TM server</p>
-				<li><p align="left" style="margin-bottom: 0cm">an animated string: which informs the program is looping fine and some checks periodical checks are in progress</p>
-				<li><p align="left" style="margin-bottom: 0cm">A square (black empty,green ticked,red crossed) box  will flag any spelling mistake in the translated text</p>
-				<li><p align="left" style="margin-bottom: 0cm">A progress bar: it indicates your progress in translating the whole file</p>
-				<li><p align="left" style="margin-bottom: 0cm">A tabview for comments: here will appear developers comments or context comments,as well your personal comments for
-				every single string to translate (if available)</p>
-				<li><p align="left" style="margin-bottom: 0cm">The line number: when you select a string from the source string list, here will show up the line number where you can
-				find the translation entry in the po file</p>
-				<li><p align="left" style="margin-bottom: 0cm">The translation tabs: when you select an entry from the source string list, here will show up the translation (if 
-				already translated). Any change will be saved if you select another entry. Press ESC to restore to the previous state. This tab view can have multiple tabs if the 
-				source expects the plural forms (the number of tabs depends on the language)</p>
-				<li><p align="left">The source string tabs: when you select an entry from the source string list, this field will show you the source text in its completeness, along
-				with some graphical indications like: new lines (carriage returns), double spaces, different kind of spacing, tabulations etc. This tab view can have 1 or 2 tabs, it
-				depends if the source string expects only the singular form or even the plural one
+				<li><p align="left" style="margin-bottom: 0cm">General: Adjust startup settings, such as user permissions for handling the opened .po file and checking the file's MIME type. Here you can choose the language for application localization.</p>
+				<li><p align="left" style="margin-bottom: 0cm">User Settings: Important configuration, as these informations will be saved to the .po file.</p>
+				
+				
+				<li><p align="left" style="margin-bottom: 0cm">Spellcheck: Here, you can enable or disable spell check, select the Hunspell/MySpell dictionary, and include or exclude certain characters or character categories to enhance spell-check functionality. Below these fields, there is a convenient text entry that shows the character category of the keys you press.</p>
+				<li><p align="left">Translation Memory: In this configuration window, you can enable or disable the translation memory (a convenient database that stores previously translated content, allowing you to reuse terminology and speed up future localizations), configure a local translation memory server, and specify the address and port for the translation memory service. The "header" indicates the buffer size used for transmission, and you can enable a translation memory log.
+</p>
+			</ul>
+			</br>
+			</br>
+			</br>
+			In the main window, you will find the following components, moving clockwise from the top left:
+			<ul>
+				<li><p align="left" style="margin-bottom: 0cm">Source String List: When a .po file is loaded, this displays a list of original language (source) strings to translate.</p>
+				<li><p align="left" style="margin-bottom: 0cm">Translation Memory List: If the translation memory is enabled and properly configured, suggestions will appear here when you select a source string from the list.</p>
+				<li><p align="left" style="margin-bottom: 0cm">Suggestion Preview: When you select a suggestion, its text, including line breaks, double spaces, and differing spacing (which may be difficult to detect visually), will be shown here.</p>
+				<li><p align="left" style="margin-bottom: 0cm">Local TM Server Status: This string informs you about the state of the built-in translation memory server.</p>
+				<li><p align="left" style="margin-bottom: 0cm">Animated Status Indicator: This shows that the program is functioning properly and that periodic checks are in progress.</p>
+				<li><p align="left" style="margin-bottom: 0cm">Spelling Error Indicator: A box (black empty, green checkmark, red cross) will flag any spelling mistakes in the translated text.</p>
+				<li><p align="left" style="margin-bottom: 0cm">Progress Bar: Indicates your progress in translating the entire file.</p>
+				<li><p align="left" style="margin-bottom: 0cm">Comments Tabs: Here, you will find developers' comments, context comments, and any personal comments you may have for each string to translate.</p>
+				<li><p align="left" style="margin-bottom: 0cm">Line Number: When you select a string from the source string list, this will display the line number of the corresponding translation entry in the .po file.</p>
+				<li><p align="left" style="margin-bottom: 0cm">Translation Tabs: When you select an entry from the source string list, this area shows the translation (if already completed). Any changes will be saved automatically when you select another entry. Press ESC to revert changes. This tab view can have multiple tabs if the source requires plural forms (the number of tabs depends on the language).</p>
+				<li><p align="left">Source String Tabs: When you select an entry from the source string list, this field displays the complete source text, along with graphical indications for new lines (carriage returns), double spaces, various types of spacing, tabulations, etc. This tab view can have one or two tabs depending on whether a plural form is required.
 				</p>
 			</ul>
 			<p>For an in-depth description of the interface click on: <a href="./intindep.html">Interface in depth</a></p>
