@@ -3131,9 +3131,9 @@ class MainWindow(BWindow):
 	cpfrsr= _('Copy from source (ctrl+shift+s)')
 	Menus = (
 		(_('File'), ((295485, _('Open')), (2, _('Save')), (1, _('Close')), (5, _('Save as...')),(None, None),(B_QUIT_REQUESTED, _('Quit')))),
-		(transmnu, ((3, cpfrsr), (53,_('Edit comment')), (70,_('Done and next')), (71,_('Mark/Unmark fuzzy (ctrl+b)')), (72, _('Previous w/o saving')),(73,_('Next w/o saving')),(None, None), (6, _('Find source')), (7, _('Find/Replace translation')))),
+		(transmnu, ((3, cpfrsr), (53,_('Edit comment')), (70,_('Done and next')), (71,_('Mark/Unmark fuzzy (ctrl+b)')), (72, _('Previous w/o saving')),(73,_('Next w/o saving')),(None, None),(42, _('Po properties')), (43, _('Po header')),(None, None), (6, _('Find source')), (7, _('Find/Replace translation')))),
 		(viewtxt, ((74,fuztxt), (75, unttxt),(76,tratxt),(77, obstxt))),
-		(_('Settings'), ((40, _('General')),(41, _('User settings')), (42, _('Po properties')), (43, _('Po header')), (44, _('Spellcheck')), (45,_('Translation Memory')))),
+		(_('Settings'), ((40, _('General')),(41, _('User settings')), (44, _('Spellcheck')), (45,_('Translation Memory')))),
 		(_('About'), ((8, _('Help')),(None, None),(9,_('About'))))
 		)
 
