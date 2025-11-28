@@ -1,5 +1,5 @@
 #!/boot/system/bin/python3
-from Be import BApplication, BWindow, BView, BMenu,BMenuBar, BMenuItem, BSeparatorItem, BMessage, window_type, B_NOT_RESIZABLE, B_CLOSE_ON_ESCAPE, B_QUIT_ON_WINDOW_CLOSE, BButton, BTextView, BTextControl, BAlert, BListItem,BMenuField, BListView, BScrollView,BRect, BBox, BFont, InterfaceDefs, BPath, BDirectory, BEntry, BStringItem, BFile, BStringView,BCheckBox,BTranslationUtils, BBitmap, AppDefs, BTab, BTabView, BNodeInfo, BMimeType, BScrollBar,BPopUpMenu,BScreen,BStatusBar,BPoint,BNode,BUrl
+from Be import BApplication, BWindow, BView, BMenu,BMenuBar, BMenuItem, BSeparatorItem, BMessage, window_type, B_NOT_RESIZABLE, B_CLOSE_ON_ESCAPE, B_QUIT_ON_WINDOW_CLOSE, BButton, BTextView, BTextControl, BAlert, BListItem,BMenuField, BListView, BScrollView,BRect, BBox, BFont, InterfaceDefs, BPath, BDirectory, BEntry, BStringItem, BStringView,BCheckBox,BTranslationUtils, BBitmap, AppDefs, BTab, BTabView, BNodeInfo, BMimeType, BScrollBar,BPopUpMenu,BScreen,BStatusBar,BPoint,BNode,BUrl# BFile,
 
 from Be.View import B_FOLLOW_NONE,set_font_mask,B_WILL_DRAW,B_NAVIGABLE,B_FULL_UPDATE_ON_RESIZE,B_FRAME_EVENTS,B_PULSE_NEEDED,B_FOLLOW_ALL_SIDES,B_FOLLOW_TOP,B_FOLLOW_LEFT_RIGHT,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_FOLLOW_TOP_BOTTOM
 from Be.Menu import menu_info,get_menu_info
@@ -3127,9 +3127,11 @@ class MainWindow(BWindow):
 	unttxt=_('Untranslated')
 	tratxt=_('Translated')
 	obstxt=_('Obsolete')
+	transmnu=_('Translation')
+	cpfrsr= _('Copy from source (ctrl+shift+s)')
 	Menus = (
 		(_('File'), ((295485, _('Open')), (2, _('Save')), (1, _('Close')), (5, _('Save as...')),(None, None),(B_QUIT_REQUESTED, _('Quit')))),
-		(_('Translation'), ((3, _('Copy from source (ctrl+shift+s)')), (53,_('Edit comment')), (70,_('Done and next')), (71,_('Mark/Unmark fuzzy (ctrl+b)')), (72, _('Previous w/o saving')),(73,_('Next w/o saving')),(None, None), (6, _('Find source')), (7, _('Find/Replace translation')))),
+		(transmnu, ((3, cpfrsr), (53,_('Edit comment')), (70,_('Done and next')), (71,_('Mark/Unmark fuzzy (ctrl+b)')), (72, _('Previous w/o saving')),(73,_('Next w/o saving')),(None, None), (6, _('Find source')), (7, _('Find/Replace translation')))),
 		(viewtxt, ((74,fuztxt), (75, unttxt),(76,tratxt),(77, obstxt))),
 		(_('Settings'), ((40, _('General')),(41, _('User settings')), (42, _('Po properties')), (43, _('Po header')), (44, _('Spellcheck')), (45,_('Translation Memory')))),
 		(_('About'), ((8, _('Help')),(None, None),(9,_('About'))))
@@ -3442,7 +3444,12 @@ class MainWindow(BWindow):
 				savemenu=True
 			else:
 				savemenu=False
-			menu = BMenu(menu)
+			if menu == self.transmnu:
+				menu = BMenu(menu)
+				menu.SetEnabled(False)
+			else:
+				menu = BMenu(menu)
+				
 			for k, name in items:
 				if k is None:
 						menu.AddItem(BSeparatorItem())
@@ -4046,8 +4053,8 @@ class MainWindow(BWindow):
 				self.handlePO(pof,pth,self.wob)
 		else:
 			self.handlePO(pof,pth,self.wob)
+
 		
-		# enable Translation menu
 
 	def handlePO(self,pof,percors,workonbackup):
 		p=BPath(BEntry(percors)).Leaf()
@@ -4084,6 +4091,25 @@ class MainWindow(BWindow):
 		self.potot=len(self.pofile.translated_entries())+len(self.pofile.untranslated_entries())+len(self.pofile.fuzzy_entries())
 		self.progressinfo.SetMaxValue(self.potot)
 		self.progressinfo.Update(len(self.pofile.translated_entries()),None,str(self.pofile.percent_translated())+"%")
+		
+		x=self.bar.CountItems()
+		i=0
+		while i<x:
+			try:
+				itm=self.bar.SubmenuAt(i)
+				try:
+					if isinstance(itm.FindItem(self.cpfrsr),BMenuItem):
+						itm.SetEnabled(True)
+						break
+				except Exception as e:
+					#print("errore nella ricerca del BMenuItem",e)
+					pass
+			except Exception as e:
+				print(e)
+				pass
+			i+=1
+		self.bar.Invalidate()
+
 	
 	def load_sourcestrings(self,encoding):
 		self.sourcestrings.Clear()
@@ -4582,7 +4608,26 @@ class MainWindow(BWindow):
 				self.filen=""
 				self.file_ext=""
 				#self.srctabview.Draw(self.srctabview.Bounds()) <<< look this!! bug fix
-			#disable Translation menu
+				
+				x=self.bar.CountItems()
+				i=0
+				while i<x:
+					try:
+						itm=self.bar.SubmenuAt(i)
+						try:
+							if isinstance(itm.FindItem(self.cpfrsr),BMenuItem):
+								itm.SetEnabled(False)
+								break
+						except Exception as e:
+							pass
+							#print("errore nella ricerca del BMenuItem",e)
+
+					except Exception as e:
+						print(e)
+						pass
+					i+=1
+				self.bar.Invalidate()
+			
 			return
 		elif msg.what == 2:
 			#Save from menu
