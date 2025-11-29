@@ -24,6 +24,7 @@ from Be.TextView import text_run,text_run_array
 from Be.Architecture import get_architecture
 
 import configparser,struct,threading,os,re,datetime,time,codecs,encodings,gettext
+#from gettext import compile_domain
 import enchant
 try:
 	from polib import polib
@@ -39,6 +40,8 @@ from distutils.spawn import find_executable
 import socket,pickle,unicodedata
 from threading import Thread
 from babel import Locale
+from babel.messages.pofile import read_po
+from babel.messages.mofile import write_mo
 from itertools import combinations
 
 
@@ -119,7 +122,7 @@ if b:
 			if not ret:
 				perc=BPath()
 				ent.GetPath(perc)
-				lista_traduzioni.append(LocalizItem(perc.Leaf()))
+				lista_traduzioni.append(perc.Leaf())
 	else:
 		locale_dir=None
 		t = gettext.NullTranslations()
@@ -2258,10 +2261,11 @@ class GeneralSettings(BWindow):
 	# Translators: Window title
 	kWindowName = _("General Settings")
 	alerts=[]
-	def __init__(self,superself):
+	myItems=[]
+	def __init__(self,oldsize):
 		BWindow.__init__(self, self.kWindowFrame, self.kWindowName, window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
-		self.superself=superself
-		be_plain_font.SetSize(self.superself.oldsize)
+		be_plain_font.SetSize(oldsize)
+		#del self.superself
 		bounds=self.Bounds()
 		l=bounds.left
 		t=bounds.top
@@ -2277,11 +2281,14 @@ class GeneralSettings(BWindow):
 		self.menulocaliz=BMenu(_("Localizations"))
 		self.menulocaliz.SetLabelFromMarked(True)
 		for y in lista_traduzioni:
-			self.menulocaliz.AddItem(y)
+			self.myItems.append(LocalizItem(y))#<fix doublefree
+			self.menulocaliz.AddItem(self.myItems[-1])
 		self.menuloc = BMenuField(BRect(5,5,r-5,40), 'pop0', '', self.menulocaliz,B_FOLLOW_TOP)
+		self.savemocheck = BCheckBox(BRect(5,49,r-15,74),'savemocheck', _('Compile MO file on saving'), BMessage(282))
 		self.underframe.AddChild(self.langcheck,None)
 		self.underframe.AddChild(self.mimecheck,None)
 		self.underframe.AddChild(self.menuloc,None)
+		self.underframe.AddChild(self.savemocheck,None)
 		ent,confile=Ent_config()
 		Config.read(confile)
 		try:
@@ -2315,6 +2322,7 @@ class GeneralSettings(BWindow):
 
 	def MessageReceived(self, msg):
 		if msg.what == 242:
+			#langcheck
 			ent,confile=Ent_config()
 			Config.read(confile)
 			cfgfile = open(confile,'w')
@@ -2330,7 +2338,9 @@ class GeneralSettings(BWindow):
 				self.alerts.append(say)
 				say.Go()
 			cfgfile.close()
+			return
 		elif msg.what == 262:
+			#mimecheck
 			ent,confile=Ent_config()
 			cfgfile = open(confile,'w')
 			try:
@@ -2345,6 +2355,24 @@ class GeneralSettings(BWindow):
 				self.alerts.append(say)
 				say.Go()
 			cfgfile.close()
+			return
+		elif msg.what == 282:
+			#compile mo
+			ent,confile=Ent_config()
+			cfgfile = open(confile,'w')
+			try:
+				if self.mimecheck.Value():
+					Config.set('General','compilemo', "True")
+					Config.write(cfgfile)
+				else:
+					Config.set('General','compilemo', "False")
+					Config.write(cfgfile)
+			except:
+				say = BAlert('error', _('Error enabling mo-file compilation, missing config section?'), _('Ok'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+				self.alerts.append(say)
+				say.Go()
+			cfgfile.close()
+			return
 		elif msg.what == 600:
 			value=msg.FindString("name")
 			if value!="" and value!=None:
@@ -2361,6 +2389,8 @@ class GeneralSettings(BWindow):
 					self.alerts.append(say)
 					say.Go()
 				cfgfile.close()
+			return
+		BWindow.MessageReceived(self, msg)
 class TMSettings(BWindow):
 	kWindowFrame = BRect(250, 150, 755, 240)
 	# Translators: Window title
@@ -2691,6 +2721,7 @@ class SpellcheckSettings(BWindow):
 				self.alerts.append(say)
 				say.Go()
 			cfgfile.close()
+			return
 		elif msg.what == 333:
 			ent,confile=Ent_config()
 			cfgfile = open(confile,'w')
@@ -2713,6 +2744,7 @@ class SpellcheckSettings(BWindow):
 				say.Go()
 			cfgfile.close()
 			Config.read(confile)
+			return
 		elif msg.what == 600:
 			ent,confile=Ent_config()
 			cfgfile = open(confile,'w')
@@ -2729,6 +2761,7 @@ class SpellcheckSettings(BWindow):
 				say.Go()
 			cfgfile.close()
 			Config.read(confile)
+			return
 		elif msg.what == 8086:
 			confent,confile=Ent_config()
 			ent=BEntry(self.diz.Text()+".dic")
@@ -2754,6 +2787,7 @@ class SpellcheckSettings(BWindow):
 				say = BAlert("error_dic_path", ttsf, 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_STOP_ALERT)
 				self.alerts.append(say)
 				say.Go()
+				return
 		elif msg.what == 8087:
 			confent,confile=Ent_config()
 			Config.read(confile)
@@ -2771,6 +2805,7 @@ class SpellcheckSettings(BWindow):
 			Config.read(confile)
 			inctxt=ConfigSectionMap("Translator")['spell_inclusion']
 			inclusion = inctxt.split(",")
+			return
 		elif msg.what == 8088:
 			confent,confile=Ent_config()
 			Config.read(confile)
@@ -2788,6 +2823,8 @@ class SpellcheckSettings(BWindow):
 			Config.read(confile)
 			esctxt=ConfigSectionMap("Translator")['spell_esclusion']
 			esclusion=esctxt.split(",")
+			return
+		BWindow.MessageReceived(self, msg)
 
 class HeaderWindow(BWindow):
 	kWindowFrame = BRect(150, 150, 500, 600)
@@ -3120,6 +3157,7 @@ class MainWindow(BWindow):
 	alerts=[]
 	sugjs=[]
 	badItems=[]
+	#winset=[]
 	filen=""
 	file_ext=""
 	viewtxt=_('View')
@@ -3131,7 +3169,7 @@ class MainWindow(BWindow):
 	cpfrsr= _('Copy from source (ctrl+shift+s)')
 	Menus = (
 		(_('File'), ((295485, _('Open')), (2, _('Save')), (1, _('Close')), (5, _('Save as...')),(None, None),(B_QUIT_REQUESTED, _('Quit')))),
-		(transmnu, ((3, cpfrsr), (53,_('Edit comment')), (70,_('Done and next')), (71,_('Mark/Unmark fuzzy (ctrl+b)')), (72, _('Previous w/o saving')),(73,_('Next w/o saving')),(None, None),(42, _('Po properties')), (43, _('Po header')),(None, None), (6, _('Find source')), (7, _('Find/Replace translation')))),
+		(transmnu, ((3, cpfrsr), (53,_('Edit comment')), (70,_('Done and next')), (71,_('Mark/Unmark fuzzy (ctrl+b)')), (72, _('Previous w/o saving')),(73,_('Next w/o saving')),(None, None),(42, _('Po properties')), (43, _('Po header')),(None, None),(14183, _('Compile mo file')),(None, None), (6, _('Find source')), (7, _('Find/Replace translation')))),
 		(viewtxt, ((74,fuztxt), (75, unttxt),(76,tratxt),(77, obstxt))),
 		(_('Settings'), ((40, _('General')),(41, _('User settings')), (44, _('Spellcheck')), (45,_('Translation Memory')))),
 		(_('About'), ((8, _('Help')),(None, None),(9,_('About'))))
@@ -3784,6 +3822,33 @@ class MainWindow(BWindow):
 		self.transtabview.RemoveTab(0)
 		self.listemsgstr.pop(0)
 		self.transtablabels.pop(0)
+	
+	def generate_mo_with_babel(self,path_to_po):
+		mo_output = path_to_po.replace('.po', '.mo')
+		try:
+			with open(path_to_po, 'rb') as infile:
+				# 1. Legge il file PO
+				catalog = read_po(infile) 
+
+			with open(mo_output, 'wb') as outfile:
+				# 2. Scrive (compila) il file MO
+				write_mo(outfile, catalog)
+			return True
+			
+		except FileNotFoundError:
+			alrt1=_("Error: .po file not found at:")
+			alrt2=(f"{alrt1} {path_to_po}")
+			say = BAlert("not_found", alrt2, _('Ok'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_STOP_ALERT)
+			self.alerts.append(say)
+			say.Go()
+			return False
+		except Exception as e:
+			alrt1=_("Error compiling with Babel:")
+			alrt2=(f"{alrt1} {e}")
+			say = BAlert("error", alrt2, _('Ok'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_STOP_ALERT)
+			self.alerts.append(say)
+			say.Go()
+			return False
 		
 	def OpenPOFile(self, f):		
 		#1)clean all
@@ -4419,6 +4484,15 @@ class MainWindow(BWindow):
 		ni = BNodeInfo(nd)
 		ni.SetType("text/x-gettext-translation")
 		#################################################
+		ent,confile=Ent_config()
+		Config.read(confile)
+		try:
+			#langcheck
+			savemo = Config.getboolean('General','compilemo')
+		except:
+			savemo = False
+		if savemo:
+			self.generate_mo_with_babel(path)
 		self.writter.release()
 	
 	def tmcommunicate(self,src):
@@ -4872,7 +4946,9 @@ class MainWindow(BWindow):
 			self.About.Show()
 			return
 		elif msg.what == 40:
-			self.gensettings=GeneralSettings(self)
+			#self.winset.append(GeneralSettings(self))
+			#self.winset[-1].Show()
+			self.gensettings=GeneralSettings(self.oldsize)
 			self.gensettings.Show()
 			return
 		elif msg.what == 41:
@@ -4992,6 +5068,7 @@ class MainWindow(BWindow):
 					kmesg=BMessage(130550)
 					kmesg.AddInt8('movekind',1)
 					be_app.WindowAt(0).PostMessage(kmesg)
+			return
 		elif msg.what == 73:
 			# next without saving
 			if self.sourcestrings.lv.CountItems()>0:
@@ -5004,6 +5081,17 @@ class MainWindow(BWindow):
 					kmesg=BMessage(130550)
 					kmesg.AddInt8('movekind',0)
 					be_app.WindowAt(0).PostMessage(kmesg)
+			return
+		elif msg.what == 14183:
+			try:
+				Config.read(confile)
+				compile=Config.getboolean('General', 'compilemo')
+			except:
+				compile=False
+			if compile:
+				#compila il file mo
+				print("origine",self.filen+self.file_ext)
+				print("mo diventa",self.filen+".mo")
 		elif msg.what == 16893:
 			try:
 				Config.read(confile)
@@ -5293,6 +5381,7 @@ class MainWindow(BWindow):
 			where=msg.FindInt32("where")
 			self.sourcestrings.lv.Select(where)
 			self.sourcestrings.lv.ScrollToSelection()
+			return
 		elif msg.what == 71:
 			# mark unmark as fuzzy
 			if self.sourcestrings.lv.CountItems()>0:
@@ -5539,10 +5628,12 @@ class MainWindow(BWindow):
 				cmd=("c","h","g")
 				mx=[cmd,"",""]
 				Thread(target=self.tmcommunicate,args=(mx,)).start()
+			return
 		elif msg.what == 386:
 			f=self.filen+self.file_ext
 			self.OpenPOFile(f)
 			#self.sourcestrings.reload(self.poview,self.pofile,self.encoding)
+			return
 		elif msg.what == 112118:
 			#launch a delayed check
 			oldtext=msg.FindString('oldtext')
@@ -5562,6 +5653,7 @@ class MainWindow(BWindow):
 				self.listemsgstr[self.transtabview.Selection()].trnsl.Select(ubi2,ubi2)
 			self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
 			self.listemsgstr[self.transtabview.Selection()].trnsl.MakeFocus()
+			return
 		elif msg.what == 130550: # change listview selection
 			movetype=msg.FindInt8('movekind')
 			if tm:
@@ -5690,6 +5782,7 @@ class MainWindow(BWindow):
 			indf=msg.FindInt32('indf')
 			self.listemsgstr[self.transtabview.Selection()].trnsl.Select(indi,indf)
 			self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToOffset(indf)
+			return
 		elif msg.what == 738033:
 			#look for translations
 			if tm:
@@ -5702,6 +5795,7 @@ class MainWindow(BWindow):
 					self.expander.SetText(self.tmscrollsugj.lv.ItemAt(self.tmscrollsugj.lv.CurrentSelection()).Text(),None)
 				except:
 					pass #non è un suggerimento forse un ErrorItem
+			return
 		elif msg.what == 141:
 			#paste sugg to trnsl EventTextView
 			try:
