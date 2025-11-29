@@ -4705,6 +4705,7 @@ class MainWindow(BWindow):
 			return
 		elif msg.what == 2:
 			#Save from menu
+			#savefrom=msg.FindString("savefrom")
 			if self.sourcestrings.lv.CountItems()>0:     ###### FIX HERE check condition if file is loaded
 				ent,confile=Ent_config()
 				if self.listemsgstr[self.transtabview.Selection()].trnsl.tosave:
@@ -6194,6 +6195,26 @@ class MainWindow(BWindow):
 		print("Server closed")
 		
 	def QuitRequested(self):
+		#check if there's a .temp.po file and if it's newer than the original .po, if so ask if you want to Save changes, Delete temp file, Just quit
+		pth="".join((self.filen,self.file_ext))
+		backupfile="".join((self.filen,".temp",self.file_ext))
+		if os.path.exists(backupfile):
+			if os.path.getmtime(backupfile)>os.path.getmtime(pth):
+				say = BAlert('Quit?', _("The temporary file is newer than the original po file, what do you want to do?"), _('Save it to po file'), _("Delete temp file"), _("Just quit"), button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+				self.alerts.append(say)
+				ret=say.Go()
+				if ret == 0:
+					# overwrite the original
+					self.pofile= polib.pofile(backupfile,encoding=self.encoding)
+					self.Save(pth)
+				elif ret==1:
+					# delete temp file
+					entro=BEntry(backupfile)
+					if entro.Exists():
+						entro.Remove()
+				elif ret==2:
+					# quit without saving
+					pass
 		# Note: this strange kind of QuitRequest is the only one which does not request a double free
 		# of this BWindow (don't know why). The actual Quit is done through be_app O_O'
 		self.keeperoftheloop = False
