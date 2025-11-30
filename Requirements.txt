@@ -1,6 +1,5 @@
 haiku_pyapi_python310
 pip_python310
-polib_python310
 pyenchant_python310
 hunspell
 myspell
@@ -11,6 +10,7 @@ gettext
 lxml_python310
 sphinx_python310
 pips:
+	polib
 	translate-toolkit
 	rapidfuzz
 	scikit-build [file to patch with skbuild.patch /boot/system/non-packaged/lib/python3.10/site-packages/skbuild/platform_specifics/platform_factory.py]
