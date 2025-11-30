@@ -1,18 +1,20 @@
+Note: # means not needed anymore
+
 haiku_pyapi_python310
-pip_python310
+# pip_python310
 pyenchant_python310
 hunspell
 myspell
 myspell_$your_language
 babel_python310
-cmake/cmake_x86
+# cmake/cmake_x86
 gettext
 lxml_python310
 sphinx_python310
-pips:
-	polib
-	translate-toolkit
-	rapidfuzz
-	scikit-build [file to patch with skbuild.patch /boot/system/non-packaged/lib/python3.10/site-packages/skbuild/platform_specifics/platform_factory.py]
-	Levenshtein [python3 setup.py install, but if you are on x86 haiku, do a "setarch x86" before running the command]
-	deep-translator
+# pips: no pip necessary
+	# polib : actually provided in this repo
+	# translate-toolkit : actually provided in this repo
+	# rapidfuzz : actually privided in this repo
+	# scikit-build [file to patch with skbuild.patch /boot/system/non-packaged/lib/python3.10/site-packages/skbuild/platform_specifics/platform_factory.py] : no need as previous dependencies are provided in this repo
+	# Levenshtein [python3 setup.py install, but if you are on x86 haiku, do a "setarch x86" before running the command] : actually provided in this repo
+	# deep-translator : actually provided in this repo
