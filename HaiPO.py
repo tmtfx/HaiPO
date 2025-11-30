@@ -685,7 +685,7 @@ class MsgStrItem(BListItem):
 	tosave=False
 	txttosave=""
 	txttosavepl=[]
-	dragcheck=False
+	#dragcheck=False 
 	comments=""
 	context=""
 	mycolors= {"untranslated":rgb_color(),"translated":rgb_color(),"fuzzy":rgb_color(),"obs_select":rgb_color(),"obsolete":rgb_color(),"clear":rgb_color()}
