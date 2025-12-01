@@ -135,7 +135,7 @@ def Ent_config():
 	datapath=BDirectory(perc.Path()+"/HaiPO2")
 	ent=BEntry(datapath,perc.Path()+"/HaiPO2")
 	if not ent.Exists():
-		datapath.CreateDirectory(perc.Path()+"/HaiPO2", datapath)
+		datapath.CreateDirectory(perc.Path()+"/HaiPO2", None)#datapath)
 	ent.GetPath(perc)
 	confile=BPath(perc.Path()+'/config.ini',None,False)
 	ent=BEntry(confile.Path())
