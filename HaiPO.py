@@ -6039,7 +6039,7 @@ class MainWindow(BWindow):
 		datapath=BDirectory(perc.Path()+"/HaiPO2")
 		ent=BEntry(datapath,perc.Path()+"/HaiPO2")
 		if not ent.Exists():
-			datapath.CreateDirectory(perc.Path()+"/HaiPO2", datapath)
+			datapath.CreateDirectory(perc.Path()+"/HaiPO2",None)# datapath)
 		ent.GetPath(perc)
 		ftmx=perc.Path()+'/outtmx'+self.tmxlang+'.db'
 		e = BEntry(ftmx)
