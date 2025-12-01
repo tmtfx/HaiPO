@@ -134,7 +134,7 @@ def Ent_config():
 	find_directory(directory_which.B_USER_NONPACKAGED_DATA_DIRECTORY,perc,False,None)
 	datapath=BDirectory(perc.Path()+"/HaiPO2")
 	ent=BEntry(datapath,perc.Path()+"/HaiPO2")
-	if not ent.Exists():
+	if not ent.Exists() and ent.IsDirectory():
 		datapath.CreateDirectory(perc.Path()+"/HaiPO2", None)#datapath)
 	ent.GetPath(perc)
 	confile=BPath(perc.Path()+'/config.ini',None,False)
@@ -6038,7 +6038,7 @@ class MainWindow(BWindow):
 		find_directory(directory_which.B_USER_NONPACKAGED_DATA_DIRECTORY,perc,False,None)
 		datapath=BDirectory(perc.Path()+"/HaiPO2")
 		ent=BEntry(datapath,perc.Path()+"/HaiPO2")
-		if not ent.Exists():
+		if not ent.Exists() and ent.IsDirectory():
 			datapath.CreateDirectory(perc.Path()+"/HaiPO2",None)# datapath)
 		ent.GetPath(perc)
 		ftmx=perc.Path()+'/outtmx'+self.tmxlang+'.db'
