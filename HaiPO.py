@@ -132,10 +132,12 @@ if b:
 def Ent_config():
 	perc=BPath()
 	find_directory(directory_which.B_USER_NONPACKAGED_DATA_DIRECTORY,perc,False,None)
-	datapath=BDirectory(perc.Path()+"/HaiPO2")
-	ent=BEntry(datapath,perc.Path()+"/HaiPO2")
+	#datapath=BDirectory(perc.Path()+"/HaiPO2")
+	#ent=BEntry(datapath,perc.Path()+"/HaiPO2")
+	ent=BEntry(perc.Path()+"/HaiPO2")
 	if not ent.Exists() and ent.IsDirectory():
-		datapath.CreateDirectory(perc.Path()+"/HaiPO2", None)#datapath)
+		#datapath.CreateDirectory(perc.Path()+"/HaiPO2", None)#datapath)
+		BDirectory().CreateDirectory(perc.Path()+"/HaiPO2", None)
 	ent.GetPath(perc)
 	confile=BPath(perc.Path()+'/config.ini',None,False)
 	ent=BEntry(confile.Path())
@@ -6036,10 +6038,12 @@ class MainWindow(BWindow):
 	def server(self,addr,PORT=2022,HEADER=4096,log=False):
 		perc=BPath()
 		find_directory(directory_which.B_USER_NONPACKAGED_DATA_DIRECTORY,perc,False,None)
-		datapath=BDirectory(perc.Path()+"/HaiPO2")
-		ent=BEntry(datapath,perc.Path()+"/HaiPO2")
+		#datapath=BDirectory(perc.Path()+"/HaiPO2")
+		#ent=BEntry(datapath,perc.Path()+"/HaiPO2")
+		ent=BEntry(perc.Path()+"/HaiPO2")
 		if not ent.Exists() and ent.IsDirectory():
-			datapath.CreateDirectory(perc.Path()+"/HaiPO2",None)# datapath)
+			#datapath.CreateDirectory(perc.Path()+"/HaiPO2",None)# datapath)
+			BDirectory().CreateDirectory(perc.Path()+"/HaiPO2",None)
 		ent.GetPath(perc)
 		ftmx=perc.Path()+'/outtmx'+self.tmxlang+'.db'
 		e = BEntry(ftmx)
