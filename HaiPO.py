@@ -22,6 +22,7 @@ from Be.GraphicsDefs import rgb_color
 from Be.TabView import tab_side
 from Be.TextView import text_run,text_run_array
 from Be.Architecture import get_architecture
+from Be.Errors import *
 
 import configparser,struct,threading,os,re,datetime,time,codecs,encodings,gettext
 #from gettext import compile_domain
@@ -936,15 +937,17 @@ class EventTextView(BTextView):
 			name=time.time()
 			self.checklater(str(name), self.Text(),indexBlistitem)
 		elif msg.what == self.middlemsgdn:
-			button=msg.FindInt32('buttons')
-			if button == 4: #4=middle button
-				self.paste=True
-			else:
-				self.paste=False
+			status,button=msg.FindInt32('buttons')
+			if status == B_OK:
+				if button == 4: #4=middle button
+					self.paste=True
+				else:
+					self.paste=False
 		elif msg.what == self.middlemsgup:
 			if self.paste:
-				position=BPoint()
-				where=msg.FindPoint('be:view_where',position)
+				#position=BPoint() #old way
+				#status=msg.FindPoint('be:view_where',position) #old way
+				status,position=msg.FindPoint('be:view_where')
 				pos1,pos2 = self.superself.listemsgid[self.superself.srctabview.Selection()].src.GetSelection()
 				if pos1==pos2:
 					pos1,pos2 = self.superself.expander.GetSelection()
@@ -1931,8 +1934,9 @@ class FindRepTrans(BWindow):
 			return
 
 		elif msg.what == 7047:
-			addfloat=msg.FindFloat('delta')
-			self.pb.Update(addfloat,None,None)
+			status,addfloat=msg.FindFloat('delta')
+			if status == B_OK:
+				self.pb.Update(addfloat,None,None)
 			return
 		elif msg.what == 10240:
 			if self.ef>self.ei:
@@ -1943,7 +1947,9 @@ class FindRepTrans(BWindow):
 				repmsg.AddString("subs",self.reptv.Text())
 				be_app.WindowAt(0).PostMessage(repmsg)
 		elif msg.what == 1010:
-			self.looktv.SetText(msg.FindString('txt'))
+			status,testo=msg.FindString('txt')
+			if status == B_OK:
+				self.looktv.SetText(testo)
 			return
 		return BWindow.MessageReceived(self, msg)
 
@@ -2111,7 +2117,9 @@ class Findsource(BWindow):
 				be_app.WindowAt(0).Unlock()
 			return
 		elif msg.what == 1010:
-			self.looktv.SetText(msg.FindString('txt'))
+			status,testo=msg.FindString('txt')
+			if status == B_OK:
+				self.looktv.SetText(testo)
 			return
 		return BWindow.MessageReceived(self, msg)
 
@@ -2162,15 +2170,18 @@ class POmetadata(BWindow):
 	def MessageReceived(self, msg):
 		if msg.what == 51973:
 			# save metadata to self.pofile
-			ind=msg.FindString('itemstring')
-			indi=msg.FindInt8('itemindex')
-			self.pofile.metadata[ind]=self.listBTextControl[indi].Text()
-			# ask update ordered metadata
-			# save self.pofile to backup file
-			smesg=BMessage(16893)
-			smesg.AddInt8('savetype',2)
-			smesg.AddString('bckppath',be_app.WindowAt(0).backupfile)
-			be_app.WindowAt(0).PostMessage(smesg)
+			status1,ind=msg.FindString('itemstring')
+			status2,indi=msg.FindInt8('itemindex')
+			if status1==B_OK and status2==B_OK:
+				self.pofile.metadata[ind]=self.listBTextControl[indi].Text()
+				# ask update ordered metadata
+				# save self.pofile to backup file
+				smesg=BMessage(16893)
+				smesg.AddInt8('savetype',2)
+				smesg.AddString('bckppath',be_app.WindowAt(0).backupfile)
+				be_app.WindowAt(0).PostMessage(smesg)
+			return
+		BWindow.MessageReceived(self, msg)
 
 class MyListItem(BListItem):
 	def __init__(self, txt):
@@ -2376,21 +2387,22 @@ class GeneralSettings(BWindow):
 			cfgfile.close()
 			return
 		elif msg.what == 600:
-			value=msg.FindString("name")
-			if value!="" and value!=None:
-				ent,confile=Ent_config()
-				cfgfile = open(confile,'w')
-				try:
-					Config.set('General','localization', value)
-					Config.write(cfgfile)
-					say = BAlert('restart', _('Restart required to apply changes.'), _('Ok'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_INFO_ALERT)
-					self.alerts.append(say)
-					say.Go()
-				except:
-					say = BAlert('error', _('Error setting the localization, missing config section?'), _('Ok'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
-					self.alerts.append(say)
-					say.Go()
-				cfgfile.close()
+			status,value=msg.FindString("name")
+			if status == B_OK:
+				if value!="" and value!=None:
+					ent,confile=Ent_config()
+					cfgfile = open(confile,'w')
+					try:
+						Config.set('General','localization', value)
+						Config.write(cfgfile)
+						say = BAlert('restart', _('Restart required to apply changes.'), _('Ok'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_INFO_ALERT)
+						self.alerts.append(say)
+						say.Go()
+					except:
+						say = BAlert('error', _('Error setting the localization, missing config section?'), _('Ok'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+						self.alerts.append(say)
+						say.Go()
+					cfgfile.close()
 			return
 		BWindow.MessageReceived(self, msg)
 class TMSettings(BWindow):
@@ -2751,12 +2763,13 @@ class SpellcheckSettings(BWindow):
 			ent,confile=Ent_config()
 			cfgfile = open(confile,'w')
 			try:
-				name=msg.FindString("name")
-				if not Config.has_section('Translator'):
-					Config.add_section('Translator')	
-				engine=name
-				Config.set('Translator','engine', name)
-				Config.write(cfgfile)
+				status,name=msg.FindString("name")
+				if status == B_OK:
+					if not Config.has_section('Translator'):
+						Config.add_section('Translator')	
+					engine=name
+					Config.set('Translator','engine', name)
+					Config.write(cfgfile)
 			except:
 				say = BAlert("error_engine_selection", _("Error selecting the translator engine, check config.ini"), 'Ok',None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_STOP_ALERT)
 				self.alerts.append(say)
@@ -3078,14 +3091,14 @@ class POTchooser(BWindow):
 
 	def MessageReceived(self, msg):
 		if msg.what == 707:
-			self.baobtn.iso=msg.FindString('code')
-			self.baobtn.langname=msg.FindString('name')
+			status1,self.baobtn.iso=msg.FindString('code')
+			status2,self.baobtn.langname=msg.FindString('name')
 			self.baobtn.SetLabel(self.baobtn.name+" for "+self.baobtn.langname)
 			self.setlang=True
 			if self.setchrset:
 				self.baobtn.SetEnabled(True)
 		elif msg.what == 777:
-			self.charset = msg.FindString("name")
+			status,self.charset = msg.FindString("name")
 			self.setchrset=True
 			if self.setlang:
 				self.baobtn.SetEnabled(True)
@@ -4607,58 +4620,61 @@ class MainWindow(BWindow):
 
 	def MessageReceived(self, msg):
 		if msg.what == B_MODIFIERS_CHANGED:
-			value=msg.FindInt32("modifiers")
-			self.sem.acquire()
-			vtc=value-1
-			if vtc in self.shifti:
-				self.skipcheck=True
-			else:
-				self.skipcheck=False
-			if value==self.modifiervalue or value==self.modifiervalue+8 or value ==self.modifiervalue+32 or value ==self.modifiervalue+40:
-				#"modifier"
-				self.modifier=True
-				self.shortcut = False
-			elif value == self.modifiervalue+257 or value==self.modifiervalue+265 or value==self.modifiervalue+289 or value == self.modifiervalue+297:
-				#"shortcut"
-				self.shortcut = True
-				self.modifier = False
-			else:
-				#"other"
-				self.modifier=False
-				self.shortcut=False
-			self.sem.release()
+			status,value=msg.FindInt32("modifiers")
+			if status==B_OK:
+				self.sem.acquire()
+				vtc=value-1
+				if vtc in self.shifti:
+					self.skipcheck=True
+				else:
+					self.skipcheck=False
+				if value==self.modifiervalue or value==self.modifiervalue+8 or value ==self.modifiervalue+32 or value ==self.modifiervalue+40:
+					#"modifier"
+					self.modifier=True
+					self.shortcut = False
+				elif value == self.modifiervalue+257 or value==self.modifiervalue+265 or value==self.modifiervalue+289 or value == self.modifiervalue+297:
+					#"shortcut"
+					self.shortcut = True
+					self.modifier = False
+				else:
+					#"other"
+					self.modifier=False
+					self.shortcut=False
+				self.sem.release()
 			return
 		elif msg.what == B_KEY_DOWN:	#on tab key pressed, focus on translation or translation of first item list of translations
-			key=msg.FindInt32('key')
-			if key==38: #tab key
-				if self.sourcestrings.lv.CurrentSelection()>-1:
-					self.listemsgstr[self.transtabview.Selection()].trnsl.MakeFocus() ########### LOOK HERE 
-				else:
-					self.sourcestrings.lv.Select(0)
-					self.sourcestrings.lv.ScrollToSelection()
-			elif key in (98,87,54,33):
-				if self.sourcestrings.lv.CurrentSelection() < 0:
-					self.sourcestrings.lv.Select(0)
-					self.sourcestrings.lv.ScrollToSelection()
-#				elif key == 61: # s key      ######## TODO: check, because it seems useless
-#					if self.sourcestrings.lv.CurrentSelection()>-1:
-#						self.sem.acquire()
-#						if self.shortcut:
-#							BApplication.be_app.WindowAt(0).PostMessage(33)
-#						else:
-#							pass
-#						self.sem.release()
-			elif key== 43:
-						self.switcher()
-						#Thread(target=self.switcher).start()
+			status,key=msg.FindInt32('key')
+			if status == B_OK:
+				if key==38: #tab key
+					if self.sourcestrings.lv.CurrentSelection()>-1:
+						self.listemsgstr[self.transtabview.Selection()].trnsl.MakeFocus() ########### LOOK HERE 
+					else:
+						self.sourcestrings.lv.Select(0)
+						self.sourcestrings.lv.ScrollToSelection()
+				elif key in (98,87,54,33):
+					if self.sourcestrings.lv.CurrentSelection() < 0:
+						self.sourcestrings.lv.Select(0)
+						self.sourcestrings.lv.ScrollToSelection()
+	#				elif key == 61: # s key      ######## TODO: check, because it seems useless
+	#					if self.sourcestrings.lv.CurrentSelection()>-1:
+	#						self.sem.acquire()
+	#						if self.shortcut:
+	#							BApplication.be_app.WindowAt(0).PostMessage(33)
+	#						else:
+	#							pass
+	#						self.sem.release()
+				elif key== 43:
+							self.switcher()
+							#Thread(target=self.switcher).start()
 			return
 		elif msg.what == 2363:
-			direction=msg.FindBool("dir")
-			if direction:
-				self.esbox.ResizeBy(0,1)
-			else:
-				self.esbox.ResizeBy(0,-1)
-			
+			status,direction=msg.FindBool("dir")
+			if status==B_OK:
+				if direction:
+					self.esbox.ResizeBy(0,1)
+				else:
+					self.esbox.ResizeBy(0,-1)
+			return
 		elif msg.what == 1:
 			# Close opened file
 			if self.sourcestrings.lv.CountItems()>0:
@@ -4767,62 +4783,73 @@ class MainWindow(BWindow):
 		elif msg.what == 5:
 			if self.sourcestrings.lv.CountItems()>0:
 				self.fp.Show()
+			return
 		elif msg.what == 800:
-			self.src_lang = msg.FindString("code")
+			status,self.src_lang = msg.FindString("code")
 			ent,confile=Ent_config()
 			cfgfile = open(confile,'w')
 			Config.set('Translator','src_lang', self.src_lang)
 			Config.write(cfgfile)
 			cfgfile.close()
 			self.traduttore = self.Traduttore(source=self.src_lang, target=self.trans_lang)
+			return
 		elif msg.what == 900:
-			self.trans_lang = msg.FindString("code")
+			status,self.trans_lang = msg.FindString("code")
 			ent,confile=Ent_config()
 			cfgfile = open(confile,'w')
 			Config.set('Translator','trans_lang', self.trans_lang)
 			Config.write(cfgfile)
 			cfgfile.close()
 			self.traduttore = self.Traduttore(source=self.src_lang, target=self.trans_lang)
+			return
 		elif msg.what == 909:
 			self.es_trans.SetText(self.traduttore.translate(text=self.es_src.Text()),None)
+			return
 		elif msg.what == 735157:
 			color=rgb_color()
 			color.green=150
 			self.font.SetSize(28)
 			self.checkres.SetFontAndColor(self.font,set_font_mask.B_FONT_ALL,color)
 			self.checkres.SetText("☑",None)
+			return
 		elif msg.what == 826066:
 			color=rgb_color()
 			self.font.SetSize(28)
 			self.checkres.SetFontAndColor(self.font,set_font_mask.B_FONT_ALL,color)
 			self.checkres.SetText("☐",None)
+			return
 		elif msg.what == 982757:
 			color=rgb_color()
 			color.red=150
 			self.font.SetSize(28)
 			self.checkres.SetFontAndColor(self.font,set_font_mask.B_FONT_ALL,color)
 			self.checkres.SetText("☒",None)
+			return
 		elif msg.what == 431110173:
 			#delete a suggestion on remote tmserver
-			txtdel=msg.FindString("sugj")
-			srcdel=self.listemsgid[self.srctabview.Selection()].src.Text()
-			cmd=("d","e","l")
-			mx=[cmd,srcdel,txtdel]
-			Thread(target=self.tmcommunicate,args=(mx,)).start()
+			status,txtdel=msg.FindString("sugj")
+			if status==B_OK:
+				srcdel=self.listemsgid[self.srctabview.Selection()].src.Text()
+				cmd=("d","e","l")
+				mx=[cmd,srcdel,txtdel]
+				Thread(target=self.tmcommunicate,args=(mx,)).start()
+			return
 		elif msg.what == 8147420:
 			# copy from tm suggestions
 			if self.sourcestrings.lv.CurrentSelection()>-1:
-				askfor=msg.FindInt8("sel")
-				if self.tmscrollsugj.lv.CountItems()>askfor:
-					self.listemsgstr[self.transtabview.Selection()].trnsl.SetText(self.tmscrollsugj.lv.ItemAt(askfor).text,None)
-					lngth=self.listemsgstr[self.transtabview.Selection()].trnsl.TextLength()
-					self.listemsgstr[self.transtabview.Selection()].trnsl.Select(lngth,lngth)
-					self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
-					self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
-					indexBlistitem=self.sourcestrings.lv.CurrentSelection()
-					name=time.time()
-					self.listemsgstr[self.transtabview.Selection()].trnsl.checklater(str(name), self.listemsgstr[self.transtabview.Selection()].trnsl.Text(),indexBlistitem)
-#						print self.tmscrollsugj.lv.ItemAt(askfor).text #settext con tutte i vari controlli ortografici mettere tosave = True a eventtextview interessato
+				status,askfor=msg.FindInt8("sel")
+				if status==B_OK:
+					if self.tmscrollsugj.lv.CountItems()>askfor:
+						self.listemsgstr[self.transtabview.Selection()].trnsl.SetText(self.tmscrollsugj.lv.ItemAt(askfor).text,None)
+						lngth=self.listemsgstr[self.transtabview.Selection()].trnsl.TextLength()
+						self.listemsgstr[self.transtabview.Selection()].trnsl.Select(lngth,lngth)
+						self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToSelection()
+						self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
+						indexBlistitem=self.sourcestrings.lv.CurrentSelection()
+						name=time.time()
+						self.listemsgstr[self.transtabview.Selection()].trnsl.checklater(str(name), self.listemsgstr[self.transtabview.Selection()].trnsl.Text(),indexBlistitem)
+	#						print self.tmscrollsugj.lv.ItemAt(askfor).text #settext con tutte i vari controlli ortografici mettere tosave = True a eventtextview interessato
+			return
 		elif msg.what == 33:
 			#copy from source from keyboard
 			# commented out all saving rows to the backup
@@ -5103,96 +5130,97 @@ class MainWindow(BWindow):
 				defname=self.pofile.metadata['Last-Translator']
 			now = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M+0000')
 			# save to backup and update the blistitem
-			bckppath = msg.FindString('bckppath')
-			savetype = msg.FindInt8('savetype')
-			if savetype == 0: #simple save, used for fuzzy state and metadata change
-				self.writter.acquire()
-				self.pofile.metadata['Last-Translator']=defname
-				self.pofile.metadata['PO-Revision-Date']=now
-				self.pofile.metadata['X-Editor']=version
-				Thread(target=self.Save,args=(bckppath,)).start()
-				#self.pofile.save(bckppath)
-				return
-			elif savetype == 2:
-				#save of metadata
-				self.writter.acquire()
-				#update self.orderedmetadata
-				self.orderedmetadata = self.pofile.ordered_metadata()
-				self.pofile.metadata['Last-Translator']=defname # metadata saved from po settings
-				self.pofile.metadata['PO-Revision-Date']=now
-				self.pofile.metadata['X-Editor']=version
-				Thread(target=self.Save,args=(bckppath,)).start()
-				#self.pofile.save(bckppath)
-				return
-			elif savetype == 1:
-				#save
-				if tm:
-					needtopush=msg.FindBool('tmx') # valutare se spostare in if (tm and needtopush):
-					iterz=self.tmscrollsugj.lv.CountItems()
-					iteri=0
-					while iteri<iterz:
-						try:
-							if self.tmscrollsugj.lv.ItemAt(iteri).percent == 100:
-								for tabbi in self.listemsgstr:
-									if self.tmscrollsugj.lv.ItemAt(iteri).text==tabbi.trnsl.Text():
-										needtopush=False
-								#TODO: check if trnsl.Text()!=da suggerimento
-							iteri+=1
-						except:
-							#significa che ha problemi con la connessione magari gli elementi di tmscrollsugj.lv sono ErrorItem senza percent?
-							break
-					if needtopush:
-						#"serve aggiungere a tmx"
-						mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text(),self.listemsgstr[self.transtabview.Selection()].trnsl.Text())
-						Thread(target=self.tmcommunicate,args=(mx,)).start()
+			status1,bckppath = msg.FindString('bckppath')
+			status2,savetype = msg.FindInt8('savetype')
+			if status1==B_OK and status2==B_OK:
+				if savetype == 0: #simple save, used for fuzzy state and metadata change
+					self.writter.acquire()
+					self.pofile.metadata['Last-Translator']=defname
+					self.pofile.metadata['PO-Revision-Date']=now
+					self.pofile.metadata['X-Editor']=version
+					Thread(target=self.Save,args=(bckppath,)).start()
+					#self.pofile.save(bckppath)
+					return
+				elif savetype == 2:
+					#save of metadata
+					self.writter.acquire()
+					#update self.orderedmetadata
+					self.orderedmetadata = self.pofile.ordered_metadata()
+					self.pofile.metadata['Last-Translator']=defname # metadata saved from po settings
+					self.pofile.metadata['PO-Revision-Date']=now
+					self.pofile.metadata['X-Editor']=version
+					Thread(target=self.Save,args=(bckppath,)).start()
+					#self.pofile.save(bckppath)
+					return
+				elif savetype == 1:
+					#save
+					if tm:
+						status1,needtopush=msg.FindBool('tmx') # valutare se spostare in if (tm and needtopush):
+						iterz=self.tmscrollsugj.lv.CountItems()
+						iteri=0
+						while iteri<iterz:
+							try:
+								if self.tmscrollsugj.lv.ItemAt(iteri).percent == 100:
+									for tabbi in self.listemsgstr:
+										if self.tmscrollsugj.lv.ItemAt(iteri).text==tabbi.trnsl.Text():
+											needtopush=False
+									#TODO: check if trnsl.Text()!=da suggerimento
+								iteri+=1
+							except:
+								#significa che ha problemi con la connessione magari gli elementi di tmscrollsugj.lv sono ErrorItem senza percent?
+								break
+						if needtopush:
+							#"serve aggiungere a tmx"
+							mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text(),self.listemsgstr[self.transtabview.Selection()].trnsl.Text())
+							Thread(target=self.tmcommunicate,args=(mx,)).start()
 
 
-				tvindex=msg.FindInt32('tvindex')
-				textsave=msg.FindString('translation')
-				tabbi=msg.FindInt8('plurals')
-				self.writter.acquire()
-				entry = self.sourcestrings.lv.ItemAt(tvindex).entry
-				if entry and entry.msgid_plural:
-						y=0
-						textsavepl=[]
-						entry.msgstr_plural[0] = textsave
-						while y < tabbi:
-							varname='translationpl'+str(y)                            ########################### give me one more eye?
-							intended=msg.FindString(varname)
-							textsavepl.append(intended) #useless???
-							y+=1
-							entry.msgstr_plural[y]=intended
-						if 'fuzzy' in entry.flags:
-							entry.flags.remove('fuzzy')
-						if entry.previous_msgid:
-							entry.previous_msgid=None
-						if entry.previous_msgid_plural:
-							entry.previous_msgid_plural=None
-						if entry.previous_msgctxt:
-							entry.previous_msgctxt=None
-				elif entry and not entry.msgid_plural:
-						entry.msgstr = textsave
-						if 'fuzzy' in entry.flags:
-							entry.flags.remove('fuzzy')
-						if entry.previous_msgid:
-							entry.previous_msgid=None
-						if entry.previous_msgid_plural:
-							entry.previous_msgid_plural=None
-						if entry.previous_msgctxt:
-							entry.previous_msgctxt=None
-				self.pofile.metadata['Last-Translator']=defname
-				self.pofile.metadata['PO-Revision-Date']=now
-				self.pofile.metadata['X-Editor']=version
-				Thread(target=self.Save,args=(bckppath,)).start()
-				#self.pofile.save(bckppath)
-				self.sourcestrings.lv.ItemAt(tvindex).state=1
-				self.sourcestrings.lv.ItemAt(tvindex).tosave=False
-				self.sourcestrings.lv.ItemAt(tvindex).txttosave=""
-				self.sourcestrings.lv.ItemAt(tvindex).txttosavepl=[]
+					status2,tvindex=msg.FindInt32('tvindex')
+					status3,textsave=msg.FindString('translation')
+					status4,tabbi=msg.FindInt8('plurals')
+					self.writter.acquire()
+					entry = self.sourcestrings.lv.ItemAt(tvindex).entry
+					if entry and entry.msgid_plural:
+							y=0
+							textsavepl=[]
+							entry.msgstr_plural[0] = textsave
+							while y < tabbi:
+								varname='translationpl'+str(y)                            ########################### give me one more eye?
+								status5,intended=msg.FindString(varname)
+								textsavepl.append(intended) #useless???
+								y+=1
+								entry.msgstr_plural[y]=intended
+							if 'fuzzy' in entry.flags:
+								entry.flags.remove('fuzzy')
+							if entry.previous_msgid:
+								entry.previous_msgid=None
+							if entry.previous_msgid_plural:
+								entry.previous_msgid_plural=None
+							if entry.previous_msgctxt:
+								entry.previous_msgctxt=None
+					elif entry and not entry.msgid_plural:
+							entry.msgstr = textsave
+							if 'fuzzy' in entry.flags:
+								entry.flags.remove('fuzzy')
+							if entry.previous_msgid:
+								entry.previous_msgid=None
+							if entry.previous_msgid_plural:
+								entry.previous_msgid_plural=None
+							if entry.previous_msgctxt:
+								entry.previous_msgctxt=None
+					self.pofile.metadata['Last-Translator']=defname
+					self.pofile.metadata['PO-Revision-Date']=now
+					self.pofile.metadata['X-Editor']=version
+					Thread(target=self.Save,args=(bckppath,)).start()
+					#self.pofile.save(bckppath)
+					self.sourcestrings.lv.ItemAt(tvindex).state=1
+					self.sourcestrings.lv.ItemAt(tvindex).tosave=False
+					self.sourcestrings.lv.ItemAt(tvindex).txttosave=""
+					self.sourcestrings.lv.ItemAt(tvindex).txttosavepl=[]
 				return
 			elif savetype == 3:
-				tvindex=msg.FindInt32('tvindex')
-				textsave=msg.FindString('tcomment')
+				status1,tvindex=msg.FindInt32('tvindex')
+				status2,textsave=msg.FindString('tcomment')
 				self.writter.acquire()
 				entry = self.sourcestrings.lv.ItemAt(tvindex).entry
 				entry.tcomment=textsave
@@ -5205,7 +5233,7 @@ class MainWindow(BWindow):
 				self.sourcestrings.lv.Select(tvindex)
 				return
 			elif savetype == 4:
-				textsave=msg.FindString('header')
+				status,textsave=msg.FindString('header')
 				self.writter.acquire()
 				self.pofile.header=textsave
 				self.pofile.metadata['Last-Translator']=defname
@@ -5370,20 +5398,25 @@ class MainWindow(BWindow):
 			return
 		elif msg.what == 7484:
 			# status active - rotation 
-			self.spellabel.SetText(msg.FindString('graph'))
+			status,testo=msg.FindString('graph')
+			if status==B_OK:
+				self.spellabel.SetText(testo)
 			return
 		elif msg.what == 7485:
-			b=msg.FindBool("First_step")
-			if b:
-				self.sourcestrings.lv.DeselectAll()
-			else:
-				tv=msg.FindInt32("tvindex")
-				self.sourcestrings.lv.Select(tv)
+			status1,b=msg.FindBool("First_step")
+			if status1==B_OK:
+				if b:
+					self.sourcestrings.lv.DeselectAll()
+				else:
+					status2,tv=msg.FindInt32("tvindex")
+					if status2 == B_OK:
+						self.sourcestrings.lv.Select(tv)
 			return
 		elif msg.what == 1712:
-			where=msg.FindInt32("where")
-			self.sourcestrings.lv.Select(where)
-			self.sourcestrings.lv.ScrollToSelection()
+			status,where=msg.FindInt32("where")
+			if status==B_OK:
+				self.sourcestrings.lv.Select(where)
+				self.sourcestrings.lv.ScrollToSelection()
 			return
 		elif msg.what == 71:
 			# mark unmark as fuzzy
@@ -5452,8 +5485,9 @@ class MainWindow(BWindow):
 				self.setMark(3)
 			return
 		elif msg.what == 45371:
-			percors=msg.FindString("path")
-			self.OpenPOFile(percors)
+			status,percors=msg.FindString("path")
+			if status==B_OK:
+				self.OpenPOFile(percors)
 			return
 		elif msg.what == 295485:
 			self.ofp.Show()
@@ -5482,11 +5516,12 @@ class MainWindow(BWindow):
 			self.savell()
 			return
 		elif msg.what == 512:
-			iso=msg.FindString("iso")
-			# Translators: as in phrase "Custom iso"
-			newitem=LangListItem(_("Custom"),iso,False)
-			self.overbox.ali.append(newitem)
-			self.overbox.acceptedlang.lv.AddItem(self.overbox.ali[-1])
+			status,iso=msg.FindString("iso")
+			if status==B_OK:
+				# Translators: as in phrase "Custom iso"
+				newitem=LangListItem(_("Custom"),iso,False)
+				self.overbox.ali.append(newitem)
+				self.overbox.acceptedlang.lv.AddItem(self.overbox.ali[-1])
 			return
 		elif msg.what == 612:
 			gob=True
@@ -5602,7 +5637,7 @@ class MainWindow(BWindow):
 			perc=BPath()
 			BEntry(txt,True).GetPath(perc)
 			savepath=perc.Path()
-			e = msg.FindString("name")
+			status,e = msg.FindString("name")
 			completepath = savepath +"/"+ e
 			#self.pofile.save(completepath) <--- moved inside self.Save
 			ent,confile=Ent_config()
@@ -5639,16 +5674,16 @@ class MainWindow(BWindow):
 			return
 		elif msg.what == 112118:
 			#launch a delayed check
-			oldtext=msg.FindString('oldtext')
-			indexBlistitem=msg.FindInt32('indexBlistitem')
-			tabs=len(self.listemsgstr)-1
-			
-			if indexBlistitem == self.sourcestrings.lv.CurrentSelection():
-				if self.listemsgstr[self.transtabview.Selection()].trnsl.oldtext != self.listemsgstr[self.transtabview.Selection()].trnsl.Text():
-					self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
-			self.speloc.acquire()
-			self.intime=time.time()
-			self.speloc.release()
+			status1,oldtext=msg.FindString('oldtext')
+			status2,indexBlistitem=msg.FindInt32('indexBlistitem')
+			if status1==B_OK and status2==B_OK:
+				tabs=len(self.listemsgstr)-1
+				if indexBlistitem == self.sourcestrings.lv.CurrentSelection():
+					if self.listemsgstr[self.transtabview.Selection()].trnsl.oldtext != self.listemsgstr[self.transtabview.Selection()].trnsl.Text():
+						self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
+				self.speloc.acquire()
+				self.intime=time.time()
+				self.speloc.release()
 			return
 		elif msg.what == 113119:
 			ubi1,ubi2=self.listemsgstr[self.transtabview.Selection()].trnsl.GetSelection()
@@ -5658,121 +5693,124 @@ class MainWindow(BWindow):
 			self.listemsgstr[self.transtabview.Selection()].trnsl.MakeFocus()
 			return
 		elif msg.what == 130550: # change listview selection
-			movetype=msg.FindInt8('movekind')
-			if tm:
-				self.NichilizeTM()
-			if movetype == 0:
-				#select one down
-				if (self.sourcestrings.lv.CurrentSelection()>-1) and (self.sourcestrings.lv.CurrentSelection()<self.sourcestrings.lv.CountItems()):
-					self.sourcestrings.lv.Select(self.sourcestrings.lv.CurrentSelection()+1)
-					self.sourcestrings.lv.ScrollToSelection()
-				elif self.sourcestrings.lv.CurrentSelection()==-1:
-					self.sourcestrings.lv.Select(0)
-				#self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated())) # reinsert if not working properly
-			elif movetype == 1:
-				#select one up
-				if self.sourcestrings.lv.CurrentSelection()>0 :
-					self.sourcestrings.lv.Select(self.sourcestrings.lv.CurrentSelection()-1)
-				elif self.sourcestrings.lv.CurrentSelection()==-1:
-					self.sourcestrings.lv.Select(self.sourcestrings.lv.CountItems()-1)
-				self.sourcestrings.lv.ScrollToSelection()
-				#self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated())) # reinsert if not working properly
-			elif movetype == 2:
-				#select one page up
-				thisitem=self.sourcestrings.lv.CurrentSelection()
-				if thisitem > -1:
-					pass
-				else:
-					thisitem=0
-				rectangular=self.sourcestrings.lv.ItemFrame(thisitem)
-				hitem=rectangular.Height()
-				rectangular=self.sourcestrings.lv.Bounds()
-				hwhole=rectangular.Height()
-				page=int(hwhole//hitem)
-				if self.sourcestrings.lv.CurrentSelection()>(page-1) :
-					self.sourcestrings.lv.Select(self.sourcestrings.lv.CurrentSelection()-page)
-				else:
-					self.sourcestrings.lv.Select(0)
-				self.sourcestrings.lv.ScrollToSelection()
-				#self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated())) # reinsert if not working properly
-			elif movetype == 3:
-				#select one page down
-				thisitem=self.sourcestrings.lv.CurrentSelection()
-				if thisitem > -1:
-					pass
-				else:
-					thisitem=0
-				rectangular=self.sourcestrings.lv.ItemFrame(thisitem)
-				hitem=rectangular.Height()
-				rectangular=self.sourcestrings.lv.Bounds()
-				hwhole=rectangular.Height()
-				page=int(hwhole//hitem)
-				if (self.sourcestrings.lv.CurrentSelection()>-1) and (self.sourcestrings.lv.CurrentSelection()<self.sourcestrings.lv.CountItems()-page):
-					self.sourcestrings.lv.Select(self.sourcestrings.lv.CurrentSelection()+page)	
-				else:
-					self.sourcestrings.lv.Select(self.sourcestrings.lv.CountItems()-1)	
-				self.sourcestrings.lv.ScrollToSelection()
-				#self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated())) # reinsert if not working properly
-			elif  movetype == 4:
-				#select next untranslated (or needing work) string
-				if (self.sourcestrings.lv.CurrentSelection()>-1):
-					spice = self.sourcestrings.lv.CurrentSelection()+1
-					if spice == self.sourcestrings.lv.CountItems():
-						spice = 0
-				else:
-					self.sourcestrings.lv.Select(0)
-					self.sourcestrings.lv.ScrollToSelection()
-					spice=0
-				tt=0
-				tt=spice
-				counting=0
-				lookingfor = True
-				max = self.sourcestrings.lv.CountItems()
-				while lookingfor:
-					blistit=self.sourcestrings.lv.ItemAt(tt)
-					if blistit.state==0 or blistit.state==2:
-						lookingfor = False
-						self.sourcestrings.lv.Select(tt)
+			status,movetype=msg.FindInt8('movekind')
+			if status==B_OK:
+				if tm:
+					self.NichilizeTM()
+				if movetype == 0:
+					#select one down
+					if (self.sourcestrings.lv.CurrentSelection()>-1) and (self.sourcestrings.lv.CurrentSelection()<self.sourcestrings.lv.CountItems()):
+						self.sourcestrings.lv.Select(self.sourcestrings.lv.CurrentSelection()+1)
 						self.sourcestrings.lv.ScrollToSelection()
-					tt+=1
-					counting +=1
-					if counting == max:
-						lookingfor = False
-					if tt==max:
-						tt=0
-				#self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated())) # reinsert if not working properly
-			thisBlistitem=self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection())
-			try:
-				if thisBlistitem.tosave: #it happens when something SOMEHOW has not been saved
-					print("text to save (this shouldn\'t happen)",thisBlistitem.txttosave)
-			except:
-				pass
-			if self.listemsgstr[self.transtabview.Selection()].trnsl.Text()!="":
-				be_app.WindowAt(0).PostMessage(333111)
+					elif self.sourcestrings.lv.CurrentSelection()==-1:
+						self.sourcestrings.lv.Select(0)
+					#self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated())) # reinsert if not working properly
+				elif movetype == 1:
+					#select one up
+					if self.sourcestrings.lv.CurrentSelection()>0 :
+						self.sourcestrings.lv.Select(self.sourcestrings.lv.CurrentSelection()-1)
+					elif self.sourcestrings.lv.CurrentSelection()==-1:
+						self.sourcestrings.lv.Select(self.sourcestrings.lv.CountItems()-1)
+					self.sourcestrings.lv.ScrollToSelection()
+					#self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated())) # reinsert if not working properly
+				elif movetype == 2:
+					#select one page up
+					thisitem=self.sourcestrings.lv.CurrentSelection()
+					if thisitem > -1:
+						pass
+					else:
+						thisitem=0
+					rectangular=self.sourcestrings.lv.ItemFrame(thisitem)
+					hitem=rectangular.Height()
+					rectangular=self.sourcestrings.lv.Bounds()
+					hwhole=rectangular.Height()
+					page=int(hwhole//hitem)
+					if self.sourcestrings.lv.CurrentSelection()>(page-1) :
+						self.sourcestrings.lv.Select(self.sourcestrings.lv.CurrentSelection()-page)
+					else:
+						self.sourcestrings.lv.Select(0)
+					self.sourcestrings.lv.ScrollToSelection()
+					#self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated())) # reinsert if not working properly
+				elif movetype == 3:
+					#select one page down
+					thisitem=self.sourcestrings.lv.CurrentSelection()
+					if thisitem > -1:
+						pass
+					else:
+						thisitem=0
+					rectangular=self.sourcestrings.lv.ItemFrame(thisitem)
+					hitem=rectangular.Height()
+					rectangular=self.sourcestrings.lv.Bounds()
+					hwhole=rectangular.Height()
+					page=int(hwhole//hitem)
+					if (self.sourcestrings.lv.CurrentSelection()>-1) and (self.sourcestrings.lv.CurrentSelection()<self.sourcestrings.lv.CountItems()-page):
+						self.sourcestrings.lv.Select(self.sourcestrings.lv.CurrentSelection()+page)	
+					else:
+						self.sourcestrings.lv.Select(self.sourcestrings.lv.CountItems()-1)	
+					self.sourcestrings.lv.ScrollToSelection()
+					#self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated())) # reinsert if not working properly
+				elif  movetype == 4:
+					#select next untranslated (or needing work) string
+					if (self.sourcestrings.lv.CurrentSelection()>-1):
+						spice = self.sourcestrings.lv.CurrentSelection()+1
+						if spice == self.sourcestrings.lv.CountItems():
+							spice = 0
+					else:
+						self.sourcestrings.lv.Select(0)
+						self.sourcestrings.lv.ScrollToSelection()
+						spice=0
+					tt=0
+					tt=spice
+					counting=0
+					lookingfor = True
+					max = self.sourcestrings.lv.CountItems()
+					while lookingfor:
+						blistit=self.sourcestrings.lv.ItemAt(tt)
+						if blistit.state==0 or blistit.state==2:
+							lookingfor = False
+							self.sourcestrings.lv.Select(tt)
+							self.sourcestrings.lv.ScrollToSelection()
+						tt+=1
+						counting +=1
+						if counting == max:
+							lookingfor = False
+						if tt==max:
+							tt=0
+					#self.infoprogress.SetText(str(self.editorslist[self.postabview.Selection()].pofile.percent_translated())) # reinsert if not working properly
+				thisBlistitem=self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection())
+				try:
+					if thisBlistitem.tosave: #it happens when something SOMEHOW has not been saved
+						print("text to save (this shouldn\'t happen)",thisBlistitem.txttosave)
+				except:
+					pass
+				if self.listemsgstr[self.transtabview.Selection()].trnsl.Text()!="":
+					be_app.WindowAt(0).PostMessage(333111)
 			return
 		elif msg.what == 10241:
-			ei=msg.FindInt16("ei")
-			ef=msg.FindInt16("ef")
-			test=msg.FindString("subs")
-			self.listemsgstr[self.transtabview.Selection()].trnsl.Delete(ei,ef)
-			self.listemsgstr[self.transtabview.Selection()].trnsl.Insert(ei,test,byte_count(test)[0],None)
-			self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
-			be_app.WindowAt(0).PostMessage(12343)
+			status1,ei=msg.FindInt16("ei")
+			status2,ef=msg.FindInt16("ef")
+			status3,test=msg.FindString("subs")
+			if status1==B_OK and status2==B_OK and status3==B_OK:
+				self.listemsgstr[self.transtabview.Selection()].trnsl.Delete(ei,ef)
+				self.listemsgstr[self.transtabview.Selection()].trnsl.Insert(ei,test,byte_count(test)[0],None)
+				self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
+				be_app.WindowAt(0).PostMessage(12343)
 			return
 		elif msg.what == 9631:
-			sugg=msg.FindString('sugg')
-			sorig=msg.FindString('sorig')
-			indi=msg.FindInt32('indi')
-			indf=msg.FindInt32('indf')
-			bct,bca=byte_count(sugg)
-			self.listemsgstr[self.transtabview.Selection()].trnsl.Delete(indi,indf)
-			self.listemsgstr[self.transtabview.Selection()].trnsl.Insert(indi,sugg,bct,None)
-			self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
-			selmex=BMessage(888222)
-			selmex.AddInt32('indi',indi+bct)
-			selmex.AddInt32('indf',indi+bct)
-			be_app.WindowAt(0).PostMessage(12343)#(333111)
-			be_app.WindowAt(0).PostMessage(selmex)
+			status1,sugg=msg.FindString('sugg')
+			status2,sorig=msg.FindString('sorig')
+			status3,indi=msg.FindInt32('indi')
+			status4,indf=msg.FindInt32('indf')
+			if status1==B_OK and status2==B_OK and status3==B_OK and status4==B_OK:
+				bct,bca=byte_count(sugg)
+				self.listemsgstr[self.transtabview.Selection()].trnsl.Delete(indi,indf)
+				self.listemsgstr[self.transtabview.Selection()].trnsl.Insert(indi,sugg,bct,None)
+				self.listemsgstr[self.transtabview.Selection()].trnsl.tosave=True
+				selmex=BMessage(888222)
+				selmex.AddInt32('indi',indi+bct)
+				selmex.AddInt32('indf',indi+bct)
+				be_app.WindowAt(0).PostMessage(12343)#(333111)
+				be_app.WindowAt(0).PostMessage(selmex)
 			return
 		elif msg.what == 333111:
 			#set checktime for delayed checkspell
@@ -5781,16 +5819,19 @@ class MainWindow(BWindow):
 			self.speloc.release()
 			return
 		elif msg.what == 888222:
-			indi=msg.FindInt32('indi')
-			indf=msg.FindInt32('indf')
-			self.listemsgstr[self.transtabview.Selection()].trnsl.Select(indi,indf)
-			self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToOffset(indf)
+			status1,indi=msg.FindInt32('indi')
+			status2,indf=msg.FindInt32('indf')
+			if status1==B_OK and status2==B_OK:
+				self.listemsgstr[self.transtabview.Selection()].trnsl.Select(indi,indf)
+				self.listemsgstr[self.transtabview.Selection()].trnsl.ScrollToOffset(indf)
 			return
 		elif msg.what == 738033:
 			#look for translations
 			if tm:
 				self.NichilizeTM()
-				Thread(target=self.tmcommunicate,args=(msg.FindString('s'),)).start()
+				status,s=msg.FindString('s')
+				if status==B_OK:
+					Thread(target=self.tmcommunicate,args=(s,)).start()
 			return
 		elif msg.what == 140:
 			if self.tmscrollsugj.lv.CurrentSelection()>-1:
@@ -5814,51 +5855,52 @@ class MainWindow(BWindow):
 				pass
 			return
 		elif msg.what == 5391359:
-			r=msg.FindInt16('totsugj')
-			act=0
-			while act<r:
-				self.sugjs.append(SugjItem(msg.FindString('sugj_'+str(act)),msg.FindInt8('lev_'+str(act))))
-				self.tmscrollsugj.lv.AddItem(self.sugjs[-1])
-				act+=1
-			#se tra gli elementi non c'è 100% ma il BListItem è segnato come tradotto, è il caso di inviarlo al file tmx
-			if self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection()).state == 1:	
-				if self.tmscrollsugj.lv.CountItems()>0:
-					if self.tmscrollsugj.lv.ItemAt(0).percent < 100:
+			status,r=msg.FindInt16('totsugj')
+			if status==B_OK:
+				act=0
+				while act<r:
+					self.sugjs.append(SugjItem(msg.FindString('sugj_'+str(act))[1],msg.FindInt8('lev_'+str(act))[1]))
+					self.tmscrollsugj.lv.AddItem(self.sugjs[-1])
+					act+=1
+				#se tra gli elementi non c'è 100% ma il BListItem è segnato come tradotto, è il caso di inviarlo al file tmx
+				if self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection()).state == 1:	
+					if self.tmscrollsugj.lv.CountItems()>0:
+						if self.tmscrollsugj.lv.ItemAt(0).percent < 100:
+							mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text(),self.listemsgstr[self.transtabview.Selection()].trnsl.Text())
+							Thread(target=self.tmcommunicate,args=(mx,)).start()
+							#print "beh, questo è corretto ma ha suggerimenti sbagliati, salvare in tmx!"
+					else:
 						mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text(),self.listemsgstr[self.transtabview.Selection()].trnsl.Text())
 						Thread(target=self.tmcommunicate,args=(mx,)).start()
-						#print "beh, questo è corretto ma ha suggerimenti sbagliati, salvare in tmx!"
-				else:
-					mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text(),self.listemsgstr[self.transtabview.Selection()].trnsl.Text())
-					Thread(target=self.tmcommunicate,args=(mx,)).start()
-					#print "mah, questo è corretto ma non ha suggerimenti, da salvare in tmx!"
+						#print "mah, questo è corretto ma non ha suggerimenti, da salvare in tmx!"
 			return
 		elif msg.what == 963741:
-			schplur = msg.FindInt8('plural')
+			status,schplur = msg.FindInt8('plural')
 			#schsrcplur = msg.FindInt8('srcplur')
 			self.sourcestrings.lv.ScrollToSelection()
 			self.transtabview.Select(schplur)
 			if schplur>0:
 				self.srctabview.Select(1)
-			inizi=msg.FindInt32('inizi')
-			fin=msg.FindInt32('fin')
-			srctrnsl=msg.FindInt8('srctrnsl')
+			status,inizi=msg.FindInt32('inizi')
+			status,fin=msg.FindInt32('fin')
+			status,srctrnsl=msg.FindInt8('srctrnsl')
 			#indolor=msg.FindInt8('index')
 			#name=time.time()
 			Thread(target=self.highlightlater,args=(inizi,fin,schplur,srctrnsl,)).start()#str(name),
 			return
 		elif msg.what == 852630:
 			#highlight source text
-			inizi = msg.FindInt32("inizi")
-			fin = msg.FindInt32("fin")
-			schede =  msg.FindInt8("schede")
+			status,inizi = msg.FindInt32("inizi")
+			status,fin = msg.FindInt32("fin")
+			status,schede =  msg.FindInt8("schede")
 			self.listemsgid[schede].src.MakeFocus(True)
 			self.listemsgid[schede].src.Highlight(inizi,fin)
 			return
 		elif msg.what == 852631:
 			#highlight translation text
-			inizi = msg.FindInt32("inizi")
-			fin = msg.FindInt32("fin")
-			schede =  msg.FindInt8("schede")
+			status,inizi = msg.FindInt32("inizi")
+			status,fin = msg.FindInt32("fin")
+			status,schede =  msg.FindInt8("schede")
 			self.listemsgstr[schede].trnsl.MakeFocus(True)
 			self.listemsgstr[schede].trnsl.Highlight(inizi,fin)
 			return
@@ -6222,7 +6264,9 @@ class MainWindow(BWindow):
 		# Note: this strange kind of QuitRequest is the only one which does not request a double free
 		# of this BWindow (don't know why). The actual Quit is done through be_app O_O'
 		self.keeperoftheloop = False
-		Thread(target=self.tmcommunicate,args=(None,)).start()
+		if tm:
+			print("tm attivo, invio codice di chiusura")
+			Thread(target=self.tmcommunicate,args=(None,)).start()
 		self.event.wait(0.2)
 		be_app.Quit()
 		
@@ -6281,8 +6325,9 @@ class App(BApplication):
 			while True:
 				try:
 					exitr=False
-					er = entry_ref()
-					rito=msg.FindRef("refs", i,er)
+					#er = entry_ref()#oldway
+					#rito=msg.FindRef("refs", i,er)#oldway
+					status,er=msg.FindRef("refs", i)
 					entry = BEntry(er,True)
 					if entry.Exists():
 						percors=BPath()
@@ -6300,10 +6345,11 @@ class App(BApplication):
 		BApplication.RefsReceived(self,msg)
 	def MessageReceived(self, msg):
 		if msg.what == B_SAVE_REQUESTED:
-			e = msg.FindString("name")
-			messaggio = BMessage(54173)
-			messaggio.AddString("name",e)
-			be_app.WindowAt(0).PostMessage(messaggio)
+			status,e = msg.FindString("name")
+			if status == B_OK:
+				messaggio = BMessage(54173)
+				messaggio.AddString("name",e)
+				be_app.WindowAt(0).PostMessage(messaggio)
 			return
 		BApplication.MessageReceived(self,msg)
 	def Pulse(self):
