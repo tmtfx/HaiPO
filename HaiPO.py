@@ -6268,7 +6268,7 @@ class MainWindow(BWindow):
 			print("tm attivo, invio codice di chiusura")
 			Thread(target=self.tmcommunicate,args=(None,)).start()
 		self.event.wait(0.2)
-		be_app.Quit()
+		be_app.Quitter()
 		
 
 def save_db(old_ftmx,tmp_ftmx,ftmx):
@@ -6319,6 +6319,13 @@ class App(BApplication):
 			realargs.pop(1)
 			realargs.pop(0)
 			self.realargs=realargs
+	def Quitter(self):
+		try:
+			self.Lock()
+			self.Quit()
+		finally:
+			self.Unlock()
+		
 	def RefsReceived(self, msg):
 		if msg.what == B_REFS_RECEIVED:
 			i = 0
