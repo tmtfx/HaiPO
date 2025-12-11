@@ -18,7 +18,7 @@ from Be.InterfaceDefs import *
 from Be.StorageDefs import node_flavor
 from Be.TypeConstants import *
 from Be.Accelerant import display_mode
-from Be.GraphicsDefs import rgb_color
+from Be.GraphicsDefs import rgb_color,B_TRANSPARENT_COLOR
 from Be.TabView import tab_side
 from Be.TextView import text_run,text_run_array
 from Be.Architecture import get_architecture
@@ -2986,7 +2986,14 @@ class AboutWindow(BWindow):
 		if ent.Exists():
 			ent.GetPath(perc)
 			self.img=BTranslationUtils.GetBitmap(perc.Path(),None)
-			self.photoframe=PView(BRect(40,50,255,255),"photoframe",self.img)
+			self.photoframe=PView(BRect(5,50,285,255),"photoframe",self.img)
+			#self.photoframe=BBox(BRect(40,50,255,255),"photoframe",B_FOLLOW_ALL_SIDES,B_WILL_DRAW)
+			#tcolor=rgb_color()
+			#tcolor.red=0
+			#tcolor.green=0
+			#tcolor.blue=0
+			#tcolor.alpha=255
+			#self.photoframe.SetViewOverlay(self.img,tcolor)
 			self.bbox.AddChild(self.photoframe,None)
 			return True
 		else:
