@@ -27,6 +27,9 @@ fi
 echo
 if [ -e HaiPO.py ]
 then
+	if [ -e data/HaiPO.hvif ]; then
+		addattr -t \'VICN\' BEOS:ICON -f data/HaiPO.hvif HaiPO.py
+	fi
 	echo Copying files to system folder...
 	[ ! -d /boot/home/config/non-packaged/data/HaiPO2 ] && mkdir /boot/home/config/non-packaged/data/HaiPO2
 	cp HaiPO.py /boot/home/config/non-packaged/data/HaiPO2/
