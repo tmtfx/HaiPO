@@ -182,9 +182,9 @@ global _
 _ = t.gettext
 # Translators: The name of this app
 appname=_("HaiPO")
-ver="2.5"
+ver="2.6"
 # Translators: do not translate, just transliterate
-state=_("beta")
+state=_("rc")
 version=" ".join((appname,ver,state))#'HaiPO x.x beta'
 
 	
@@ -4523,7 +4523,16 @@ class MainWindow(BWindow):
 		except:
 			savemo = False
 		if savemo:
-			self.generate_mo_with_babel(path)
+			status=self.generate_mo_with_babel(path)
+			if status:
+				mo_output = path.replace('.po', '.mo')
+				name,leaf=os.path.splitext(mo_output)
+				tempfilename=name+'.temp'+leaf
+				tempentry=BEntry(tempfilename)
+				if tempentry.Exists():
+					tempentry.Remove()
+					
+				
 		self.writter.release()
 	
 	def tmcommunicate(self,src):

@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-11 13:35+0100\n"
-"PO-Revision-Date: 2025-12-11 12:43+0000\n"
+"POT-Creation-Date: 2025-12-11 23:19+0100\n"
+"PO-Revision-Date: 2025-12-11 22:21+0000\n"
 "Last-Translator: Fabio Tomat <f.t.public@gmail.com>\n"
 "Language-Team: Friulian <f.t.public@gmail.com>\n"
 "Language: it\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Editor: HaiPO 2.5 beta\n"
+"X-Editor: HaiPO 2.6 rc\n"
 
 #. Translators: The name of this app
 #: HaiPO.py:184
@@ -26,8 +26,8 @@ msgstr "HaiPO"
 
 #. Translators: do not translate, just transliterate
 #: HaiPO.py:187
-msgid "beta"
-msgstr "beta"
+msgid "rc"
+msgstr "rc"
 
 #. Translators: Window title
 #: HaiPO.py:508
@@ -78,7 +78,7 @@ msgid "Add custom iso code"
 msgstr "Aggiungi codice iso personalizzato"
 
 #. Translators: Button
-#: HaiPO.py:1668 HaiPO.py:3193
+#: HaiPO.py:1668 HaiPO.py:3202
 msgid "Save"
 msgstr "Salva"
 
@@ -88,7 +88,7 @@ msgid "Cancel"
 msgstr "Annulla"
 
 #. Translators: Window title
-#: HaiPO.py:1755 HaiPO.py:3194
+#: HaiPO.py:1755 HaiPO.py:3203
 msgid "Find/Replace translation"
 msgstr "Trova/Sostituisci traduzione"
 
@@ -124,15 +124,15 @@ msgstr "Sostituisci:"
 msgid "No matches found on listed entries"
 msgstr "Nessuna corrispondenza trovata nelle voci elencate"
 
-#: HaiPO.py:1930 HaiPO.py:2114 HaiPO.py:2350 HaiPO.py:2367 HaiPO.py:2384
-#: HaiPO.py:2398 HaiPO.py:2402 HaiPO.py:2519 HaiPO.py:2537 HaiPO.py:2555
-#: HaiPO.py:2568 HaiPO.py:2583 HaiPO.py:2598 HaiPO.py:3863 HaiPO.py:3870
-#: HaiPO.py:3949 HaiPO.py:3954 HaiPO.py:3965 HaiPO.py:5976 HaiPO.py:6033
+#: HaiPO.py:1930 HaiPO.py:2114 HaiPO.py:2359 HaiPO.py:2376 HaiPO.py:2393
+#: HaiPO.py:2407 HaiPO.py:2411 HaiPO.py:2528 HaiPO.py:2546 HaiPO.py:2564
+#: HaiPO.py:2577 HaiPO.py:2592 HaiPO.py:2607 HaiPO.py:3872 HaiPO.py:3879
+#: HaiPO.py:3958 HaiPO.py:3963 HaiPO.py:3974 HaiPO.py:5985 HaiPO.py:6042
 msgid "Ok"
 msgstr "Ok"
 
 #. Translators: Window title
-#: HaiPO.py:1959 HaiPO.py:3194
+#: HaiPO.py:1959 HaiPO.py:3203
 msgid "Find source"
 msgstr "Trova sorgente"
 
@@ -172,192 +172,192 @@ msgstr "Localizzazioni"
 msgid "Compile MO file on saving"
 msgstr "Compila il file MO al salvataggio"
 
-#: HaiPO.py:2350
+#: HaiPO.py:2359
 msgid "Error enabling language compliance check, missing config section?"
 msgstr ""
 "Errore nell'abilitare la verifica della conformità della lingua, manca la "
 "sezione nel file di configurazione?"
 
-#: HaiPO.py:2367
+#: HaiPO.py:2376
 msgid "Error enabling mimechecking, missing config section?"
 msgstr ""
 "Errore nell'abilitare la verifica del MIME, manca la sezione nel file di "
 "configurazione?"
 
-#: HaiPO.py:2384
+#: HaiPO.py:2393
 msgid "Error enabling mo-file compilation, missing config section?"
 msgstr ""
 "Errore nell'abilitare la compilazione del file mo, manca la sezione nel file"
 " di configurazione?"
 
-#: HaiPO.py:2398
+#: HaiPO.py:2407
 msgid "Restart required to apply changes."
 msgstr "È necessario riavviare l'applicazione per applicare le modifiche."
 
-#: HaiPO.py:2402
+#: HaiPO.py:2411
 msgid "Error setting the localization, missing config section?"
 msgstr ""
 "Errore nel configurare la localizzazione, manca la sezione nel file di "
 "configurazione?"
 
 #. Translators: Window title
-#: HaiPO.py:2411
+#: HaiPO.py:2420
 msgid "Translation Memory Settings"
 msgstr "Impostazioni Memoria di Traduzione"
 
-#: HaiPO.py:2423
+#: HaiPO.py:2432
 msgid "Enable/Disable translation memory"
 msgstr "Abilita/Disabilita memoria di traduzione"
 
-#: HaiPO.py:2431
+#: HaiPO.py:2440
 msgid "Enable/Disable TM local server"
 msgstr "Abilita/Disabilita server locale per la MT"
 
-#: HaiPO.py:2459
+#: HaiPO.py:2468
 msgid "Server address:"
 msgstr "Indirizzo server:"
 
-#: HaiPO.py:2469
+#: HaiPO.py:2478
 msgid "Server port:"
 msgstr "Porta server:"
 
-#: HaiPO.py:2479
+#: HaiPO.py:2488
 msgid "Header size:"
 msgstr "Dimensione header:"
 
-#: HaiPO.py:2480
+#: HaiPO.py:2489
 msgid "Enable/Disable local server log"
 msgstr "Abilita/Disabilita log per il server locale "
 
-#: HaiPO.py:2519
+#: HaiPO.py:2528
 msgid "Error writing tm setting in config.ini, missing config section?"
 msgstr ""
 "Errore nella scrittura delle impsotazioni MT nel file config.ini, manca la "
 "sezione nel file di configurazione?"
 
-#: HaiPO.py:2537
+#: HaiPO.py:2546
 msgid ""
 "Error writing builtinsrv setting in config.ini, missing config section?"
 msgstr ""
 "Errore nella scrittura dell'impostazione builtinsrv nel file config.ini, "
 "manca la sezione nel file di configurazione?"
 
-#: HaiPO.py:2555
+#: HaiPO.py:2564
 msgid "Error writing logsrv setting in config.ini, missing config section?"
 msgstr ""
 "Errore nella scrittura dell'impostazione logsrv nel file config.ini, manca "
 "la sezione nel file di configurazione?"
 
-#: HaiPO.py:2568
+#: HaiPO.py:2577
 msgid "Cannot save TM server address"
 msgstr "Impossibile salvare l'indirizzo del server MT"
 
-#: HaiPO.py:2581
+#: HaiPO.py:2590
 msgid "Cannot save TM server port. Port value:"
 msgstr "Impossibile salvare la porta del server MT. Valore della porta:"
 
-#: HaiPO.py:2596
+#: HaiPO.py:2605
 msgid "Cannot save header size. Header value:"
 msgstr "Impossibile salvare la dimensione dell'header. Valore dell'header:"
 
 #. Translators: Window title
-#: HaiPO.py:2634
+#: HaiPO.py:2643
 msgid "Spellchecking Settings"
 msgstr "Impostazioni controllo ortografico"
 
-#: HaiPO.py:2657
+#: HaiPO.py:2666
 msgid "Enable/Disable spellcheck"
 msgstr "Abilita/Disabilita controllo ortografico"
 
-#: HaiPO.py:2669
+#: HaiPO.py:2678
 msgid "Dictionary path:"
 msgstr "Percorso per il dizionario:"
 
 #. Translators: the spellchecker will include these special chars within words
-#: HaiPO.py:2676
+#: HaiPO.py:2685
 msgid "Chars included in words:"
 msgstr "Caratteri inclusi nelle parole:"
 
 #. Translators: Categories in unicode to exclude from spellceck. Look at
 #. https://en.wikipedia.org/wiki/Template:General_Category_(Unicode)
-#: HaiPO.py:2683
+#: HaiPO.py:2692
 msgid "Chars-categories excluded in words:"
 msgstr "Categoria di caratteri esclusi nelle parole:"
 
-#: HaiPO.py:2685
+#: HaiPO.py:2694
 msgid "Enable/Disable external translator"
 msgstr "Abilita/Disabilita traduttore esterno"
 
-#: HaiPO.py:2702
+#: HaiPO.py:2711
 msgid "Translator engine:"
 msgstr "Motore del traduttore:"
 
-#: HaiPO.py:2734
+#: HaiPO.py:2743
 msgid "Error enabling spellcheck, check config.ini"
 msgstr ""
 "Errore nell'abilitare il controllo ortografico, verifica il file config.ini"
 
-#: HaiPO.py:2756
+#: HaiPO.py:2765
 msgid "Error enabling external translator, check config.ini"
 msgstr ""
 "Errore nell'abilitare il traduttore esterno, verifica il file config.ini"
 
-#: HaiPO.py:2774
+#: HaiPO.py:2783
 msgid "Error selecting the translator engine, check config.ini"
 msgstr ""
 "Errore nel selezionare il motore per il traduttore, verifica il file "
 "config.ini"
 
-#: HaiPO.py:2791
+#: HaiPO.py:2800
 msgid "Cannot save dictionary name path"
 msgstr "Impossibile salvare il percorso del nome del dizionario"
 
 #. Translators: example: With /boot/system/data/hunspell/fur_IT, could not
 #. find /boot/system/data/hunspell/fur_IT.dic
-#: HaiPO.py:2798
+#: HaiPO.py:2807
 msgid "With "
 msgstr "Con "
 
 #. Translators: example: With /boot/system/data/hunspell/fur_IT, could not
 #. find /boot/system/data/hunspell/fur_IT.dic
-#: HaiPO.py:2800
+#: HaiPO.py:2809
 msgid ", could not find "
 msgstr ", non è stato possibile trovare "
 
-#: HaiPO.py:2816
+#: HaiPO.py:2825
 msgid "Cannot save inclusion chars"
 msgstr "Impossibile salvare i caratteri da includere"
 
-#: HaiPO.py:2834
+#: HaiPO.py:2843
 msgid "Cannot save esclusion char categories"
 msgstr "Impossibile salvare le categorie di caratteri da escludere"
 
 #. Translators: Window title
-#: HaiPO.py:2847 HaiPO.py:3194
+#: HaiPO.py:2856 HaiPO.py:3203
 msgid "Po header"
 msgstr "Intestazione gettext"
 
-#: HaiPO.py:2916
+#: HaiPO.py:2925
 msgid "Po editor for Haiku"
 msgstr "Editor PO per Haiku"
 
-#: HaiPO.py:2917
+#: HaiPO.py:2926
 msgid "version "
 msgstr "versione "
 
-#: HaiPO.py:2918
+#: HaiPO.py:2927
 msgid "by Fabio Tomat"
 msgstr "di Fabio Tomat"
 
-#: HaiPO.py:2919
+#: HaiPO.py:2928
 msgid "e-mail:"
 msgstr "e-mail:"
 
-#: HaiPO.py:2920
+#: HaiPO.py:2929
 msgid "MIT LICENSE"
 msgstr "LICENZA MIT"
 
-#: HaiPO.py:2921
+#: HaiPO.py:2930
 msgid ""
 "\n"
 "Copyright © 2025 Fabio Tomat\n"
@@ -371,7 +371,7 @@ msgstr ""
 "\n"
 "L'avviso sul copyright di cui sopra e il presente avviso di autorizzazione saranno inclusi in tutte le copie o parti sostanziali del Software."
 
-#: HaiPO.py:2922
+#: HaiPO.py:2931
 msgid ""
 "\n"
 "\n"
@@ -381,204 +381,204 @@ msgstr ""
 "\n"
 "IL SOFTWARE VIENE FORNITO \"COSÌ COME È\", SENZA GARANZIA DI ALCUN TIPO, ESPLICITA O IMPLICITA, INCLUSE MA NON LIMITATE ALLE GARANZIE DI COMMERCIABILITÀ, IDONEITÀ PER UNO SCOPO PARTICOLARE E NON VIOLAZIONE DI DIRITTI ALTRUI. IN NESSUN CASO GLI AUTORI O I TITOLARI DEL COPYRIGHT SARANNO RESPONSABILI PER QUALSIASI RECLAMO, DANNO O ALTRA RESPONSABILITÀ, SIA IN UN'AZIONE CONTRATTUALE, ILLECITO O ALTRIMENTI, DERIVANTE DA O IN CONNESSIONE CON IL SOFTWARE O L'UTILIZZO O ALTRE OPERAZIONI DEL SOFTWARE."
 
-#: HaiPO.py:2975
+#: HaiPO.py:2984
 msgid "something went wrong loading the logo"
 msgstr "qualcosa è andato storto durante il caricamento del logo"
 
-#: HaiPO.py:2979
+#: HaiPO.py:2988
 msgid "no logo found"
 msgstr "nessun logo trovato"
 
 #. Translators: language selector menu label
-#: HaiPO.py:3050
+#: HaiPO.py:3059
 msgid "Build PO with this language:"
 msgstr "Costruisci il file PO con questa lingua:"
 
 #. Translators: Button label/action
-#: HaiPO.py:3055
+#: HaiPO.py:3064
 msgid "Build and open"
 msgstr "Costruisci e apri"
 
-#: HaiPO.py:3071
+#: HaiPO.py:3080
 msgid "no plurals file found"
 msgstr "non è stato trovato alcun file per i plurali"
 
-#: HaiPO.py:3093
+#: HaiPO.py:3102
 msgid "Charset encoding:"
 msgstr "Codifica dei caratteri:"
 
-#: HaiPO.py:3185
+#: HaiPO.py:3194
 msgid "View"
 msgstr "Visualizza"
 
-#: HaiPO.py:3186
+#: HaiPO.py:3195
 msgid "Fuzzy"
 msgstr "Da rivedere"
 
-#: HaiPO.py:3187
+#: HaiPO.py:3196
 msgid "Untranslated"
 msgstr "Da fare"
 
-#: HaiPO.py:3188
+#: HaiPO.py:3197
 msgid "Translated"
 msgstr "Tradotto"
 
-#: HaiPO.py:3189
+#: HaiPO.py:3198
 msgid "Obsolete"
 msgstr "Obsoleto"
 
-#: HaiPO.py:3190
+#: HaiPO.py:3199
 msgid "Translation"
 msgstr "Traduzione"
 
-#: HaiPO.py:3191
+#: HaiPO.py:3200
 msgid "Copy from source (ctrl+shift+s)"
 msgstr "Copia da sorgente (ctrl+maiusc+s)"
 
-#: HaiPO.py:3193
+#: HaiPO.py:3202
 msgid "File"
 msgstr "File"
 
-#: HaiPO.py:3193
+#: HaiPO.py:3202
 msgid "Open"
 msgstr "Apri"
 
-#: HaiPO.py:3193
+#: HaiPO.py:3202
 msgid "Close"
 msgstr "Chiudi"
 
-#: HaiPO.py:3193
+#: HaiPO.py:3202
 msgid "Save as..."
 msgstr "Salva come..."
 
-#: HaiPO.py:3193
+#: HaiPO.py:3202
 msgid "Quit"
 msgstr "Esci"
 
-#: HaiPO.py:3194
+#: HaiPO.py:3203
 msgid "Edit comment"
 msgstr "Modifica commento"
 
-#: HaiPO.py:3194
+#: HaiPO.py:3203
 msgid "Done and next"
 msgstr "Fatto, vai al successivo"
 
-#: HaiPO.py:3194
+#: HaiPO.py:3203
 msgid "Mark/Unmark fuzzy (ctrl+b)"
 msgstr "Segna/Togli fuzzy (da rivedere) (ctrl+b)"
 
-#: HaiPO.py:3194
+#: HaiPO.py:3203
 msgid "Previous w/o saving"
 msgstr "Precedente senza salvare"
 
-#: HaiPO.py:3194
+#: HaiPO.py:3203
 msgid "Next w/o saving"
 msgstr "Successivo senza salvare"
 
-#: HaiPO.py:3194
+#: HaiPO.py:3203
 msgid "Po properties"
 msgstr "Proprietà file po"
 
-#: HaiPO.py:3194
+#: HaiPO.py:3203
 msgid "Compile mo file"
 msgstr "Compila file mo"
 
-#: HaiPO.py:3196
+#: HaiPO.py:3205
 msgid "Settings"
 msgstr "Impostazioni"
 
-#: HaiPO.py:3196
+#: HaiPO.py:3205
 msgid "General"
 msgstr "Generali"
 
-#: HaiPO.py:3196
+#: HaiPO.py:3205
 msgid "User settings"
 msgstr "Impostazioni utente"
 
-#: HaiPO.py:3196
+#: HaiPO.py:3205
 msgid "Spellcheck"
 msgstr "Controllo ortografico"
 
-#: HaiPO.py:3196
+#: HaiPO.py:3205
 msgid "Translation Memory"
 msgstr "Memoria di Traduzione"
 
-#: HaiPO.py:3197
+#: HaiPO.py:3206
 msgid "About"
 msgstr "Informazioni"
 
-#: HaiPO.py:3197
+#: HaiPO.py:3206
 msgid "Help"
 msgstr "Aiuto"
 
-#: HaiPO.py:3479
+#: HaiPO.py:3488
 msgid "Your dictionary cannot be found, disabling spell check..."
 msgstr ""
 "Non è stato possibile trovare il tuo dizionario, si disabilita il controllo "
 "ortografico..."
 
-#: HaiPO.py:3479
+#: HaiPO.py:3488
 msgid "Ooook"
 msgstr "Ooook"
 
-#: HaiPO.py:3576
+#: HaiPO.py:3585
 msgid "Spellchecker status:"
 msgstr "Stato controllo ortografico:"
 
-#: HaiPO.py:3577
+#: HaiPO.py:3586
 msgid " disabled"
 msgstr " disabilitato"
 
-#: HaiPO.py:3626 HaiPO.py:5925
+#: HaiPO.py:3635 HaiPO.py:5934
 msgid "TM server status: alive"
 msgstr "Stato server MT: vivo"
 
-#: HaiPO.py:3628 HaiPO.py:5931
+#: HaiPO.py:3637 HaiPO.py:5940
 msgid "TM server status: not running"
 msgstr "Stato server MT: non in esecuzione"
 
-#: HaiPO.py:3649
+#: HaiPO.py:3658
 msgid "Line number:"
 msgstr "Numero riga:"
 
 #. Translators: max lenght 32 chars
-#: HaiPO.py:3680
+#: HaiPO.py:3689
 msgid " Error connecting to Translation"
 msgstr " Errore di conessione al server"
 
 #. Translators: max lenght 32 chars
-#: HaiPO.py:3682
+#: HaiPO.py:3691
 msgid "          Memory server  "
 msgstr " per la memoria di traduzione "
 
 #. Translators: Menu field, menu with a list of languages
-#: HaiPO.py:3700
+#: HaiPO.py:3709
 msgid "Source language"
 msgstr "Lingua da tradurre"
 
 #. Translators: Menu field, menu with a list of languages
-#: HaiPO.py:3703
+#: HaiPO.py:3712
 msgid "Target language"
 msgstr "Lingua in cui tradurre"
 
 #. Translators: Button label/action
-#: HaiPO.py:3720
+#: HaiPO.py:3729
 msgid "Translate"
 msgstr "Traduci"
 
-#: HaiPO.py:3767
+#: HaiPO.py:3776
 msgid "Progress:"
 msgstr "Avanzamento:"
 
-#: HaiPO.py:3861
+#: HaiPO.py:3870
 msgid "Error: .po file not found at:"
 msgstr "Errore: file .po non trovato in:"
 
-#: HaiPO.py:3868
+#: HaiPO.py:3877
 msgid "Error compiling with Babel:"
 msgstr "Errore nella compilazione con Babel:"
 
-#: HaiPO.py:3906
+#: HaiPO.py:3915
 msgid ""
 "This is a workaround, the file's mimetype is not a x-gettext-translation nor"
 " a x-gettext-translation-template. Do you want to open the file despite "
@@ -587,17 +587,17 @@ msgstr ""
 "Questo è un rimedio provvisiorio: il MimeType del file non è né x-gettext-"
 "translation né x-gettext-translation-template. Aprire il file ugualmente?"
 
-#: HaiPO.py:3906 HaiPO.py:3919 HaiPO.py:3996 HaiPO.py:4083 HaiPO.py:4124
-#: HaiPO.py:4485 HaiPO.py:5456 HaiPO.py:5466 HaiPO.py:5476 HaiPO.py:5486
+#: HaiPO.py:3915 HaiPO.py:3928 HaiPO.py:4005 HaiPO.py:4092 HaiPO.py:4133
+#: HaiPO.py:4494 HaiPO.py:5465 HaiPO.py:5475 HaiPO.py:5485 HaiPO.py:5495
 msgid "Yes"
 msgstr "Sì"
 
-#: HaiPO.py:3906 HaiPO.py:3919 HaiPO.py:3996 HaiPO.py:4083 HaiPO.py:4124
-#: HaiPO.py:5456 HaiPO.py:5466 HaiPO.py:5476 HaiPO.py:5486
+#: HaiPO.py:3915 HaiPO.py:3928 HaiPO.py:4005 HaiPO.py:4092 HaiPO.py:4133
+#: HaiPO.py:5465 HaiPO.py:5475 HaiPO.py:5485 HaiPO.py:5495
 msgid "No"
 msgstr "No"
 
-#: HaiPO.py:3919
+#: HaiPO.py:3928
 msgid ""
 "This is a workaround, cannot detect correctly the file's mimetype. Do you "
 "want to open the file despite this?"
@@ -606,28 +606,28 @@ msgstr ""
 "mimetype del file. Aprire il file ugualmente?"
 
 #. Translators: follows position of the error
-#: HaiPO.py:3961
+#: HaiPO.py:3970
 msgid "At position"
 msgstr "Alla posizione"
 
-#: HaiPO.py:3996 HaiPO.py:4083
+#: HaiPO.py:4005 HaiPO.py:4092
 msgid "There's no language section in metadata! Continue?"
 msgstr "Non c'è alcuna sezione lingua nei metadati! Continuare?"
 
-#: HaiPO.py:4005 HaiPO.py:4091
+#: HaiPO.py:4014 HaiPO.py:4100
 msgid "This gettext portable object file is not for your language!"
 msgstr "Questo file gettext portable object non è per la tua lingua!"
 
-#: HaiPO.py:4005 HaiPO.py:4019 HaiPO.py:4057 HaiPO.py:4091 HaiPO.py:4107
-#: HaiPO.py:4133 HaiPO.py:5571
+#: HaiPO.py:4014 HaiPO.py:4028 HaiPO.py:4066 HaiPO.py:4100 HaiPO.py:4116
+#: HaiPO.py:4142 HaiPO.py:5580
 msgid "OK"
 msgstr "OK"
 
-#: HaiPO.py:4019
+#: HaiPO.py:4028
 msgid "Now you'll be addressed to the last fatal error"
 msgstr "Ora verrai indirizzato all'ultimo errore fatale"
 
-#: HaiPO.py:4057 HaiPO.py:4107 HaiPO.py:5571
+#: HaiPO.py:4066 HaiPO.py:4116 HaiPO.py:5580
 msgid ""
 "Please, fill the fields below, these informations will be written to saved "
 "po files and in config.ini"
@@ -635,13 +635,13 @@ msgstr ""
 "Per piacere, riempi i campi sottostanti, queste informazioni verranno "
 "scritte nei file po salvati e nel file config.ini"
 
-#: HaiPO.py:4124
+#: HaiPO.py:4133
 msgid "There's a recent temporary backup file, open it instead?"
 msgstr ""
 "C'è un file di backup temporaneo più recente, aprirlo al posto di quello "
 "scelto?"
 
-#: HaiPO.py:4133
+#: HaiPO.py:4142
 msgid ""
 "It is possible that the backup file is corrupted or damaged and it cannot be"
 " loaded! The original file will be loaded instead."
@@ -649,11 +649,11 @@ msgstr ""
 "È possibile che il file di backup sia corrotto o danneggiato e non è "
 "possibile caricarlo! Al suo posto verrà caricato il file originario."
 
-#: HaiPO.py:4456
+#: HaiPO.py:4465
 msgid "unable to handle the error"
 msgstr "impossibile gestire l'errore"
 
-#: HaiPO.py:4485
+#: HaiPO.py:4494
 msgid ""
 "\n"
 "\n"
@@ -663,28 +663,28 @@ msgstr ""
 "\n"
 "Andare a questo errore?"
 
-#: HaiPO.py:4485
+#: HaiPO.py:4494
 msgid "Skip"
 msgstr "Salta"
 
 #. Translators: Important! Same as window title before
-#: HaiPO.py:4491
+#: HaiPO.py:4500
 msgid "Find/Replace"
 msgstr "Trova/Sostituisci"
 
-#: HaiPO.py:4977
+#: HaiPO.py:4986
 msgid "No help pages installed"
 msgstr "Nessuna pagina di aiuto installata"
 
-#: HaiPO.py:4977
+#: HaiPO.py:4986
 msgid "Poor me"
 msgstr "Povero me"
 
-#: HaiPO.py:5264
+#: HaiPO.py:5273
 msgid "Different number of plurals"
 msgstr "Numero di plurali diverso"
 
-#: HaiPO.py:5264
+#: HaiPO.py:5273
 msgid ""
 "This entry presents plural source entry, but the number of translation "
 "entries do not respect the language number of plurals. Saving this entry "
@@ -697,63 +697,66 @@ msgstr ""
 "aggiustare a mano questo errore o lasciare che la applicazione cerchi di "
 "apportare correzioni?"
 
-#: HaiPO.py:5264
+#: HaiPO.py:5273
 msgid "Manual"
 msgstr "Manuale"
 
-#: HaiPO.py:5264
+#: HaiPO.py:5273
 msgid "Auto Fix"
 msgstr "Correggi"
 
-#: HaiPO.py:5456 HaiPO.py:5466 HaiPO.py:5476 HaiPO.py:5486
+#: HaiPO.py:5465 HaiPO.py:5475 HaiPO.py:5485 HaiPO.py:5495
 msgid "To proceed you need to save this file first, proceed?"
 msgstr "Per procedere dovrai prima salvare questo file, continuare?"
 
 #. Translators: as in phrase "Custom iso"
-#: HaiPO.py:5529
+#: HaiPO.py:5538
 msgid "Custom"
 msgstr "Personalizzato"
 
-#: HaiPO.py:5927
+#: HaiPO.py:5936
 msgid "TM server status: dead"
 msgstr "Stato server MT: morto"
 
-#: HaiPO.py:5929
+#: HaiPO.py:5938
 msgid "TM server status: died badly"
 msgstr "Stato server MT: morto male"
 
-#: HaiPO.py:5933
+#: HaiPO.py:5942
 msgid "A reconstructed file ("
 msgstr "È stato creato un file ricostruito ("
 
-#: HaiPO.py:5934
+#: HaiPO.py:5943
 msgid ") has been created, Please check for compliance."
 msgstr "), verifica la conformità."
 
-#: HaiPO.py:6256
+#: HaiPO.py:6265
 msgid ""
 "The temporary file is newer than the original po file, what do you want to "
 "do?"
 msgstr ""
 "Il file temporaneo è più recente del file po originale, cosa desideri fare?"
 
-#: HaiPO.py:6256
+#: HaiPO.py:6265
 msgid "Save it to po file"
 msgstr "Salvalo sul file po"
 
-#: HaiPO.py:6256
+#: HaiPO.py:6265
 msgid "Delete temp file"
 msgstr "Elimina file temporaneo"
 
-#: HaiPO.py:6256
+#: HaiPO.py:6265
 msgid "Just quit"
 msgstr "Esci"
 
 #. Translators: window title
-#: HaiPO.py:6297
+#: HaiPO.py:6306
 msgid "CustomISO"
 msgstr "ISO personalizzato"
 
-#: HaiPO.py:6299
+#: HaiPO.py:6308
 msgid "ISO code:"
 msgstr "Codice ISO:"
+
+#~ msgid "beta"
+#~ msgstr "beta"
