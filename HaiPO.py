@@ -2306,6 +2306,15 @@ class GeneralSettings(BWindow):
 		Config.read(confile)
 		try:
 			#langcheck
+			savemo = Config.getboolean('General','compilemo')
+			if savemo:
+				self.savemocheck.SetValue(1)
+			else:
+				self.savemocheck.SetValue(0)
+		except:
+			self.savemocheck.SetValue(0)
+		try:
+			#langcheck
 			checklanguage = Config.getboolean('General','checklang')
 			if checklanguage:
 				self.langcheck.SetValue(1)
