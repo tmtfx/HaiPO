@@ -3832,7 +3832,10 @@ class MainWindow(BWindow):
 		self.tmscrollsugj.sv.ResizeTo(self.tmscrollsugj.sv.Bounds().right,self.upperbox.Bounds().Height()/2)
 		sbh=self.tmscrollsugj.sv.ScrollBar(orientation.B_HORIZONTAL).Frame().Height()
 		self.tmscrollsugj.lv.ResizeTo(self.tmscrollsugj.lv.Bounds().right,self.upperbox.Bounds().Height()/2-sbh)
-		self.esbox.MoveTo(self.upperbox.Bounds().right-4-self.esbox.Bounds().Width(),4)
+		try:
+			self.esbox.MoveTo(self.upperbox.Bounds().right-4-self.esbox.Bounds().Width(),4)
+		except:
+			pass
 		self.expander.MoveTo(self.upperbox.Bounds().right-4-self.expander.Bounds().Width(),4+self.tmscrollsugj.sv.Bounds().Height()+10)
 		self.expander.ResizeTo(self.expander.Bounds().right,self.upperbox.Bounds().Height()/2-80)
 		for view in self.listemsgs:
@@ -6346,6 +6349,7 @@ class App(BApplication):
 			self.poeditor=MainWindow(self.realargs[0])
 		self.poeditor.Show()
 	def ArgvReceived(self,num,args):
+		print(type(args))
 		realargs=args
 		if args[1][-8:]=="HaiPO.py" or args[1][-5:]=="HaiPO":
 			#launched by terminal or by link in non-packaged/bin
