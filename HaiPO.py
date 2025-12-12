@@ -126,9 +126,11 @@ if b:
 				ent.GetPath(perc)
 				lista_traduzioni.append(perc.Leaf())
 	else:
-		locale_dir=None
+		#locale_dir=None
 		t = gettext.NullTranslations()
 		#but it was a file
+else:
+	t = gettext.NullTranslations()
 
 
 def Ent_config():
