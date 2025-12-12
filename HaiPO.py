@@ -4,6 +4,7 @@ from Be import BApplication, BWindow, BView, BMenu,BMenuBar, BMenuItem, BSeparat
 from Be.View import B_FOLLOW_NONE,set_font_mask,B_WILL_DRAW,B_NAVIGABLE,B_FULL_UPDATE_ON_RESIZE,B_FRAME_EVENTS,B_PULSE_NEEDED,B_FOLLOW_ALL_SIDES,B_FOLLOW_TOP,B_FOLLOW_LEFT_RIGHT,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_FOLLOW_TOP_BOTTOM
 from Be.Menu import menu_info,get_menu_info
 from Be.FindDirectory import *
+from Be.Directory import create_directory
 from Be.Alert import alert_type
 from Be.ListView import list_view_type
 from Be.AppDefs import *
@@ -136,9 +137,15 @@ def Ent_config():
 	#datapath=BDirectory(perc.Path()+"/HaiPO2")
 	#ent=BEntry(datapath,perc.Path()+"/HaiPO2")
 	ent=BEntry(perc.Path()+"/HaiPO2")
-	if not ent.Exists() and ent.IsDirectory():
-		#datapath.CreateDirectory(perc.Path()+"/HaiPO2", None)#datapath)
-		BDirectory().CreateDirectory(perc.Path()+"/HaiPO2", None)
+	if not ent.Exists():
+		#BDirectory().CreateDirectory(perc.Path()+"/HaiPO2", None)
+		mode = 0o640 
+		create_directory(perc.Path()+"/HaiPO2",mode)
+	elif not ent.IsDirectory():
+		#status=BDirectory().CreateDirectory(perc.Path()+"/HaiPO2", None)
+		mode = 0o640
+		ent.Rename(perc.Path()+"/HaiPO2tmp")
+		create_directory(perc.Path()+"/HaiPO2",mode)
 	ent.GetPath(perc)
 	confile=BPath(perc.Path()+'/config.ini',None,False)
 	ent=BEntry(confile.Path())
@@ -3375,6 +3382,7 @@ class MainWindow(BWindow):
 				setspellcheck=False
 		else:
 			#no file
+			
 			cfgfile = open(confile,'w')
 			Config.add_section('General')
 			Config.set('General','tm', 'False')
