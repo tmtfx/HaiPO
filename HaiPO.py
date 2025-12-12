@@ -2901,9 +2901,10 @@ class RedrawingScrollBar(BScrollBar):
 		self.superself=superself
 		BScrollBar.__init__(self,rect,name,taget,min,max,orientation)
 	def ValueChanged(self,newValue):
+		BScrollBar.ValueChanged(self,newValue)
 		if self.superself.photoframe:
 			self.superself.photoframe.Invalidate()
-		BScrollBar.ValueChanged(self,newValue)
+			self.superself.messagjio.Invalidate()
 class AboutWindow(BWindow):
 	kWindowFrame = BRect(50, 50, 600, 730)
 	kButtonFrame = BRect(kWindowFrame.right-205,kWindowFrame.bottom-89,kWindowFrame.right-54,kWindowFrame.bottom-54)
@@ -6348,6 +6349,8 @@ class App(BApplication):
 		else:
 			self.poeditor=MainWindow(self.realargs[0])
 		self.poeditor.Show()
+	def AboutRequested(self):
+		be_app.WindowAt(0).PostMessage(9)
 	def ArgvReceived(self,num,args):
 		realargs=args
 		if args[1][-8:]=="HaiPO.py" or args[1][-5:]=="HaiPO":
