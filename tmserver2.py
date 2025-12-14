@@ -1,3 +1,4 @@
+#!/boot/system/bin/python3
 import os
 import sqlite3
 import socket
