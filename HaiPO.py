@@ -61,7 +61,7 @@ def openlink(link):
 
 def cstep(n,r,h):
 	s=5*(n+1)+(6+h)*n
-	sh=5*n+(6+h)*(n+1)		
+	sh=5*n+(6+h)*(n+1)
 	return BRect(5,s,r-5,sh)
 
 def lookfdata(name):
@@ -452,9 +452,7 @@ class PView(BView):
 		#a,b,c,d=self.frame
 		rect=BRect(0,0,self.frame.Width(),self.frame.Height())
 		self.DrawBitmap(self.immagine,rect)
-
-
-
+		
 class MyListView(BListView):
 	def __init__(self, frame, name, type):
 		BListView.__init__(self, frame, name, type)
@@ -483,6 +481,7 @@ class MyListView(BListView):
 				if showspell:
 					be_app.WindowAt(0).PostMessage(333111)
 		return BListView.MouseDown(self,point)
+
 
 class KListView(BListView):
 	def __init__(self,frame, name,type):
@@ -3208,6 +3207,7 @@ class MainWindow(BWindow):
 	obstxt=_('Obsolete')
 	transmnu=_('Translation')
 	cpfrsr= _('Copy from source (ctrl+shift+s)')
+	dragmsg=struct.unpack('!l', b'DATA')[0]
 	Menus = (
 		(_('File'), ((295485, _('Open')), (2, _('Save')), (1, _('Close')), (5, _('Save as...')),(None, None),(B_QUIT_REQUESTED, _('Quit')))),
 		(transmnu, ((3, cpfrsr), (53,_('Edit comment')), (70,_('Done and next')), (71,_('Mark/Unmark fuzzy (ctrl+b)')), (72, _('Previous w/o saving')),(73,_('Next w/o saving')),(None, None),(42, _('Po properties')), (43, _('Po header')),(None, None),(14183, _('Compile mo file')),(None, None), (6, _('Find source')), (7, _('Find/Replace translation')))),
@@ -4714,6 +4714,14 @@ class MainWindow(BWindow):
 				else:
 					self.esbox.ResizeBy(0,-1)
 			return
+		elif msg.what == self.dragmsg:
+			#msg.PrintToStream()
+			s,ref=msg.FindRef("refs")
+			if s==B_OK:
+				self.OpenPOFile(BPath(ref).Path())
+			#self.OpenPoFile(f)
+			#print("draggato")
+			return
 		elif msg.what == 1:
 			# Close opened file
 			if self.sourcestrings.lv.CountItems()>0:
@@ -4758,7 +4766,6 @@ class MainWindow(BWindow):
 						pass
 					i+=1
 				self.bar.Invalidate()
-			
 			return
 		elif msg.what == 2:
 			#Save from menu
