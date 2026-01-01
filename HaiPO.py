@@ -5159,15 +5159,29 @@ class MainWindow(BWindow):
 					be_app.WindowAt(0).PostMessage(kmesg)
 			return
 		elif msg.what == 14183:
-			try:
-				Config.read(confile)
-				compile=Config.getboolean('General', 'compilemo')
-			except:
-				compile=False
-			if compile:
-				#compila il file mo
-				print("origine",self.filen+self.file_ext)
-				print("mo diventa",self.filen+".mo")
+			#compila il file mo
+			if self.backupfile:
+				#check if newer
+				ontr=BEntry(self.backupfile)
+				if ontr.Exists():
+					if os.path.getmtime(self.backupfile)>os.path.getmtime(self.filen+self.file_ext):
+						path=self.backupfile
+					else:
+						path=self.filen+self.file_ext
+				else:
+					path=self.filen+self.file_ext
+			else:
+				path=self.filen+self.file_ext
+			#print("origine",self.filen+self.file_ext)
+			#print("mo diventa",self.filen+".mo")
+			status=self.generate_mo_with_babel(path)
+			#if status:
+			#	mo_output = path.replace('.po', '.mo')
+			#	name,leaf=os.path.splitext(mo_output)
+			#	tempfilename=name+'.temp'+leaf
+			#	tempentry=BEntry(tempfilename)
+			#	if tempentry.Exists():
+			#		tempentry.Remove()
 		elif msg.what == 16893:
 			try:
 				Config.read(confile)
