@@ -1,6 +1,6 @@
 #!/boot/system/bin/python3
 from Be import BApplication, BWindow, BView, BMenu,BMenuBar, BMenuItem, BSeparatorItem, BMessage, window_type, B_NOT_RESIZABLE, B_CLOSE_ON_ESCAPE, B_QUIT_ON_WINDOW_CLOSE, BButton, BTextView, BTextControl, BAlert, BListItem,BMenuField, BListView, BScrollView,BRect, BBox, BFont, InterfaceDefs, BPath, BDirectory, BEntry, BStringItem, BStringView,BCheckBox,BTranslationUtils, BBitmap, AppDefs, BTab, BTabView, BNodeInfo, BMimeType, BScrollBar,BPopUpMenu,BScreen,BStatusBar,BPoint,BNode,BUrl# BFile,
-
+#TODO: compila .mo da menu non va
 from Be.View import B_FOLLOW_NONE,set_font_mask,B_WILL_DRAW,B_NAVIGABLE,B_FULL_UPDATE_ON_RESIZE,B_FRAME_EVENTS,B_PULSE_NEEDED,B_FOLLOW_ALL_SIDES,B_FOLLOW_TOP,B_FOLLOW_LEFT_RIGHT,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_FOLLOW_TOP_BOTTOM
 from Be.Menu import menu_info,get_menu_info
 from Be.FindDirectory import *
@@ -5178,6 +5178,7 @@ class MainWindow(BWindow):
 			# save to backup and update the blistitem
 			status1,bckppath = msg.FindString('bckppath')
 			status2,savetype = msg.FindInt8('savetype')
+			#self.infoprogress.SetText(str(self.pofile.percent_translated()))
 			if status1==B_OK and status2==B_OK:
 				if savetype == 0: #simple save, used for fuzzy state and metadata change
 					self.writter.acquire()
@@ -5263,32 +5264,35 @@ class MainWindow(BWindow):
 					self.sourcestrings.lv.ItemAt(tvindex).tosave=False
 					self.sourcestrings.lv.ItemAt(tvindex).txttosave=""
 					self.sourcestrings.lv.ItemAt(tvindex).txttosavepl=[]
-				return
-			elif savetype == 3:
-				status1,tvindex=msg.FindInt32('tvindex')
-				status2,textsave=msg.FindString('tcomment')
-				self.writter.acquire()
-				entry = self.sourcestrings.lv.ItemAt(tvindex).entry
-				entry.tcomment=textsave
-				self.pofile.metadata['Last-Translator']=defname
-				self.pofile.metadata['PO-Revision-Date']=now
-				self.pofile.metadata['X-Editor']=version
-				Thread(target=self.Save,args=(bckppath,)).start()
-				#self.pofile.save(bckppath)
-				self.sourcestrings.lv.DeselectAll()
-				self.sourcestrings.lv.Select(tvindex)
-				return
-			elif savetype == 4:
-				status,textsave=msg.FindString('header')
-				self.writter.acquire()
-				self.pofile.header=textsave
-				self.pofile.metadata['Last-Translator']=defname
-				self.pofile.metadata['PO-Revision-Date']=now
-				self.pofile.metadata['X-Editor']=version
-				Thread(target=self.Save,args=(bckppath,)).start()
-				#self.pofile.save(bckppath)
-				return
-			self.infoprogress.SetText(str(self.pofile.percent_translated()))
+					return
+				elif savetype == 3:
+					status1,tvindex=msg.FindInt32('tvindex')
+					status2,textsave=msg.FindString('tcomment')
+					self.writter.acquire()
+					entry = self.sourcestrings.lv.ItemAt(tvindex).entry
+					entry.tcomment=textsave
+					self.pofile.metadata['Last-Translator']=defname
+					self.pofile.metadata['PO-Revision-Date']=now
+					self.pofile.metadata['X-Editor']=version
+					Thread(target=self.Save,args=(bckppath,)).start()
+					#self.pofile.save(bckppath)
+					self.sourcestrings.lv.DeselectAll()
+					self.sourcestrings.lv.Select(tvindex)
+					return
+				elif savetype == 4:
+					status,textsave=msg.FindString('header')
+					if status==B_OK:
+						print("l'header è stato trovato ed è:",textsave)
+						self.writter.acquire()
+						self.pofile.header=textsave
+						self.pofile.metadata['Last-Translator']=defname
+						self.pofile.metadata['PO-Revision-Date']=now
+						self.pofile.metadata['X-Editor']=version
+						Thread(target=self.Save,args=(bckppath,)).start()
+						#self.pofile.save(bckppath)
+					else:
+						print("header non trovato nel messaggio")
+					return
 			return
 		elif msg.what == 54: #selected sourcestring item
 			altece2 = self.transtabview.TabHeight()
