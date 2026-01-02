@@ -989,6 +989,33 @@ class EventTextView(BTextView):
 				shrtctvalue=self.superself.shortcut
 				self.superself.sem.release()
 				item=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
+				if item.tosave==True or self.tosave==True: 
+					# if item is being flagged as tosave (in BListItem or in this BTextView) save it
+					tabs=len(self.superself.listemsgstr)-1
+					bckpmsg=BMessage(16893)
+					bckpmsg.AddBool('tmx',True)
+					bckpmsg.AddInt8('savetype',1)
+					bckpmsg.AddInt32('tvindex',self.superself.sourcestrings.lv.CurrentSelection())
+					bckpmsg.AddInt8('plurals',tabs)
+					if tabs == 0:   #->      if not thisBlistitem.hasplural:                         <-------------------------- or this?
+						item.txttosave=item.text
+						item.msgstrs=item.txttosave
+						bckpmsg.AddString('translation',item.txttosave)
+					else:
+						item.txttosavepl=[]
+						item.txttosave=self.superself.listemsgid[0].src.Text()
+						item.msgstrs=[]
+						item.msgstrs.append(item.txttosave)
+						bckpmsg.AddString('translation',item.txttosave)
+						cox=1
+						while cox < tabs+1:
+							item.msgstrs.append(self.superself.listemsgid[cox].src.Text())
+							item.txttosavepl.append(self.superself.listemsgid[cox].src.Text())
+							bckpmsg.AddString('translationpl'+str(cox-1),self.superself.listemsgid[1].src.Text())
+							cox+=1
+					bckpmsg.AddString('bckppath',self.superself.backupfile)
+					be_app.WindowAt(0).PostMessage(bckpmsg)
+				
 				hasplural=item.hasplural
 				kmesg=BMessage(130550)
 				if ochar == B_DOWN_ARROW:
