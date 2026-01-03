@@ -192,7 +192,7 @@ _ = t.gettext
 appname=_("HaiPO")
 ver="2.6"
 # Translators: do not translate, just transliterate
-state=_("rc")
+state=_("release")
 version=" ".join((appname,ver,state))#'HaiPO x.x beta'
 
 	
