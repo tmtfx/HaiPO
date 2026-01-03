@@ -7,9 +7,6 @@ echo
 pkgman install haiku_pyapi_python310
 ret2=$?
 echo
-pkgman install polib_python310
-ret3=$?
-echo
 pkgman install pyenchant_python310
 ret4=$?
 echo
@@ -66,7 +63,15 @@ echo
 DIRECTORY=`pwd`/data
 if [ -d $DIRECTORY  ]
 then
-	cp -R data /boot/home/config/non-packaged/data/HaiPO2
+	cp -R data/locale /boot/home/config/non-packaged/data/HaiPO2
+	cp data/HaiPO.png /boot/home/config/non-packaged/data/HaiPO2
+	cp data/plural_forms.txt /boot/home/config/non-packaged/data/HaiPO2
+	cp -R data/help /boot/home/config/non-packaged/data/HaiPO2
+	cp -a translate /boot/home/config/non-packaged/data/HaiPO2
+	cp -a deep_translator /boot/home/config/non-packaged/data/HaiPO2
+	cp -a Levenshtein /boot/home/config/non-packaged/data/HaiPO2
+	cp -a rapidfuzz /boot/home/config/non-packaged/data/HaiPO2
+	cp -a polib /boot/home/config/non-packaged/data/HaiPO2
 	ret9=$?
 else
 	echo Missing data directory and images
@@ -76,45 +81,12 @@ echo
 
 pkgman install babel_python310
 ret10=$?
-pkgman install cmake
-ret11=$?
 pkgman install lxml_python310
 ret12=$?
-pkgman install sphinx_python310
-ret13=$?
 pkgman install gettext
 ret14=$?
 
-pip3 install rapidfuzz
-ret15=$?
-if [ ! $ret15 -lt 1 ]
-then
-	tar -xvzf rapidfuzz-3.9.7.tar.gz
-	cd rapidfuzz-3.9.7
-	python3 setup.py install
-	ret15=$?
-	cd -
-	rm -rf rapidfuzz-3.9.7
-fi
-pip install scikit-build
-ret16=$?
-patch /boot/system/non-packaged/lib/python3.10/site-packages/skbuild/platform_specifics/platform_factory.py skbuild.patch
-ret17=$?
-pip install translate-toolkit
-ret18=$?
-if [ -e Levenshtein-0.25.1.tar.gz ]
-then
-	tar -xvzf Levenshtein-0.25.1.tar.gz
-	cd Levenshtein-0.25.1
-	python3 setup.py install
-	ret19=$?
-	cd -
-	rm -rf Levenshtein-0.25.1
-else
-	ret19=1
-fi
-pip install polib
-ret20=$?
+
 if [ $ret1 -lt 1 ]
 then
 	echo "Installation of pip for python310 OK"
@@ -126,12 +98,6 @@ then
 	echo "Installation of Haiku PyAPI for python310 OK"
 else
 	echo "Installation of Haiku PyAPI for python310 FAILED"
-fi
-if [ $ret3 -lt 1 ] 
-then
-        echo "Installation of polib module OK"
-else
-        echo "Installation of polib module FAILED"
 fi
 if [ $ret4 -lt 1 ] 
 then
@@ -175,23 +141,11 @@ then
 else
 	echo "Installation of babel for python310 FAILED"
 fi
-if [ $ret11 -lt 1 ]
-then
-	echo "Installation of cmake OK"
-else
-	echo "Installation of cmake FAILED"
-fi
 if [ $ret12 -lt 1 ]
 then
 	echo "Installation of lxml for python310 OK"
 else
 	echo "Installation of lxml for python310 FAILED"
-fi
-if [ $ret13 -lt 1 ]
-then
-	echo "Installation of sphinx for python310 OK"
-else
-	echo "Installation of sphinx for python310 FAILED"
 fi
 if [ $ret14 -lt 1 ]
 then
@@ -199,39 +153,4 @@ then
 else
 	echo "Installation of gettext FAILED"
 fi
-if [ $ret15 -lt 1 ]
-then
-	echo "Installation of rapidfuzz for python OK"
-else
-	echo "Installation of rapidfuzz for python FAILED"
-fi
-if [ $ret16 -lt 1 ]
-then
-	echo "Installation of scikit-build for python OK"
-else
-	echo "Installation of scikit-build for python FAILED"
-fi
-if [ $ret17 -lt 1 ]
-then
-	echo "Installation of patch applied for scikit-build OK"
-else
-	echo "Installation of patch applied for scikit-build FAILED"
-fi
-if [ $ret18 -lt 1 ]
-then
-	echo "Installation of translate-toolkit for python OK"
-else
-	echo "Installation of translate-toolkit for python FAILED"
-fi
-if [ $ret19 -lt 1 ]
-then
-	echo "Installation of Levenshtein for python OK"
-else
-	echo "Installation of Levenshtein for python FAILED"
-fi
-if [ $ret20 -lt 1 ]
-then
-	echo "Installation of polib for python OK"
-else
-	echo "Installation of polib for python FAILED"
-fi
+

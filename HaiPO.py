@@ -5011,7 +5011,7 @@ class MainWindow(BWindow):
 				t.run()
 			else:
 				find_directory(directory_which.B_USER_NONPACKAGED_DATA_DIRECTORY,perc,False,None)
-				link=perc.Path()+"/HaiPO2/Data/help/index.html"
+				link=perc.Path()+"/HaiPO2/help/index.html"
 				ent=BEntry(link)
 				if ent.Exists():
 					# open user data dir help
