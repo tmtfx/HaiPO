@@ -1521,7 +1521,7 @@ class srcTextView(BTextView):
 					asd=self.PointAt(foundo)
 					foundo+=1
 					self.SetHighColor(0,0,200,0)
-					self.MovePenTo(BPoinu(asd[0].x+(self.font.StringWidth(ci)/2),asd[0].y+asd[1]-3))
+					self.MovePenTo(BPoint(asd[0].x+(self.font.StringWidth(ci)/2),asd[0].y+asd[1]-3))
 					self.DrawString('͜',None)#'̳')#'.')##'_')#(' ̳')#' ᪶ ')#'˽'
 					self.SetHighColor(0,0,0,0)
 			else:
