@@ -31,22 +31,22 @@ then
 	[ ! -d /boot/home/config/non-packaged/data/HaiPO2 ] && mkdir /boot/home/config/non-packaged/data/HaiPO2
 	cp HaiPO.py /boot/home/config/non-packaged/data/HaiPO2/
 	ret7=$?
-	if [ -e LaunchHaiPO.zip ]
+	if [ -e user_LaunchHaiPO.zip ]
 	then
 		#echo Adding attributes and Installing LaunchApp
 		#addattr -t \'MSGG\' BEOS:FILE_TYPES text/x-gettext-translation LauncherApp
 		#addattr -t mime BEOS:APP_SIG application/x-vnd.dw-LauncherApp LauncherApp
-		unzip LaunchHaiPO.zip
+		unzip user_LaunchHaiPO.zip
 		cp LaunchHaiPO /boot/home/config/non-packaged/data/HaiPO2/
 		mv LaunchHaiPO /boot/home/config/non-packaged/bin
-		if [ -f home-config-settings-mime_db-text.zip ]
+		if [ -f x-gettext-translation.zip ]
 		then
 			echo Installing mime types...
-			[ ! -d /boot/home/config/settings/mime_db/text/ ] && mkdir /boot/home/config/settings/mime_db/text
-			cp home-config-settings-mime_db-text.zip /boot/home/config/settings/mime_db/text/
-			cd /boot/home/config/settings/mime_db/text/
-			unzip /boot/home/config/settings/mime_db/text/home-config-settings-mime_db-text.zip
-			rm /boot/home/config/settings/mime_db/text/home-config-settings-mime_db-text.zip
+			[ ! -d /boot/home/config/settings/mime_db/ ] && mkdir /boot/home/config/settings/mime_db/
+			cp x-gettext-translation.zip /boot/home/config/settings/mime_db/
+			cd /boot/home/config/settings/mime_db/
+			unzip /boot/home/config/settings/mime_db/x-gettext-translation.zip
+			rm /boot/home/config/settings/mime_db/x-gettext-translation.zip
 			cd -
 		fi
 	fi
