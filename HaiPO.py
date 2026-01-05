@@ -818,6 +818,7 @@ class EventTextView(BTextView):
 		thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
 		thisBlistitem.tosave=True
 		tabs=len(self.superself.listemsgstr)-1
+		print("invio da Save (16893)")
 		bckpmsg=BMessage(16893)
 		bckpmsg.AddInt8('savetype',1)
 		bckpmsg.AddBool('tmx',True)
@@ -848,6 +849,7 @@ class EventTextView(BTextView):
 		thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
 		thisBlistitem.tosave=True
 		tabs=len(self.superself.listemsgstr)-1
+		print("invio da SaveToOrig (16893)")
 		savpmsg=BMessage(16893)
 		savpmsg.AddInt8('savetype',1)
 		savpmsg.AddBool('tmx',True)
@@ -989,32 +991,35 @@ class EventTextView(BTextView):
 				shrtctvalue=self.superself.shortcut
 				self.superself.sem.release()
 				item=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
-				if item.tosave==True or self.tosave==True: 
-					# if item is being flagged as tosave (in BListItem or in this BTextView) save it
-					tabs=len(self.superself.listemsgstr)-1
-					bckpmsg=BMessage(16893)
-					bckpmsg.AddBool('tmx',True)
-					bckpmsg.AddInt8('savetype',1)
-					bckpmsg.AddInt32('tvindex',self.superself.sourcestrings.lv.CurrentSelection())
-					bckpmsg.AddInt8('plurals',tabs)
-					if tabs == 0:   #->      if not thisBlistitem.hasplural:                         <-------------------------- or this?
-						item.txttosave=item.text
-						item.msgstrs=item.txttosave
-						bckpmsg.AddString('translation',item.txttosave)
-					else:
-						item.txttosavepl=[]
-						item.txttosave=self.superself.listemsgid[0].src.Text()
-						item.msgstrs=[]
-						item.msgstrs.append(item.txttosave)
-						bckpmsg.AddString('translation',item.txttosave)
-						cox=1
-						while cox < tabs+1:
-							item.msgstrs.append(self.superself.listemsgid[cox].src.Text())
-							item.txttosavepl.append(self.superself.listemsgid[cox].src.Text())
-							bckpmsg.AddString('translationpl'+str(cox-1),self.superself.listemsgid[1].src.Text())
-							cox+=1
-					bckpmsg.AddString('bckppath',self.superself.backupfile)
-					be_app.WindowAt(0).PostMessage(bckpmsg)
+				# this code below is a duplicate as self.Save is called when needed
+				# moreover this shouldn't be called if we select a suggestion (ctrl+shift+0-9)
+				#if item.tosave==True or self.tosave==True: 
+				#	print("richiesta da tasto")
+				#	# if item is being flagged as tosave (in BListItem or in this BTextView) save it
+				#	tabs=len(self.superself.listemsgstr)-1
+				#	bckpmsg=BMessage(16893)
+				#	bckpmsg.AddBool('tmx',True)
+				#	bckpmsg.AddInt8('savetype',1)
+				#	bckpmsg.AddInt32('tvindex',self.superself.sourcestrings.lv.CurrentSelection())
+				#	bckpmsg.AddInt8('plurals',tabs)
+				#	if tabs == 0:   #->      if not thisBlistitem.hasplural:                         <-------------------------- or this?
+				#		item.txttosave=item.text
+				#		item.msgstrs=item.txttosave
+				#		bckpmsg.AddString('translation',item.txttosave)
+				#	else:
+				#		item.txttosavepl=[]
+				#		item.txttosave=self.superself.listemsgid[0].src.Text()
+				#		item.msgstrs=[]
+				#		item.msgstrs.append(item.txttosave)
+				#		bckpmsg.AddString('translation',item.txttosave)
+				#		cox=1
+				#		while cox < tabs+1:
+				#			item.msgstrs.append(self.superself.listemsgid[cox].src.Text())
+				#			item.txttosavepl.append(self.superself.listemsgid[cox].src.Text())
+				#			bckpmsg.AddString('translationpl'+str(cox-1),self.superself.listemsgid[1].src.Text())
+				#			cox+=1
+				#	bckpmsg.AddString('bckppath',self.superself.backupfile)
+				#	be_app.WindowAt(0).PostMessage(bckpmsg)
 				
 				hasplural=item.hasplural
 				kmesg=BMessage(130550)
@@ -1099,6 +1104,7 @@ class EventTextView(BTextView):
 						return
 					return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 48:
+					# 0 key
 					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",9)
@@ -1109,6 +1115,7 @@ class EventTextView(BTextView):
 							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 49:
+					# 1 key
 					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",0)
@@ -1119,6 +1126,7 @@ class EventTextView(BTextView):
 							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 50:
+					# 2 key
 					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",1)
@@ -1129,6 +1137,7 @@ class EventTextView(BTextView):
 							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 51:
+					# 3 key
 					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",2)
@@ -1139,6 +1148,7 @@ class EventTextView(BTextView):
 							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 52:
+					# 4 key
 					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",3)
@@ -1149,6 +1159,7 @@ class EventTextView(BTextView):
 							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 53:
+					# 5 key
 					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",4)
@@ -1159,6 +1170,7 @@ class EventTextView(BTextView):
 							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 54:
+					# 6 key
 					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",5)
@@ -1169,6 +1181,7 @@ class EventTextView(BTextView):
 							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 55:
+					# 7 key
 					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",6)
@@ -1179,6 +1192,7 @@ class EventTextView(BTextView):
 							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 56:
+					# 8 key
 					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",7)
@@ -1189,6 +1203,7 @@ class EventTextView(BTextView):
 							self.tosave=True
 						return BTextView.KeyDown(self,char,bytes)
 				elif ochar == 57:
+					# 9 key
 					if shrtctvalue:
 						cpmsg=BMessage(8147420)
 						cpmsg.AddInt8("sel",8)
@@ -5144,7 +5159,7 @@ class MainWindow(BWindow):
 							thisBlistitem.msgstrs=[]
 							thisBlistitem.msgstrs.append(thisBlistitem.txttosave)
 							# TODO : betatesters: need to check plural changes
-							print(thisBlistitem.msgstrs)
+							#print(thisBlistitem.msgstrs)
 							bckpmsg.AddString('translation',thisBlistitem.txttosave)
 							cox=1
 							while cox < tabs+1:
@@ -5261,7 +5276,6 @@ class MainWindow(BWindow):
 							mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text(),self.listemsgstr[self.transtabview.Selection()].trnsl.Text())
 							Thread(target=self.tmcommunicate,args=(mx,)).start()
 
-
 					status2,tvindex=msg.FindInt32('tvindex')
 					status3,textsave=msg.FindString('translation')
 					status4,tabbi=msg.FindInt8('plurals')
@@ -5322,7 +5336,7 @@ class MainWindow(BWindow):
 				elif savetype == 4:
 					status,textsave=msg.FindString('header')
 					if status==B_OK:
-						print("l'header è stato trovato ed è:",textsave)
+						#print("l'header è stato trovato ed è:",textsave)
 						self.writter.acquire()
 						self.pofile.header=textsave
 						self.pofile.metadata['Last-Translator']=defname
@@ -5953,7 +5967,8 @@ class MainWindow(BWindow):
 					self.tmscrollsugj.lv.AddItem(self.sugjs[-1])
 					act+=1
 				#se tra gli elementi non c'è 100% ma il BListItem è segnato come tradotto, è il caso di inviarlo al file tmx
-				if self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection()).state == 1:	
+				if self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection()).state == 1:
+					
 					if self.tmscrollsugj.lv.CountItems()>0:
 						if self.tmscrollsugj.lv.ItemAt(0).percent < 100:
 							mx=(None,self.listemsgid[self.srctabview.Selection()].src.Text(),self.listemsgstr[self.transtabview.Selection()].trnsl.Text())
@@ -6105,7 +6120,7 @@ class MainWindow(BWindow):
 									polines.pop(uwu)
 									uwu-=1
 							else:
-								print("I had to eliminate excess elements, but I did not detect them")
+								print("I had to eliminate elements in excess, but I did not found them")
 					else:
 						i-=1#potrebbe essere continuazione riga precedente
 					i+=1
@@ -6355,7 +6370,7 @@ class MainWindow(BWindow):
 		# of this BWindow (don't know why). The actual Quit is done through be_app O_O'
 		self.keeperoftheloop = False
 		if tm:
-			print("tm attivo, invio codice di chiusura")
+			#print("tm attivo, invio codice di chiusura")
 			Thread(target=self.tmcommunicate,args=(None,)).start()
 		self.event.wait(0.2)
 		be_app.Quitter()
