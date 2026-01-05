@@ -818,7 +818,6 @@ class EventTextView(BTextView):
 		thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
 		thisBlistitem.tosave=True
 		tabs=len(self.superself.listemsgstr)-1
-		print("invio da Save (16893)")
 		bckpmsg=BMessage(16893)
 		bckpmsg.AddInt8('savetype',1)
 		bckpmsg.AddBool('tmx',True)
@@ -849,7 +848,6 @@ class EventTextView(BTextView):
 		thisBlistitem=self.superself.sourcestrings.lv.ItemAt(self.superself.sourcestrings.lv.CurrentSelection())
 		thisBlistitem.tosave=True
 		tabs=len(self.superself.listemsgstr)-1
-		print("invio da SaveToOrig (16893)")
 		savpmsg=BMessage(16893)
 		savpmsg.AddInt8('savetype',1)
 		savpmsg.AddBool('tmx',True)
@@ -5832,9 +5830,11 @@ class MainWindow(BWindow):
 				thisBlistitem=self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection())
 				try:
 					if thisBlistitem.tosave: #it happens when something SOMEHOW has not been saved
-						print("text to save (this shouldn\'t happen)",thisBlistitem.txttosave)
+						#print("text to save (this shouldn\'t happen)",thisBlistitem.txttosave)
+						Thread(target=self.Save,args=(self.backupfile,)).start()
 				except:
-					pass
+					say = BAlert('Warn', _('Error saving the previous entry'), _('OK'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
+					say.Go()
 				if self.listemsgstr[self.transtabview.Selection()].trnsl.Text()!="":
 					be_app.WindowAt(0).PostMessage(333111)
 			return
