@@ -4655,6 +4655,12 @@ class MainWindow(BWindow):
 					self.checkres.Hide()
 					self.curtain=True
 				Thread(target=self.curtain_roller,args=(self.curtain,)).start()
+				
+	def Volte(self,orig):
+		translation=self.traduttore.translate(text=orig)
+		mdm=BMessage(999)
+		mdm.AddString("translation",translation)
+		be_app.WindowAt(0).PostMessage(mdm)
 
 	def MessageReceived(self, msg):
 		if msg.what == B_MODIFIERS_CHANGED:
@@ -4848,7 +4854,13 @@ class MainWindow(BWindow):
 			self.traduttore = self.Traduttore(source=self.src_lang, target=self.trans_lang)
 			return
 		elif msg.what == 909:
-			self.es_trans.SetText(self.traduttore.translate(text=self.es_src.Text()),None)
+			Thread(target=self.Volte,args=(self.es_src.Text(),)).start()
+			#self.es_trans.SetText(self.traduttore.translate(text=self.es_src.Text()),None)
+			return
+		elif msg.what == 999:
+			status,txt=msg.FindString("translation")
+			if status == B_OK:
+				self.es_trans.SetText(txt,None)
 			return
 		elif msg.what == 735157:
 			color=rgb_color()
