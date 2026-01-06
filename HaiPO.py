@@ -1035,8 +1035,9 @@ class EventTextView(BTextView):
 								pick+=1
 						else:
 							gonogo=self.tosave
-						if gonogo:
+						if gonogo or item.tosave:
 							self.Save()
+							item.state=1
 						kmesg.AddInt8('movekind',0)
 						be_app.WindowAt(0).PostMessage(kmesg)
 						return
@@ -1055,8 +1056,9 @@ class EventTextView(BTextView):
 								pick+=1
 						else:
 							gonogo=self.tosave
-						if gonogo:
+						if gonogo or item.tosave:
 							self.Save()
+							item.state=1
 						kmesg.AddInt8('movekind',1)
 						be_app.WindowAt(0).PostMessage(kmesg)
 						return
@@ -1075,8 +1077,9 @@ class EventTextView(BTextView):
 								pick+=1
 						else:
 							gonogo=self.tosave
-						if gonogo:
-							self.Save()						
+						if gonogo or item.tosave:
+							self.Save()
+							item.state=1							
 						kmesg.AddInt8('movekind',2)
 						be_app.WindowAt(0).PostMessage(kmesg)
 						return
@@ -1095,8 +1098,9 @@ class EventTextView(BTextView):
 								pick+=1
 						else:
 							gonogo=self.tosave
-						if gonogo:
+						if gonogo or item.tosave:
 							self.Save()
+							item.state=1
 						kmesg.AddInt8('movekind',3)
 						be_app.WindowAt(0).PostMessage(kmesg)
 						return
@@ -4899,6 +4903,7 @@ class MainWindow(BWindow):
 				thisBlistitem=self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection())
 				thisBlistitem.tosave=True
 				tabs=len(self.listemsgstr)-1
+				#.state=1
 				#bckpmsg=BMessage(16893)
 				#bckpmsg.AddInt8('savetype',1)
 				#bckpmsg.AddBool('tmx',False)
@@ -5830,8 +5835,13 @@ class MainWindow(BWindow):
 				thisBlistitem=self.sourcestrings.lv.ItemAt(self.sourcestrings.lv.CurrentSelection())
 				try:
 					if thisBlistitem.tosave: #it happens when something SOMEHOW has not been saved
+						#for example when copy from source with a keyboard shortcut
 						#print("text to save (this shouldn\'t happen)",thisBlistitem.txttosave)
 						Thread(target=self.Save,args=(self.backupfile,)).start()
+						thisBlistitem.state=1
+						thisBlistitem.tosave=False
+						thisBlistitem.txttosave=""
+						thisBlistitem.txttosavepl=[]
 				except:
 					say = BAlert('Warn', _('Error saving the previous entry'), _('OK'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
 					say.Go()
