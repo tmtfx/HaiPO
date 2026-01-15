@@ -1,6 +1,11 @@
 #!/boot/system/bin/python3
-from Be import BApplication, BWindow, BView, BMenu,BMenuBar, BMenuItem, BSeparatorItem, BMessage, window_type, B_NOT_RESIZABLE, B_CLOSE_ON_ESCAPE, B_QUIT_ON_WINDOW_CLOSE, BButton, BTextView, BTextControl, BAlert, BListItem,BMenuField, BListView, BScrollView,BRect, BBox, BFont, InterfaceDefs, BPath, BDirectory, BEntry, BStringItem, BStringView,BCheckBox,BTranslationUtils, BBitmap, AppDefs, BTab, BTabView, BNodeInfo, BMimeType, BScrollBar,BPopUpMenu,BScreen,BStatusBar,BPoint,BNode,BUrl# BFile,
-from Be.View import B_FOLLOW_NONE,set_font_mask,B_WILL_DRAW,B_NAVIGABLE,B_FULL_UPDATE_ON_RESIZE,B_FRAME_EVENTS,B_PULSE_NEEDED,B_FOLLOW_ALL_SIDES,B_FOLLOW_TOP,B_FOLLOW_LEFT_RIGHT,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_FOLLOW_TOP_BOTTOM
+from Be import BApplication, BWindow, BView, BMenu,BMenuBar, BMenuItem, BSeparatorItem, BMessage
+from Be import window_type, B_NOT_RESIZABLE, B_CLOSE_ON_ESCAPE, B_QUIT_ON_WINDOW_CLOSE, BButton
+from Be import BTextView, BTextControl, BAlert, BListItem,BMenuField, BListView, BScrollView,BRect
+from Be import BBox, BFont, InterfaceDefs, BPath, BDirectory, BEntry, BStringItem, BStringView
+from Be import BCheckBox,BTranslationUtils, BBitmap, AppDefs, BTab, BTabView, BNodeInfo, BMimeType
+from Be import BScrollBar,BPopUpMenu,BScreen,BStatusBar,BPoint,BNode,BUrl,BRoster# BFile,
+from Be.View import B_FOLLOW_NONE,set_font_mask,B_WILL_DRAW,B_NAVIGABLE,B_FULL_UPDATE_ON_RESIZE,B_FRAME_EVENTS,B_PULSE_NEEDED,B_FOLLOW_ALL_SIDES,B_FOLLOW_TOP,B_FOLLOW_LEFT_RIGHT,B_FOLLOW_BOTTOM,B_FOLLOW_LEFT,B_FOLLOW_RIGHT,B_FOLLOW_TOP_BOTTOM,B_NAVIGABLE_JUMP
 from Be.Menu import menu_info,get_menu_info
 from Be.FindDirectory import *
 from Be.Directory import create_directory
@@ -1654,7 +1659,7 @@ class CreateUserBox(BBox):
 	ali=[]
 	email_regex = re.compile(r"[^@]+@[^@]+\.[^@]+")
 	def __init__(self,frame):
-		BBox.__init__(self,frame,"UserBox",0x0202|0x0404,InterfaceDefs.border_style.B_NO_BORDER)
+		BBox.__init__(self,frame,"UserBox",B_FOLLOW_ALL_SIDES,B_WILL_DRAW | B_FRAME_EVENTS | B_NAVIGABLE_JUMP,border_style.B_NO_BORDER)#0x0202|0x0404,InterfaceDefs.border_style.B_NO_BORDER)
 		self.frame = frame
 		box=[10,10,frame.right-10,frame.bottom-10]
 		step = 34
@@ -3072,7 +3077,8 @@ class POTchooser(BWindow):
 		h=a.virtual_height
 		fon=BFont()
 		BWindow.__init__(self, BRect(w/2-200, h/2-100, w/2+200, h/2+100),"Choose your destiny...",window_type.B_FLOATING_WINDOW, B_NOT_RESIZABLE|B_CLOSE_ON_ESCAPE)
-		self.bckgnd = BView(self.Bounds(), "bckgnd_View", 8, 20000000)
+		self.bckgnd = BView(self.Bounds(), "bckgnd_View", B_FOLLOW_ALL_SIDES, B_WILL_DRAW)
+		self.bckgnd.SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR))
 		self.AddChild(self.bckgnd,None)
 		bounds=self.Bounds()
 		r = bounds.right
@@ -3249,7 +3255,8 @@ class MainWindow(BWindow):
 		self.speloc = threading.Semaphore()
 		self.intime=time.time()
 		self.t1=time.time()
-		self.bckgnd = BView(self.Bounds(), "bckgnd_View", 8, 20000000)
+		self.bckgnd = BView(self.Bounds(), "bckgnd_View", B_FOLLOW_ALL_SIDES, B_WILL_DRAW)
+		self.bckgnd.SetViewColor(ui_color(B_PANEL_BACKGROUND_COLOR))
 		rect=self.bckgnd.Bounds()
 		self.AddChild(self.bckgnd,None)
 		self.bckgnd.SetResizingMode(B_FOLLOW_ALL_SIDES)
@@ -3566,8 +3573,8 @@ class MainWindow(BWindow):
 			else:
 				self.bar.AddItem(menu)
 		
-		self.upperbox = BBox(BRect(0,barheight+2,bckgnd_bounds.Width(),bckgnd_bounds.Height()/2-1),"Under_upperbox",B_FOLLOW_TOP,border_style.B_FANCY_BORDER)
-		self.lowerbox = BBox(BRect(0,bckgnd_bounds.Height()/2+1,bckgnd_bounds.Width()*2/3,bckgnd_bounds.Height()),"Under_lowerbox",B_FOLLOW_BOTTOM,border_style.B_FANCY_BORDER)
+		self.upperbox = BBox(BRect(0,barheight+2,bckgnd_bounds.Width(),bckgnd_bounds.Height()/2-1),"Under_upperbox",B_FOLLOW_TOP,B_WILL_DRAW | B_FRAME_EVENTS | B_NAVIGABLE_JUMP,border_style.B_FANCY_BORDER)
+		self.lowerbox = BBox(BRect(0,bckgnd_bounds.Height()/2+1,bckgnd_bounds.Width()*2/3,bckgnd_bounds.Height()),"Under_lowerbox",B_FOLLOW_BOTTOM,B_WILL_DRAW | B_FRAME_EVENTS | B_NAVIGABLE_JUMP,border_style.B_FANCY_BORDER)
 		self.spaceright=bckgnd_bounds.Width()/3
 		self.bckgnd.AddChild(self.upperbox,None)
 		self.bckgnd.AddChild(self.lowerbox,None)
@@ -3671,7 +3678,7 @@ class MainWindow(BWindow):
 		self.AddChild(self.overbox,None)
 		self.overbox.Hide()
 		
-		self.infobox=BBox(BRect(self.lowerbox.Bounds().right+10,self.upperbox.Bounds().Height()+barheight+10,self.bckgnd.Bounds().right-10,self.bckgnd.Bounds().bottom-10),"infobox",B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM,border_style.B_FANCY_BORDER)
+		self.infobox=BBox(BRect(self.lowerbox.Bounds().right+10,self.upperbox.Bounds().Height()+barheight+10,self.bckgnd.Bounds().right-10,self.bckgnd.Bounds().bottom-10),"infobox",B_FOLLOW_RIGHT|B_FOLLOW_BOTTOM,B_WILL_DRAW | B_FRAME_EVENTS | B_NAVIGABLE_JUMP,border_style.B_FANCY_BORDER)
 		self.infoboxwidth=self.infobox.Bounds().Width()
 		self.infoboxheight=self.infobox.Bounds().Height()
 		self.bckgnd.AddChild(self.infobox,None)
@@ -3907,7 +3914,7 @@ class MainWindow(BWindow):
 			say.Go()
 			return False
 		
-	def OpenPOFile(self, f):		
+	def OpenPOFile(self, f):
 		#1)clean all
 		self.sourcestrings.Clear()
 		self.NichilizeTM()
@@ -4141,8 +4148,38 @@ class MainWindow(BWindow):
 					langlist.append((i.txt,i.iso))
 				self.chooser=POTchooser(f,langlist,self.oldsize)
 				self.chooser.Show()
+		
 	def loadPO(self, pth, pof):
 		filen, file_ext = os.path.splitext(pth)
+		rost=BRoster()
+		baluba = rost.GetRecentDocuments(255,None,None)
+		#baluba.PrintToStream()
+		num=baluba.CountNames(B_REF_TYPE)
+		pathlist={}
+		# this first while isn't necessary as it should have only one "B_REF_TYPE"
+		if num>0:
+			i=0
+			while i<num:
+				s,n,t,c = baluba.GetInfo(B_REF_TYPE,i)
+				x=0
+				while x<c:
+					status,foundref=baluba.FindRef(n,x)
+					newdict={BPath(foundref).Path():foundref}
+					pathlist.update(newdict)
+					x+=1
+				i+=1
+		booladd=True
+		for key in pathlist:
+			if pth == key:	
+				booladd=False
+				break
+		if booladd:
+			print("aggiungo a documenti recenti")
+			entry=BEntry(pth)
+			er=entry_ref()
+			s=entry.GetRef(er)
+			if s == B_OK:
+				rost.AddToRecentDocuments(er)
 		self.wob=False
 		backupfile = filen+".temp"+file_ext
 		if os.path.exists(backupfile):
