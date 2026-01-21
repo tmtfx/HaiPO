@@ -195,9 +195,9 @@ global _
 _ = t.gettext
 # Translators: The name of this app
 appname=_("HaiPO")
-ver="2.6"
+ver="2.7"
 # Translators: do not translate, just transliterate
-state=_("release")
+state=_("beta")
 version=" ".join((appname,ver,state))#'HaiPO x.x beta'
 
 	
@@ -1741,7 +1741,7 @@ class CreateUserBox(BBox):
 				self.ali.append(LangListItem(dn,l,suggested))
 				self.acceptedlang.lv.AddItem(self.ali[-1])
 		except Exception as e:
-			tstts=(_('Missing accepted languages in config.ini, exception:')+"\n"+e)
+			tstts=(_('Missing accepted languages in config.ini, exception:')+"\n"+str(e))
 			say = BAlert('not_found', tstts, _('Ok'),None, None, button_width.B_WIDTH_AS_USUAL, alert_type.B_WARNING_ALERT)
 			say.Go()				
 			#print(e)#missing accepted languages
@@ -3799,15 +3799,18 @@ class MainWindow(BWindow):
 		i=0
 		while i<c:
 			status,foundref=baluba.FindRef(n,i)
-			percorso=BPath(foundref).Path()
-			nm,ext = os.path.splitext(percorso)
-			## TODO: Activate this when GetType change become public
-			##bnod= BNode(foundref)
-			##ndinf=BNodeInfo(bnod)
-			##nstatus,typer=ndinf.GetType()
-			if ext == ".po" or ext == ".pot": #or type == "text/x-gettext-translation" or type == "text/x-gettext-translation-template"
-				newdict={percorso:foundref}
-				pathlist.update(newdict)
+			if status == B_OK:
+				entro=BEntry(foundref)
+				if entro.Exists():
+					percorso=BPath(foundref).Path()
+					nm,ext = os.path.splitext(percorso)
+					## TODO: Activate this when GetType change become public
+					##bnod= BNode(foundref)
+					##ndinf=BNodeInfo(bnod)
+					##nstatus,typer=ndinf.GetType()
+					if ext == ".po" or ext == ".pot": #or type == "text/x-gettext-translation" or type == "text/x-gettext-translation-template"
+						newdict={percorso:foundref}
+						pathlist.update(newdict)
 			i+=1
 		i+=1
 		for key in pathlist:
