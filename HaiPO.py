@@ -4156,7 +4156,7 @@ class MainWindow(BWindow):
 		#baluba.PrintToStream()
 		num=baluba.CountNames(B_REF_TYPE)
 		pathlist={}
-		# this first while isn't necessary as it should have only one "B_REF_TYPE"
+		# this "num" isn't necessary as it should have only one "B_REF_TYPE"
 		if num>0:
 			i=0
 			while i<num:
@@ -4170,16 +4170,16 @@ class MainWindow(BWindow):
 				i+=1
 		booladd=True
 		for key in pathlist:
-			if pth == key:	
+			if pth == key:
 				booladd=False
 				break
 		if booladd:
-			print("aggiungo a documenti recenti")
+			# This loading file isn't in recent documents, let's add it
 			entry=BEntry(pth)
 			er=entry_ref()
 			s=entry.GetRef(er)
 			if s == B_OK:
-				rost.AddToRecentDocuments(er)
+				rost.AddToRecentDocuments(er,None)
 		self.wob=False
 		backupfile = filen+".temp"+file_ext
 		if os.path.exists(backupfile):
