@@ -20,7 +20,7 @@ from Be.FilePanel import *
 from Be.Font import B_BOLD_FACE,B_ITALIC_FACE
 
 from Be.InterfaceDefs import *
-from Be.StorageDefs import node_flavor
+from Be.StorageDefs import node_flavor, B_MIME_TYPE_LENGTH
 from Be.TypeConstants import *
 from Be.Accelerant import display_mode
 from Be.GraphicsDefs import rgb_color,B_TRANSPARENT_COLOR
@@ -3229,8 +3229,10 @@ class MainWindow(BWindow):
 	transmnu=_('Translation')
 	cpfrsr= _('Copy from source (ctrl+shift+s)')
 	dragmsg=struct.unpack('!l', b'DATA')[0]
+	recentmsg=struct.unpack('!l', b'RCNT')[0]
+	recentname=_('Recent')
 	Menus = (
-		(_('File'), ((295485, _('Open')), (2, _('Save')), (1, _('Close')), (5, _('Save as...')),(None, None),(B_QUIT_REQUESTED, _('Quit')))),
+		(_('File'), ((295485, _('Open')), (recentmsg, recentname),(2, _('Save')), (1, _('Close')), (5, _('Save as...')),(None, None),(B_QUIT_REQUESTED, _('Quit')))),
 		(transmnu, ((3, cpfrsr), (53,_('Edit comment')), (70,_('Done and next')), (71,_('Mark/Unmark fuzzy (ctrl+b)')), (72, _('Previous w/o saving')),(73,_('Next w/o saving')),(None, None),(42, _('Po properties')), (43, _('Po header')),(None, None),(14183, _('Compile mo file')),(None, None), (6, _('Find source')), (7, _('Find/Replace translation')))),
 		(viewtxt, ((74,fuztxt), (75, unttxt),(76,tratxt),(77, obstxt))),
 		(_('Settings'), ((40, _('General')),(41, _('User settings')), (44, _('Spellcheck')), (45,_('Translation Memory')))),
@@ -3531,7 +3533,7 @@ class MainWindow(BWindow):
 			self.trans_lang="it"
 		self.curtain=False
 		
-
+		
 		self.steps=['˹','   ˺','   ˼','˻']
 		self.indsteps=0
 		self.ofp=BFilePanel(B_OPEN_PANEL,None,None,node_flavor.B_ANY_NODE,True, None, None, True, True)
@@ -3555,18 +3557,23 @@ class MainWindow(BWindow):
 				if k is None:
 						menu.AddItem(BSeparatorItem())
 				else:
-						menuitem=BMenuItem(name, BMessage(k), '\x00',0)
-						#in base a Settings
-						if name == self.fuztxt:#"Fuzzy":
-							menuitem.SetMarked(self.poview[0])
-						elif name == self.unttxt:#"Untranslated":
-							menuitem.SetMarked(self.poview[1])
-						elif name == self.tratxt:#"Translated":
-							menuitem.SetMarked(self.poview[2])
-						elif name == self.obstxt:#"Obsolete":
-							menuitem.SetMarked(self.poview[3])
-						self.viewarr.append(menuitem)
-						menu.AddItem(menuitem)
+					if name == self.recentname:
+						self.recentmenu=BMenu(self.recentname)
+						menu.AddItem(BMenuItem(self.recentmenu,BMessage(self.recentmsg)))
+						self.PopulateRecentMenu()
+						continue
+					menuitem=BMenuItem(name, BMessage(k), '\x00',0)
+					#in base a Settings
+					if name == self.fuztxt:#"Fuzzy":
+						menuitem.SetMarked(self.poview[0])
+					elif name == self.unttxt:#"Untranslated":
+						menuitem.SetMarked(self.poview[1])
+					elif name == self.tratxt:#"Translated":
+						menuitem.SetMarked(self.poview[2])
+					elif name == self.obstxt:#"Obsolete":
+						menuitem.SetMarked(self.poview[3])
+					self.viewarr.append(menuitem)
+					menu.AddItem(menuitem)
 			if savemenu:
 				self.savemenu = menu
 				self.bar.AddItem(self.savemenu)
@@ -3773,7 +3780,44 @@ class MainWindow(BWindow):
 			f=os.path.abspath(arg)
 			if BEntry(f).Exists():
 				self.OpenPOFile(f)
-	
+	def PopulateRecentMenu(self):
+		numi=self.recentmenu.CountItems()
+		i=0
+		while i<numi:
+			itmRemoved=self.recentmenu.RemoveItem(i)
+			del itmRemoved
+			i+=1
+		rost=BRoster()
+		baluba = rost.GetRecentDocuments(50,None,None)
+		#num=baluba.CountNames(B_REF_TYPE)
+		pathlist={}
+		# this "num" isn't necessary as it should have only one "B_REF_TYPE"
+		#if num>0:
+		#	i=0
+		#	while i<num:
+		s,n,t,c = baluba.GetInfo(B_REF_TYPE,0)
+		i=0
+		while i<c:
+			status,foundref=baluba.FindRef(n,i)
+			percorso=BPath(foundref).Path()
+			nm,ext = os.path.splitext(percorso)
+			## TODO: Activate this when GetType change become public
+			##bnod= BNode(foundref)
+			##ndinf=BNodeInfo(bnod)
+			##nstatus,typer=ndinf.GetType()
+			if ext == ".po" or ext == ".pot": #or type == "text/x-gettext-translation" or type == "text/x-gettext-translation-template"
+				newdict={percorso:foundref}
+				pathlist.update(newdict)
+			i+=1
+		i+=1
+		for key in pathlist:
+			msg=BMessage(3891)
+			msg.AddRef("ref",pathlist[key])
+			msg.AddString("path",key)
+			status,name=BEntry(pathlist[key]).GetName()
+			if status==B_OK:
+				self.recentmenu.AddItem(BMenuItem(name,msg,'\x00',0))
+		# creare menuitem con Leaf di file + messaggio contenente path/entry_ref
 	def NichilizeTabs(self):
 		for i in self.listemsgstr:
 			i.trnsl.SelectAll()
@@ -4700,6 +4744,7 @@ class MainWindow(BWindow):
 		be_app.WindowAt(0).PostMessage(mdm)
 
 	def MessageReceived(self, msg):
+		#msg.PrintToStream()
 		if msg.what == B_MODIFIERS_CHANGED:
 			status,value=msg.FindInt32("modifiers")
 			if status==B_OK:
@@ -4756,6 +4801,10 @@ class MainWindow(BWindow):
 				else:
 					self.esbox.ResizeBy(0,-1)
 			return
+		elif msg.what == 3891:
+			s,pathcorso=msg.FindString("path")
+			s,ref=msg.FindRef("ref")
+			self.OpenPOFile(pathcorso)
 		elif msg.what == self.dragmsg:
 			#msg.PrintToStream()
 			s,ref=msg.FindRef("refs")
@@ -4834,6 +4883,8 @@ class MainWindow(BWindow):
 				self.pofile.metadata['X-Editor']=version
 				Thread(target=self.Save,args=(savepath,)).start()
 			return
+		elif msg.what == self.recentmsg:
+			self.PopulateRecentMenu()
 		elif msg.what == 3:
 			#copy from source from menu
 			if self.sourcestrings.lv.CurrentSelection()>-1:
